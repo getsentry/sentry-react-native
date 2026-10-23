@@ -59,36 +59,60 @@ export interface ExpoRouterInternalNavigationEvents {
  * Returns the navigation container ref and route info of Expo Router, or `null`
  * if `expo-router` is not installed or does not expose the expected API.
  *
- * Only module paths that exist in every supported Expo Router version are
- * required here. Expo Router 58 declares `exports`, so Metro warns about any
- * deep path that is missing from the installed version.
+ * Expo Router 58 declares `exports`, so Metro warns about any deep path that is
+ * missing from it. Older versions have no `exports`, so a missing deep path
+ * there is a silent optional dependency.
  */
 export function tryGetExpoRouterStore(): ExpoRouterStore | null {
+  let getNavigationContainerRef: (() => ExpoRouterNavigationRef | undefined) | undefined;
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const expoRouter = require('expo-router') as {
       useNavigationContainerRef?: () => ExpoRouterNavigationRef | undefined;
     };
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const routeInfoModule = require('expo-router/build/global-state/getRouteInfoFromState') as {
-      getRouteInfoFromState?: (state: unknown) => ExpoRouterUrlObject;
-    };
-    // Not a React hook: it returns a module-level ref in Expo Router 57 and 58.
-    const getNavigationContainerRef = expoRouter?.useNavigationContainerRef;
-    const getRouteInfoFromState = routeInfoModule?.getRouteInfoFromState;
-    if (!getNavigationContainerRef || !getRouteInfoFromState) {
-      return null;
-    }
-    const navigationRef = getNavigationContainerRef();
-    return {
-      navigationRef,
-      getRouteInfo: () => {
-        const state = navigationRef?.current ? navigationRef.getRootState?.() : undefined;
-        return state ? getRouteInfoFromState(state) : undefined;
-      },
-    };
+    // Not a React hook: it reads a module-level store, so it is safe to call outside render.
+    getNavigationContainerRef = expoRouter?.useNavigationContainerRef;
   } catch {
     return null;
+  }
+  if (!getNavigationContainerRef) {
+    return null;
+  }
+  const getRef = getNavigationContainerRef;
+  const readNavigationContainerRef = (): ExpoRouterNavigationRef | undefined => {
+    try {
+      return getRef();
+    } catch {
+      return undefined;
+    }
+  };
+  const getRouteInfoFromState = tryGetRouteInfoFromState();
+
+  return {
+    // Before Expo Router 58 the ref is undefined until the Root Layout renders, so read it on every access.
+    get navigationRef() {
+      return readNavigationContainerRef();
+    },
+    getRouteInfo: getRouteInfoFromState
+      ? () => {
+          const navigationRef = readNavigationContainerRef();
+          const state = navigationRef?.current ? navigationRef.getRootState?.() : undefined;
+          return state ? getRouteInfoFromState(state) : undefined;
+        }
+      : undefined,
+  };
+}
+
+/** `getRouteInfoFromState` exists only in Expo Router 56 and later. */
+function tryGetRouteInfoFromState(): ((state: unknown) => ExpoRouterUrlObject) | undefined {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require('expo-router/build/global-state/getRouteInfoFromState') as {
+      getRouteInfoFromState?: (state: unknown) => ExpoRouterUrlObject;
+    };
+    return mod?.getRouteInfoFromState;
+  } catch {
+    return undefined;
   }
 }
 
