@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Persist fatal JS error envelopes to disk on Android before the process exits ([#NNNN](https://github.com/getsentry/sentry-react-native/pull/NNNN))
+- Persist fatal JS error envelopes to disk on Android before the process exits ([#6937](https://github.com/getsentry/sentry-react-native/pull/6937))
   - The hard-crash envelope was only queued on the transport thread, so the event was lost when React Native terminated the process right after. It is now written to the offline cache on the calling thread and sent on the next launch, matching iOS.
 
 ### Dependencies
