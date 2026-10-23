@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Internal
+
+- Track `sentryWebViewProps` adoption via a feature marker ([#6938](https://github.com/getsentry/sentry-react-native/pull/6938))
+
 ### Dependencies
 
 - Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))

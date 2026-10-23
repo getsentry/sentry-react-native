@@ -1,16 +1,18 @@
-import { getTraceData } from '@sentry/core';
+import { getClient, getTraceData } from '@sentry/core';
 
-import { sentryWebViewProps } from '../../src/js/tracing/webview';
+import { sentryWebViewProps, WEBVIEW_INTEGRATION_NAME } from '../../src/js/tracing/webview';
 
 jest.mock('@sentry/core', () => {
   const actual = jest.requireActual('@sentry/core');
   return {
     ...actual,
     getTraceData: jest.fn(),
+    getClient: jest.fn(),
   };
 });
 
 const mockGetTraceData = getTraceData as jest.Mock;
+const mockGetClient = getClient as jest.Mock;
 
 const SENTRY_TRACE = 'd4cda95b652f4a1592b449d5929fda1b-6e0c63257de34c92-1';
 const BAGGAGE = 'sentry-trace_id=d4cda95b652f4a1592b449d5929fda1b,sentry-environment=prod';
@@ -405,5 +407,64 @@ describe('sentryWebViewProps', () => {
         mockGetTraceData.mockReset();
       }
     });
+  });
+});
+
+describe('sentryWebViewProps feature adoption marker', () => {
+  afterEach(() => {
+    mockGetClient.mockReset();
+    mockGetTraceData.mockReset();
+  });
+
+  it('registers the WebView feature marker on the client when used', () => {
+    const integrations: Record<string, { name: string }> = {};
+    mockGetClient.mockReturnValue({
+      getIntegrationByName: (name: string) => integrations[name],
+      addIntegration: (integration: { name: string }) => {
+        integrations[integration.name] = integration;
+      },
+    });
+    mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE, baggage: BAGGAGE });
+
+    sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+    // The marker flows into `event.sdk.integrations`, the feature-adoption channel.
+    expect(integrations[WEBVIEW_INTEGRATION_NAME]).toEqual({ name: WEBVIEW_INTEGRATION_NAME });
+  });
+
+  it('registers the marker on use even when there is no active trace to inject', () => {
+    const addIntegration = jest.fn();
+    mockGetClient.mockReturnValue({ getIntegrationByName: () => undefined, addIntegration });
+    // No trace -> the injection is a no-op, but adoption is still recorded.
+    mockGetTraceData.mockReturnValue({});
+
+    sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+    expect(addIntegration).toHaveBeenCalledWith({ name: WEBVIEW_INTEGRATION_NAME });
+  });
+
+  it('does not register twice (idempotent)', () => {
+    const addIntegration = jest.fn();
+    let registered = false;
+    mockGetClient.mockReturnValue({
+      getIntegrationByName: () => (registered ? { name: WEBVIEW_INTEGRATION_NAME } : undefined),
+      addIntegration: (integration: { name: string }) => {
+        registered = true;
+        addIntegration(integration);
+      },
+    });
+    mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE });
+
+    sentryWebViewProps({ allowedHosts: ['example.com'] });
+    sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+    expect(addIntegration).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when no client is available', () => {
+    mockGetClient.mockReturnValue(undefined);
+    mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE });
+
+    expect(() => sentryWebViewProps({ allowedHosts: ['example.com'] })).not.toThrow();
   });
 });
