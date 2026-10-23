@@ -7,7 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Sentry from '@sentry/react-native';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
-import { LogBox, Platform } from 'react-native';
+import { Button, LogBox, Platform, Text, View } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 
 import RunningIndicator from './components/RunningIndicator';
@@ -56,6 +56,41 @@ const StackNavigator: TypedNavigator<any, any> = isMobileOs
   ? createNativeStackNavigator()
   : createStackNavigator();
 const BottomTabNavigator = createBottomTabNavigator();
+
+// Kept as a reference so the Form Sheet demo can toggle the experimental
+// `presentOverNativeModals` option at runtime (see `FormSheetScreen`). Left
+// disabled by default so the regular feedback flow — and the Maestro e2e that
+// runs against this sample — exercise the stable `Modal` path.
+const feedbackIntegration = Sentry.feedbackIntegration({
+  imagePicker: ImagePicker,
+  enableScreenshot: true,
+  enableTakeScreenshot: true,
+  enableShakeToReport: true,
+  styles: {
+    submitButton: {
+      backgroundColor: '#6a1b9a',
+      paddingVertical: 15,
+      borderRadius: 5,
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+  },
+  namePlaceholder: 'Fullname',
+  buttonOptions: {
+    styles: {
+      triggerButton: {
+        marginBottom: 75, // Place above the tab bar
+      },
+    },
+  },
+  screenshotButtonOptions: {
+    styles: {
+      triggerButton: {
+        marginBottom: 75, // Place above the tab bar
+      },
+    },
+  },
+});
 
 Sentry.init({
   beforeSend: (event: Sentry.ErrorEvent) => {
@@ -125,36 +160,7 @@ Sentry.init({
               false
             : true,
       }),
-      Sentry.feedbackIntegration({
-        imagePicker: ImagePicker,
-        enableScreenshot: true,
-        enableTakeScreenshot: true,
-        enableShakeToReport: true,
-        styles: {
-          submitButton: {
-            backgroundColor: '#6a1b9a',
-            paddingVertical: 15,
-            borderRadius: 5,
-            alignItems: 'center',
-            marginBottom: 10,
-          },
-        },
-        namePlaceholder: 'Fullname',
-        buttonOptions: {
-          styles: {
-            triggerButton: {
-              marginBottom: 75, // Place above the tab bar
-            },
-          },
-        },
-        screenshotButtonOptions: {
-          styles: {
-            triggerButton: {
-              marginBottom: 75, // Place above the tab bar
-            },
-          },
-        },
-      }),
+      feedbackIntegration,
       Sentry.extraErrorDataIntegration(),
       sampleFeatureFlagsIntegration,
       sampleTurboModuleContextIntegration,
@@ -263,6 +269,30 @@ function BottomTabsNavigator() {
   );
 }
 
+// Demonstrates the experimental overlay presentation of the feedback form over a
+// native-stack `formSheet`. The default `Modal` path cannot present over an
+// already-presented sheet on iOS (UIKit refuses the second presentation — this
+// is #6875), so this screen enables `_experiments.presentOverNativeModals` at
+// runtime on the shared `feedbackIntegration` instance before opening the form,
+// which the provider reads each time the form is shown. The default `Modal` path
+// stays exercised by the regular feedback button and the Maestro e2e.
+function FormSheetScreen() {
+  const showForm = () => {
+    feedbackIntegration.experiments.presentOverNativeModals = true;
+    Sentry.showFeedbackForm();
+  };
+  return (
+    <View style={{ padding: 24, gap: 16 }}>
+      <Text style={{ fontSize: 16 }}>
+        This screen is a native-stack `formSheet`. Tap below to open the
+        feedback form above it using the experimental `FullWindowOverlay`
+        presentation.
+      </Text>
+      <Button title="Show feedback form" onPress={showForm} />
+    </View>
+  );
+}
+
 function RootNavigationContainer() {
   return (
     <Sentry.NavigationContainer>
@@ -273,6 +303,11 @@ function RootNavigationContainer() {
         <StackNavigator.Screen
           name="BottomTabs"
           component={BottomTabsNavigator}
+        />
+        <StackNavigator.Screen
+          name="FormSheet"
+          component={FormSheetScreen}
+          options={{ presentation: 'formSheet', headerShown: true }}
         />
         <StackNavigator.Screen
           name="Webview"

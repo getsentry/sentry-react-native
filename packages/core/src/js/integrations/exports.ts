@@ -19,6 +19,7 @@ export { expoUpdatesListenerIntegration } from './expoupdateslistener';
 export { spotlightIntegration } from './spotlight';
 export { mobileReplayIntegration } from '../replay/mobilereplay';
 export { feedbackIntegration } from '../feedback/integration';
+export type { FeedbackExperiments } from '../feedback/integration';
 export { browserReplayIntegration } from '../replay/browserReplay';
 export { appStartIntegration } from '../tracing/integrations/appStart';
 export { nativeFramesIntegration, createNativeFramesIntegrations } from '../tracing/integrations/nativeFrames';

@@ -431,6 +431,11 @@ export interface FeedbackCallbacks {
     onSubmitSuccess: (data: FeedbackFormData) => void;
 }
 
+// @public
+export type FeedbackExperiments = {
+    presentOverNativeModals?: boolean;
+};
+
 // Warning: (ae-forgotten-export) The symbol "FeedbackFormState" needs to be exported by the entry point index.d.ts
 //
 // @beta
@@ -535,6 +540,7 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
     themeLight?: Partial<FeedbackFormTheme>;
     themeDark?: Partial<FeedbackFormTheme>;
     enableShakeToReport?: boolean;
+    _experiments?: FeedbackExperiments;
 }) => FeedbackIntegration;
 
 // @public

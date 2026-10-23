@@ -7870,6 +7870,7 @@ __metadata:
     promise: "*"
     react: ">=17.0.0"
     react-native: ">=0.65.0"
+    react-native-screens: ">=3.29.0"
   peerDependenciesMeta:
     "@babel/core":
       optional: true
@@ -7898,6 +7899,8 @@ __metadata:
     open:
       optional: true
     promise:
+      optional: true
+    react-native-screens:
       optional: true
   bin:
     sentry-eas-build-on-complete: scripts/eas-build-hook.js
