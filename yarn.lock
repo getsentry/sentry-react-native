@@ -7820,7 +7820,7 @@ __metadata:
     "@sentry/expo-upload-sourcemaps": "workspace:*"
     "@sentry/react": "npm:10.76.2"
     "@sentry/typescript": "npm:10.76.2"
-    "@sentry/wizard": "npm:8.0.1"
+    "@sentry/wizard": "npm:9.0.0"
     "@testing-library/react-native": "npm:^13.2.2"
     "@types/jest": "npm:^29.5.13"
     "@types/node": "npm:^20.9.3"
@@ -7965,9 +7965,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:8.0.1":
-  version: 8.0.1
-  resolution: "@sentry/wizard@npm:8.0.1"
+"@sentry/wizard@npm:9.0.0":
+  version: 9.0.0
+  resolution: "@sentry/wizard@npm:9.0.0"
   dependencies:
     "@clack/prompts": "npm:0.7.0"
     "@sentry/node": "npm:^10.69.0"
@@ -7986,7 +7986,7 @@ __metadata:
     yargs: "npm:^16.2.0"
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 10c0/e672ee316bad7f088cc43ab15e7bdbcf25637ace6747e2595e440c246b9c6bdc41d4aa19119ccc82ee57727133cfd6d6b37311b7a6ad997a796d832cc258d629
+  checksum: 10c0/fbc9bf2d65f4b8a7b5f40ccfa4af4b00c4dc7bf2eaa3e6dcafd2cfefa481cec310aedf6b2faa1f4ef09f398d763a529c3c471b4be152735143beb9a767c5dbb9
   languageName: node
   linkType: hard
 
