@@ -11,6 +11,8 @@
 ### Fixes
 
 - Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
+- Persist fatal JS error envelopes to disk on Android before the process exits ([#NNNN](https://github.com/getsentry/sentry-react-native/pull/NNNN))
+  - The hard-crash envelope was only queued on the transport thread, so the event was lost when React Native terminated the process right after. It is now written to the offline cache on the calling thread and sent on the next launch, matching iOS.
 
 ### Dependencies
 

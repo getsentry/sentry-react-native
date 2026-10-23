@@ -30,8 +30,10 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import io.sentry.Hint;
 import io.sentry.ILogger;
 import io.sentry.IScope;
+import io.sentry.IScopes;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.PerformanceCollectionData;
@@ -41,9 +43,12 @@ import io.sentry.Sentry;
 import io.sentry.SentryAttributes;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
+import io.sentry.SentryEnvelope;
+import io.sentry.SentryEnvelopeItem;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
+import io.sentry.Session;
 import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
@@ -55,12 +60,15 @@ import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
+import io.sentry.cache.EnvelopeCache;
+import io.sentry.cache.IEnvelopeCache;
 import io.sentry.profilemeasurements.ProfileMeasurement;
 import io.sentry.profilemeasurements.ProfileMeasurementValue;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
+import io.sentry.transport.NoOpEnvelopeCache;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
@@ -69,6 +77,7 @@ import io.sentry.util.MapObjectReader;
 import io.sentry.vendor.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -628,15 +637,80 @@ public class RNSentryModuleImpl {
 
   public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
     byte[] bytes = Base64.decode(rawBytes, Base64.DEFAULT);
+    final boolean hardCrashed = options.hasKey("hardCrashed") && options.getBoolean("hardCrashed");
 
     try {
-      InternalSentrySdk.captureEnvelope(
-          bytes, !options.hasKey("hardCrashed") || !options.getBoolean("hardCrashed"));
+      if (!hardCrashed || !storeHardCrashEnvelope(bytes)) {
+        InternalSentrySdk.captureEnvelope(bytes, !hardCrashed);
+      }
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
       logger.log(SentryLevel.ERROR, "Error while capturing envelope");
       promise.resolve(false);
     }
     promise.resolve(true);
+  }
+
+  /**
+   * Writes a hard-crash envelope to the offline cache on the calling thread, like iOS {@code
+   * store}. {@code InternalSentrySdk.captureEnvelope} only queues the envelope on the transport
+   * executor; React Native then rethrows the error as {@code JavascriptException}, which is an
+   * ignored exception type, so the process dies before the executor writes the envelope to disk.
+   * The next launch sends the cached file. Returns false without touching anything when there is no
+   * disk cache, so the caller falls back to the queued path.
+   */
+  private boolean storeHardCrashEnvelope(final @NotNull byte[] bytes) throws IOException {
+    final @NotNull IScopes scopes = Sentry.getCurrentScopes();
+    final @NotNull SentryOptions sentryOptions = scopes.getOptions();
+    final @NotNull IEnvelopeCache cache = sentryOptions.getEnvelopeDiskCache();
+    final @Nullable String cacheDirPath = sentryOptions.getCacheDirPath();
+    if (!sentryOptions.isEnabled() || cacheDirPath == null || cache instanceof NoOpEnvelopeCache) {
+      return false;
+    }
+
+    final @Nullable SentryEnvelope envelope;
+    try (InputStream in = new ByteArrayInputStream(bytes)) {
+      envelope = sentryOptions.getEnvelopeReader().read(in);
+    } catch (IOException | IllegalArgumentException e) {
+      logger.log(SentryLevel.ERROR, "Failed to read the hard crash envelope.", e);
+      return false;
+    }
+    if (envelope == null) {
+      return false;
+    }
+
+    final @NotNull List<SentryEnvelopeItem> items = new ArrayList<>();
+    for (final SentryEnvelopeItem item : envelope.getItems()) {
+      items.add(item);
+    }
+
+    // Same session handling as InternalSentrySdk.captureEnvelope for a crash: end the session as
+    // crashed, remove it from the scope so it is not sent twice, and delete the persisted
+    // current-session file so the next launch does not also report it as abnormal.
+    final @NotNull AtomicReference<Session> crashedSession = new AtomicReference<>();
+    scopes.configureScope(
+        scope ->
+            scope.withSession(
+                session -> {
+                  if (session != null && session.update(Session.State.Crashed, null, true, null)) {
+                    session.end();
+                    scope.clearSession();
+                    crashedSession.set(session.clone());
+                  }
+                }));
+    final @Nullable Session session = crashedSession.get();
+    if (session != null) {
+      items.add(SentryEnvelopeItem.fromSession(sentryOptions.getSerializer(), session));
+      if (!EnvelopeCache.getCurrentSessionFile(cacheDirPath).delete()) {
+        logger.log(SentryLevel.WARNING, "Failed to delete the current session file.");
+      }
+    }
+
+    final @NotNull SentryEnvelope repackaged = new SentryEnvelope(envelope.getHeader(), items);
+    if (!cache.storeEnvelope(repackaged, new Hint())) {
+      logger.log(SentryLevel.ERROR, "Failed to store the hard crash envelope, queueing it.");
+      scopes.captureEnvelope(repackaged);
+    }
+    return true;
   }
 
   public void captureScreenshot(Promise promise) {
