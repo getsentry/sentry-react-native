@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Support Expo Router 58 in `expoRouterIntegration`. Metro no longer warns about the removed `expo-router/build/global-state/router-store` module, and the integration creates navigation spans again ([#6923](https://github.com/getsentry/sentry-react-native/pull/6923))
+
 ### Dependencies
 
 - Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))

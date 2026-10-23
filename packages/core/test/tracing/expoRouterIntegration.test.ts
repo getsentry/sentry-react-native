@@ -3,7 +3,13 @@ import type { Client } from '@sentry/core';
 import { INTEGRATION_NAME as REACT_NAVIGATION_INTEGRATION_NAME } from '../../src/js/tracing/reactnavigation';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 
-const EXPO_ROUTER_STORE_MODULE = 'expo-router/build/global-state/router-store';
+const EXPO_ROUTER_ROUTE_INFO_MODULE = 'expo-router/build/global-state/getRouteInfoFromState';
+const EXPO_ROUTER_NAVIGATION_EVENTS_MODULE = 'expo-router/build/global-state/internalNavigationEvents';
+
+function mockExpoRouter(navigationRef: unknown, getRouteInfoFromState: (state: unknown) => unknown = jest.fn()): void {
+  jest.doMock('expo-router', () => ({ useNavigationContainerRef: () => navigationRef }), { virtual: true });
+  jest.doMock(EXPO_ROUTER_ROUTE_INFO_MODULE, () => ({ getRouteInfoFromState }), { virtual: true });
+}
 
 interface MockNavigationContainer {
   addListener: jest.Mock;
@@ -54,7 +60,7 @@ describe('expoRouterIntegration', () => {
 
   describe('expo-router not installed', () => {
     it('is a no-op when require fails', () => {
-      // No mock for expo-router/build/global-state/router-store — require will throw.
+      // No mock for expo-router — require will throw.
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration } = createMockClient();
 
@@ -66,9 +72,9 @@ describe('expoRouterIntegration', () => {
     });
   });
 
-  describe('expo-router router-store found but navigationRef missing', () => {
+  describe('expo-router found but navigationRef missing', () => {
     it('does not add the integration and warns after the timeout', () => {
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({ store: {} }), { virtual: true });
+      mockExpoRouter(undefined);
 
       const { debug } = require('@sentry/core');
       const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
@@ -90,11 +96,15 @@ describe('expoRouterIntegration', () => {
 
       warnSpy.mockRestore();
     });
+  });
 
+  describe('expo-router 56 and 57, navigationRef set when the Root Layout renders', () => {
     it('picks up navigationRef when it appears mid-poll (issue #6431)', () => {
       const container = createMockNavigationContainer();
       const store: { navigationRef?: { current: MockNavigationContainer | null } } = {};
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({ store }), { virtual: true });
+      jest.doMock('expo-router', () => ({ useNavigationContainerRef: () => store.navigationRef }), {
+        virtual: true,
+      });
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration } = createMockClient();
@@ -102,16 +112,14 @@ describe('expoRouterIntegration', () => {
       const integ = integration();
       integ.afterAllSetup?.(client);
 
-      // Nothing to attach to yet — reactNavigation must not be added until we see a ref.
       expect(addIntegration).not.toHaveBeenCalled();
 
-      // Root Layout mounts a bit later: navigationRef appears, then .current gets populated.
       jest.advanceTimersByTime(200);
       store.navigationRef = { current: null };
       jest.advanceTimersByTime(50);
 
-      // navigationRef exists but .current is still null — hold off on attaching,
-      // otherwise a subsequent timeout would leave a non-functional integration behind.
+      // The ref exists but `.current` is still null, so a later timeout must not leave a
+      // non-functional integration behind.
       expect(addIntegration).not.toHaveBeenCalled();
       expect(container.addListener).not.toHaveBeenCalled();
 
@@ -124,16 +132,72 @@ describe('expoRouterIntegration', () => {
     });
   });
 
-  describe('expo-router installed, navigationRef pre-populated', () => {
-    it('registers the navigation container immediately', () => {
+  describe('expo-router 55 and older, getRouteInfoFromState missing', () => {
+    it('registers the navigation container without a route override', () => {
       const container = createMockNavigationContainer();
+      jest.doMock('expo-router', () => ({ useNavigationContainerRef: () => ({ current: container }) }), {
+        virtual: true,
+      });
       jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
+        EXPO_ROUTER_ROUTE_INFO_MODULE,
+        () => {
+          throw new Error(`Cannot find module '${EXPO_ROUTER_ROUTE_INFO_MODULE}'`);
+        },
+        { virtual: true },
+      );
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, getIntegrationByName } = createMockClient();
+      const registerNavigationContainer = jest.fn();
+      const setRouteOverrideProvider = jest.fn();
+      getIntegrationByName.mockImplementation((name: string) =>
+        name === REACT_NAVIGATION_INTEGRATION_NAME
+          ? { name, registerNavigationContainer, _setRouteOverrideProvider: setRouteOverrideProvider }
+          : undefined,
+      );
+
+      integration().afterAllSetup?.(client);
+
+      expect(registerNavigationContainer).toHaveBeenCalledWith({ current: container });
+      const provider = setRouteOverrideProvider.mock.calls[0][0] as () => unknown;
+      expect(provider()).toBeUndefined();
+    });
+  });
+
+  describe('useNavigationContainerRef throws', () => {
+    it('keeps polling without throwing and warns after the timeout', () => {
+      jest.doMock(
+        'expo-router',
         () => ({
-          store: { navigationRef: { current: container } },
+          useNavigationContainerRef: () => {
+            throw new Error('Invalid hook call');
+          },
         }),
         { virtual: true },
       );
+
+      const { debug } = require('@sentry/core');
+      const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, addIntegration } = createMockClient();
+
+      expect(() => {
+        integration().afterAllSetup?.(client);
+        jest.advanceTimersByTime(6_000);
+      }).not.toThrow();
+
+      expect(addIntegration).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('navigationRef'));
+
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('expo-router installed, navigationRef pre-populated', () => {
+    it('registers the navigation container immediately', () => {
+      const container = createMockNavigationContainer();
+      mockExpoRouter({ current: container });
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration } = createMockClient();
@@ -154,13 +218,7 @@ describe('expoRouterIntegration', () => {
     it('polls until ref.current is populated, then registers', () => {
       const container = createMockNavigationContainer();
       const navigationRef: { current: MockNavigationContainer | null } = { current: null };
-      jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
-        () => ({
-          store: { navigationRef },
-        }),
-        { virtual: true },
-      );
+      mockExpoRouter(navigationRef);
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration } = createMockClient();
@@ -188,13 +246,7 @@ describe('expoRouterIntegration', () => {
 
     it('stops polling after the timeout if ref is never populated', () => {
       const navigationRef: { current: unknown } = { current: null };
-      jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
-        () => ({
-          store: { navigationRef },
-        }),
-        { virtual: true },
-      );
+      mockExpoRouter(navigationRef);
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration, closeHandlers } = createMockClient();
@@ -216,13 +268,7 @@ describe('expoRouterIntegration', () => {
   describe('user already added reactNavigationIntegration', () => {
     it('reuses the existing integration and does not add a duplicate', () => {
       const container = createMockNavigationContainer();
-      jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
-        () => ({
-          store: { navigationRef: { current: container } },
-        }),
-        { virtual: true },
-      );
+      mockExpoRouter({ current: container });
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration, getIntegrationByName } = createMockClient();
@@ -243,70 +289,130 @@ describe('expoRouterIntegration', () => {
   });
 
   describe('route override provider', () => {
-    it('registers a route override provider on reactNavigation derived from store.getRouteInfo', () => {
+    it('derives the route override from the root navigation state', () => {
       const container = createMockNavigationContainer();
-      const getRouteInfo = jest.fn(() => ({
+      const rootState = { index: 0, routes: [{ name: '(tabs)' }] };
+      const getRouteInfoFromState = jest.fn(() => ({
         segments: ['(tabs)', 'profile', '[id]'],
         params: { id: '123', utm_source: 'email' },
         pathnameWithParams: '/profile/123?utm_source=email',
         pathname: '/profile/123',
       }));
+      mockExpoRouter({ current: container, getRootState: () => rootState }, getRouteInfoFromState);
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, getIntegrationByName } = createMockClient();
+      const setRouteOverrideProvider = jest.fn();
+      getIntegrationByName.mockImplementation((name: string) =>
+        name === REACT_NAVIGATION_INTEGRATION_NAME
+          ? { name, registerNavigationContainer: jest.fn(), _setRouteOverrideProvider: setRouteOverrideProvider }
+          : undefined,
+      );
+
+      integration().afterAllSetup?.(client);
+
+      const provider = setRouteOverrideProvider.mock.calls[0][0] as () => unknown;
+      expect(provider()).toEqual({
+        templatedPath: '/profile/[id]',
+        concreteUrl: '/profile/123?utm_source=email',
+        params: { id: '123', utm_source: 'email' },
+      });
+      expect(getRouteInfoFromState).toHaveBeenCalledWith(rootState);
+    });
+
+    it('returns no route override before the navigation container mounts', () => {
+      const navigationRef: { current: unknown; getRootState: jest.Mock } = {
+        current: createMockNavigationContainer(),
+        getRootState: jest.fn(),
+      };
+      const getRouteInfoFromState = jest.fn();
+      mockExpoRouter(navigationRef, getRouteInfoFromState);
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, getIntegrationByName } = createMockClient();
+      const setRouteOverrideProvider = jest.fn();
+      getIntegrationByName.mockImplementation((name: string) =>
+        name === REACT_NAVIGATION_INTEGRATION_NAME
+          ? { name, registerNavigationContainer: jest.fn(), _setRouteOverrideProvider: setRouteOverrideProvider }
+          : undefined,
+      );
+
+      integration().afterAllSetup?.(client);
+      navigationRef.current = null;
+
+      const provider = setRouteOverrideProvider.mock.calls[0][0] as () => unknown;
+      expect(provider()).toBeUndefined();
+      expect(navigationRef.getRootState).not.toHaveBeenCalled();
+      expect(getRouteInfoFromState).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('expo-router 58 navigation actions', () => {
+    function setUpWithNavigationEvents(): {
+      startIdleNavigationSpan: jest.Mock;
+      emit: (event: { actionType?: string; payload?: unknown }) => void;
+      removeListener: jest.Mock;
+      closeHandlers: Array<() => void>;
+    } {
+      const listeners: Array<(event: { actionType?: string; payload?: unknown }) => void> = [];
+      const removeListener = jest.fn();
+      mockExpoRouter({ current: createMockNavigationContainer() });
       jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
+        EXPO_ROUTER_NAVIGATION_EVENTS_MODULE,
         () => ({
-          store: { navigationRef: { current: container }, getRouteInfo },
+          internalNavigationEvents: {
+            addListener: (name: string, callback: (event: { actionType?: string; payload?: unknown }) => void) => {
+              if (name === 'actionDispatched') listeners.push(callback);
+              return removeListener;
+            },
+          },
         }),
         { virtual: true },
       );
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
-      const { client, addIntegration } = createMockClient();
-
-      const integ = integration();
-      integ.afterAllSetup?.(client);
-
-      const reactNavigation = addIntegration.mock.calls[0][0];
-      expect(typeof reactNavigation._setRouteOverrideProvider).toBe('function');
-
-      // The integration should have installed a provider on reactNavigation. We can
-      // grab it by spying on the setter.
-      const setProvider = reactNavigation._setRouteOverrideProvider as jest.Mock | ((p: unknown) => void);
-      // Since we don't have a spy, install one and re-run setup to capture the provider.
-      jest.resetModules();
-      jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
-        () => ({
-          store: { navigationRef: { current: container }, getRouteInfo },
-        }),
-        { virtual: true },
+      const { client, getIntegrationByName, closeHandlers } = createMockClient();
+      const startIdleNavigationSpan = jest.fn();
+      getIntegrationByName.mockImplementation((name: string) =>
+        name === REACT_NAVIGATION_INTEGRATION_NAME
+          ? { name, registerNavigationContainer: jest.fn(), _startIdleNavigationSpan: startIdleNavigationSpan }
+          : undefined,
       );
-      const captured: { provider?: () => unknown } = {};
-      const { reactNavigationIntegration: actualRn } = require('../../src/js/tracing/reactnavigation');
-      const realRn = actualRn();
-      jest.spyOn(realRn, '_setRouteOverrideProvider').mockImplementation((p: unknown) => {
-        captured.provider = p as () => unknown;
-      });
-      const { client: client2, addIntegration: add2, getIntegrationByName: getByName2 } = createMockClient();
-      getByName2.mockImplementation((name: string) =>
-        name === REACT_NAVIGATION_INTEGRATION_NAME ? realRn : undefined,
-      );
-      const { expoRouterIntegration: integ2 } = require('../../src/js/tracing/expoRouterIntegration');
-      integ2().afterAllSetup?.(client2);
-      expect(add2).not.toHaveBeenCalled();
 
-      const result = captured.provider?.() as {
-        templatedPath: string;
-        concreteUrl?: string;
-        params?: Record<string, unknown>;
+      integration().afterAllSetup?.(client);
+
+      return {
+        startIdleNavigationSpan,
+        emit: event => listeners.forEach(listener => listener(event)),
+        removeListener,
+        closeHandlers,
       };
-      expect(result).toEqual({
-        templatedPath: '/profile/[id]',
-        concreteUrl: '/profile/123?utm_source=email',
-        params: { id: '123', utm_source: 'email' },
+    }
+
+    it('starts a navigation span for each dispatched action', () => {
+      const { startIdleNavigationSpan, emit } = setUpWithNavigationEvents();
+
+      emit({ actionType: 'NAVIGATE', payload: { name: 'profile' } });
+
+      expect(startIdleNavigationSpan).toHaveBeenCalledWith({
+        data: { action: { type: 'NAVIGATE', payload: { name: 'profile' } }, noop: false, stack: undefined },
       });
-      expect(getRouteInfo).toHaveBeenCalled();
-      // unused — silence ts-noemit warnings for captured `setProvider`
-      void setProvider;
+    });
+
+    it('ignores events without an action type', () => {
+      const { startIdleNavigationSpan, emit } = setUpWithNavigationEvents();
+
+      emit({});
+
+      expect(startIdleNavigationSpan).not.toHaveBeenCalled();
+    });
+
+    it('removes the listener when the client closes', () => {
+      const { removeListener, closeHandlers } = setUpWithNavigationEvents();
+
+      closeHandlers.forEach(cb => cb());
+
+      expect(removeListener).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -329,13 +435,7 @@ describe('expoRouterIntegration', () => {
   describe('cleanup', () => {
     it('clears the polling timer when the client closes', () => {
       const navigationRef: { current: unknown } = { current: null };
-      jest.doMock(
-        EXPO_ROUTER_STORE_MODULE,
-        () => ({
-          store: { navigationRef },
-        }),
-        { virtual: true },
-      );
+      mockExpoRouter(navigationRef);
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, closeHandlers } = createMockClient();

@@ -50,6 +50,16 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
         // this object is not used by the instrumentation
       });
     },
+    navigateToNewScreenWithoutUnsafeAction: () => {
+      sut._startIdleNavigationSpan(navigationAction);
+      mockedNavigationContained.currentRoute = {
+        key: 'new_screen',
+        name: 'New Screen',
+      };
+      mockedNavigationContained.listeners['state']({
+        // this object is not used by the instrumentation
+      });
+    },
     navigateToSecondScreen: () => {
       mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
       mockedNavigationContained.currentRoute = {
