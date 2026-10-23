@@ -98,6 +98,102 @@ describe('expoRouterIntegration', () => {
     });
   });
 
+  describe('expo-router 56 and 57, navigationRef set when the Root Layout renders', () => {
+    it('picks up navigationRef when it appears mid-poll (issue #6431)', () => {
+      const container = createMockNavigationContainer();
+      const store: { navigationRef?: { current: MockNavigationContainer | null } } = {};
+      jest.doMock('expo-router', () => ({ useNavigationContainerRef: () => store.navigationRef }), {
+        virtual: true,
+      });
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, addIntegration } = createMockClient();
+
+      const integ = integration();
+      integ.afterAllSetup?.(client);
+
+      expect(addIntegration).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(200);
+      store.navigationRef = { current: null };
+      jest.advanceTimersByTime(50);
+
+      // The ref exists but `.current` is still null, so a later timeout must not leave a
+      // non-functional integration behind.
+      expect(addIntegration).not.toHaveBeenCalled();
+      expect(container.addListener).not.toHaveBeenCalled();
+
+      store.navigationRef.current = container;
+      jest.advanceTimersByTime(50);
+
+      expect(addIntegration).toHaveBeenCalledTimes(1);
+      expect(container.addListener).toHaveBeenCalledWith('__unsafe_action__', expect.any(Function));
+      expect(container.addListener).toHaveBeenCalledWith('state', expect.any(Function));
+    });
+  });
+
+  describe('expo-router 55 and older, getRouteInfoFromState missing', () => {
+    it('registers the navigation container without a route override', () => {
+      const container = createMockNavigationContainer();
+      jest.doMock('expo-router', () => ({ useNavigationContainerRef: () => ({ current: container }) }), {
+        virtual: true,
+      });
+      jest.doMock(
+        EXPO_ROUTER_ROUTE_INFO_MODULE,
+        () => {
+          throw new Error(`Cannot find module '${EXPO_ROUTER_ROUTE_INFO_MODULE}'`);
+        },
+        { virtual: true },
+      );
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, getIntegrationByName } = createMockClient();
+      const registerNavigationContainer = jest.fn();
+      const setRouteOverrideProvider = jest.fn();
+      getIntegrationByName.mockImplementation((name: string) =>
+        name === REACT_NAVIGATION_INTEGRATION_NAME
+          ? { name, registerNavigationContainer, _setRouteOverrideProvider: setRouteOverrideProvider }
+          : undefined,
+      );
+
+      integration().afterAllSetup?.(client);
+
+      expect(registerNavigationContainer).toHaveBeenCalledWith({ current: container });
+      const provider = setRouteOverrideProvider.mock.calls[0][0] as () => unknown;
+      expect(provider()).toBeUndefined();
+    });
+  });
+
+  describe('useNavigationContainerRef throws', () => {
+    it('keeps polling without throwing and warns after the timeout', () => {
+      jest.doMock(
+        'expo-router',
+        () => ({
+          useNavigationContainerRef: () => {
+            throw new Error('Invalid hook call');
+          },
+        }),
+        { virtual: true },
+      );
+
+      const { debug } = require('@sentry/core');
+      const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, addIntegration } = createMockClient();
+
+      expect(() => {
+        integration().afterAllSetup?.(client);
+        jest.advanceTimersByTime(6_000);
+      }).not.toThrow();
+
+      expect(addIntegration).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('navigationRef'));
+
+      warnSpy.mockRestore();
+    });
+  });
+
   describe('expo-router installed, navigationRef pre-populated', () => {
     it('registers the navigation container immediately', () => {
       const container = createMockNavigationContainer();
