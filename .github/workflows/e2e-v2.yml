@@ -133,7 +133,7 @@ jobs:
 
       - run: corepack enable
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
@@ -260,7 +260,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: corepack enable
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
