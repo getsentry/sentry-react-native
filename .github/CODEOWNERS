@@ -1,4 +1,4 @@
-*       @alwx @antonis @lucas-zimerman
+*       @getsentry/team-mobile-cross-platform-sdks @lucas-zimerman
 
-# Public API surface — also request a mobile SDK team review on API changes
-/packages/core/etc/sentry-react-native.api.md @alwx @antonis @lucas-zimerman @getsentry/team-mobile
+# Public API surface — also request Android and Apple SDK team reviews on API changes
+/packages/core/etc/sentry-react-native.api.md @getsentry/team-mobile-cross-platform-sdks @lucas-zimerman @getsentry/team-mobile-android-sdk @getsentry/team-mobile-apple-sdk
