@@ -377,6 +377,9 @@ export interface BaseReactNativeOptions {
   /**
    * Options for configuring screenshot masking on error screenshots.
    * When `attachScreenshot` is enabled, these options control what gets masked in the screenshot.
+   *
+   * On Android, masking requires the `sentry-android-replay` module. If it's excluded,
+   * no screenshot is attached unless both `maskAllText` and `maskAllImages` are `false`.
    */
   screenshot?: {
     /**

@@ -11,6 +11,11 @@
 ### Fixes
 
 - Show the feedback form above native-stack modals on iOS via the experimental `_experiments.presentOverNativeModals` feedback option ([#6882](https://github.com/getsentry/sentry-react-native/pull/6882))
+- Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
+
+### Internal
+
+- Track `sentryWebViewProps` adoption via a feature marker ([#6938](https://github.com/getsentry/sentry-react-native/pull/6938))
 
 ### Dependencies
 
