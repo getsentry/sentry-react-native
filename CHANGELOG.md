@@ -14,6 +14,10 @@
 - Persist fatal JS error envelopes to disk on Android before the process exits ([#6937](https://github.com/getsentry/sentry-react-native/pull/6937))
   - The hard-crash envelope was only queued on the transport thread, so the event was lost when React Native terminated the process right after. It is now written to the offline cache on the calling thread and sent on the next launch, matching iOS.
 
+### Internal
+
+- Track `sentryWebViewProps` adoption via a feature marker ([#6938](https://github.com/getsentry/sentry-react-native/pull/6938))
+
 ### Dependencies
 
 - Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))
