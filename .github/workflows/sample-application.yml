@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload iOS APP
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
           path: ${{ env.IOS_APP_ARCHIVE_PATH }}
@@ -134,7 +134,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload Android APK
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-android
           path: ${{ env.ANDROID_APP_ARCHIVE_PATH }}
@@ -234,7 +234,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-${{ matrix.rn-architecture }}-android-${{ matrix.build-type }}-no-frameworks-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/*.log
@@ -312,7 +312,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-macos/macos/*.log
@@ -401,7 +401,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-new-visionos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-visionos/visionos/*.log
@@ -484,7 +484,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-new-tvos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-tvos/ios/*.log
@@ -576,7 +576,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-new-catalyst-${{ matrix.build-type }}-no-frameworks-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
