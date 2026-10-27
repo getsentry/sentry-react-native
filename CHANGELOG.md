@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
+
 ### Dependencies
 
 - Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))
@@ -42,7 +46,6 @@
 - Start and stop the native UI profiler for `_experiments.profilingOptions` in both the `trace` and `manual` lifecycles, and export `Sentry.profiler` ([#6916](https://github.com/getsentry/sentry-react-native/pull/6916))
   - Before, the profiler ran only for the app start profile, because native tracing is off in React Native and no API controlled the profiler from JS.
   - The SDK adds the new `uiProfilingIntegration` by default when `profilingOptions` is set. If you set `defaultIntegrations: false`, add `Sentry.uiProfilingIntegration()` to `integrations`, because the SDK ignores `profilingOptions` without it.
-- Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
 
 ### Dependencies
 
