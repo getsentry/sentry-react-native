@@ -18,6 +18,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
@@ -63,6 +64,7 @@ public class RNSentryCaptureEnvelopeTest {
 
   @Rule public TemporaryFolder tmp = new TemporaryFolder();
 
+  private ReactApplicationContext reactContext;
   private RNSentryModuleImpl module;
   private SentryOptions options;
   private Scope scope;
@@ -72,7 +74,7 @@ public class RNSentryCaptureEnvelopeTest {
 
   @Before
   public void setUp() throws Exception {
-    ReactApplicationContext reactContext = mock(ReactApplicationContext.class);
+    reactContext = mock(ReactApplicationContext.class);
     PackageManager packageManager = mock(PackageManager.class);
     when(packageManager.getPackageInfo(anyString(), anyInt())).thenReturn(new PackageInfo());
     when(reactContext.getPackageManager()).thenReturn(packageManager);
@@ -191,6 +193,47 @@ public class RNSentryCaptureEnvelopeTest {
 
       verify(cache).storeEnvelope(any(), any(Hint.class));
       verify(scopes).captureEnvelope(any(SentryEnvelope.class));
+      verify(promise).resolve(true);
+    }
+  }
+
+  @Test
+  public void hardCrashKeepsSessionFileWhenStoreFails() throws Exception {
+    when(cache.storeEnvelope(any(), any())).thenReturn(false);
+    scope.startSession();
+    final File sessionFile = EnvelopeCache.getCurrentSessionFile(options.getCacheDirPath());
+    assertTrue(sessionFile.getParentFile().mkdirs());
+    assertTrue(sessionFile.createNewFile());
+
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class);
+        MockedStatic<Log> ignored = mockStatic(Log.class)) {
+      sentry.when(Sentry::getCurrentScopes).thenReturn(scopes);
+
+      module.captureEnvelope(eventEnvelope(), hardCrashed(true), promise);
+
+      verify(scopes).captureEnvelope(any(SentryEnvelope.class));
+      assertTrue(sessionFile.exists());
+    }
+  }
+
+  @Test
+  public void hardCrashUsesQueuedPathInDebuggableApp() throws Exception {
+    final ApplicationInfo appInfo = new ApplicationInfo();
+    appInfo.flags = ApplicationInfo.FLAG_DEBUGGABLE;
+    when(reactContext.getApplicationInfo()).thenReturn(appInfo);
+    final String rawBytes = eventEnvelope();
+
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class);
+        MockedStatic<InternalSentrySdk> internal = mockStatic(InternalSentrySdk.class)) {
+      sentry.when(Sentry::getCurrentScopes).thenReturn(scopes);
+
+      module.captureEnvelope(rawBytes, hardCrashed(true), promise);
+
+      verify(cache, never()).storeEnvelope(any(), any());
+      internal.verify(
+          () ->
+              InternalSentrySdk.captureEnvelope(
+                  eq(Base64.decode(rawBytes, Base64.DEFAULT)), eq(false)));
       verify(promise).resolve(true);
     }
   }

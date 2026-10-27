@@ -7,6 +7,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -640,7 +641,7 @@ public class RNSentryModuleImpl {
     final boolean hardCrashed = options.hasKey("hardCrashed") && options.getBoolean("hardCrashed");
 
     try {
-      if (!hardCrashed || !storeHardCrashEnvelope(bytes)) {
+      if (!hardCrashed || isAppDebuggable() || !storeHardCrashEnvelope(bytes)) {
         InternalSentrySdk.captureEnvelope(bytes, !hardCrashed);
       }
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
@@ -648,6 +649,12 @@ public class RNSentryModuleImpl {
       promise.resolve(false);
     }
     promise.resolve(true);
+  }
+
+  /** Mirrors the iOS {@code #if DEBUG} gate: debug builds keep the direct capture path. */
+  private boolean isAppDebuggable() {
+    final @Nullable ApplicationInfo appInfo = reactApplicationContext.getApplicationInfo();
+    return appInfo != null && (appInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
   }
 
   /**
@@ -684,8 +691,7 @@ public class RNSentryModuleImpl {
     }
 
     // Same session handling as InternalSentrySdk.captureEnvelope for a crash: end the session as
-    // crashed, remove it from the scope so it is not sent twice, and delete the persisted
-    // current-session file so the next launch does not also report it as abnormal.
+    // crashed and remove it from the scope so it is not sent twice.
     final @NotNull AtomicReference<Session> crashedSession = new AtomicReference<>();
     scopes.configureScope(
         scope ->
@@ -700,15 +706,19 @@ public class RNSentryModuleImpl {
     final @Nullable Session session = crashedSession.get();
     if (session != null) {
       items.add(SentryEnvelopeItem.fromSession(sentryOptions.getSerializer(), session));
-      if (!EnvelopeCache.getCurrentSessionFile(cacheDirPath).delete()) {
-        logger.log(SentryLevel.WARNING, "Failed to delete the current session file.");
-      }
     }
 
     final @NotNull SentryEnvelope repackaged = new SentryEnvelope(envelope.getHeader(), items);
     if (!cache.storeEnvelope(repackaged, new Hint())) {
       logger.log(SentryLevel.ERROR, "Failed to store the hard crash envelope, queueing it.");
       scopes.captureEnvelope(repackaged);
+      return true;
+    }
+
+    // The crashed session is now on disk, so the persisted current-session file can go. If the
+    // store failed, the file stays so the next launch still reports the session as abnormal.
+    if (session != null && !EnvelopeCache.getCurrentSessionFile(cacheDirPath).delete()) {
+      logger.log(SentryLevel.WARNING, "Failed to delete the current session file.");
     }
     return true;
   }
