@@ -19,6 +19,21 @@ export const INTEGRATION_NAME = 'ExpoRouter';
 const POLL_INTERVAL_MS = 50;
 const POLL_MAX_DURATION_MS = 5_000;
 
+// Expo Router 58 emits `actionDispatched` for every reducer action, including internal
+// ones such as `ROUTE_NAMES_CHANGED`, `PRELOAD`, and `SET_PARAMS`. Only user navigations
+// start a navigation span; the rest would ship as empty "Route Change" transactions.
+const NAVIGATION_ACTION_TYPES = new Set([
+  'NAVIGATE',
+  'PUSH',
+  'REPLACE',
+  'GO_BACK',
+  'POP',
+  'POP_TO',
+  'POP_TO_TOP',
+  'JUMP_TO',
+  'RESET',
+]);
+
 export type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
 
 /**
@@ -64,7 +79,7 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
         reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
         reactNavigation.registerNavigationContainer(navigationRef);
         removeActionListener = tryGetExpoRouterNavigationEvents()?.addListener('actionDispatched', event => {
-          if (!event.actionType) {
+          if (!event.actionType || !NAVIGATION_ACTION_TYPES.has(event.actionType)) {
             return;
           }
           reactNavigation._startIdleNavigationSpan?.({

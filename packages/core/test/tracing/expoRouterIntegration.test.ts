@@ -407,6 +407,28 @@ describe('expoRouterIntegration', () => {
       expect(startIdleNavigationSpan).not.toHaveBeenCalled();
     });
 
+    it.each(['ROUTE_NAMES_CHANGED', 'PRELOAD', 'SET_PARAMS', 'REMOVE_ROUTES', 'OPEN_DRAWER'])(
+      'ignores the internal %s action',
+      actionType => {
+        const { startIdleNavigationSpan, emit } = setUpWithNavigationEvents();
+
+        emit({ actionType, payload: { name: 'profile' } });
+
+        expect(startIdleNavigationSpan).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['PUSH', 'REPLACE', 'GO_BACK', 'POP', 'POP_TO', 'POP_TO_TOP', 'JUMP_TO', 'RESET'])(
+      'starts a navigation span for the %s action',
+      actionType => {
+        const { startIdleNavigationSpan, emit } = setUpWithNavigationEvents();
+
+        emit({ actionType });
+
+        expect(startIdleNavigationSpan).toHaveBeenCalledTimes(1);
+      },
+    );
+
     it('removes the listener when the client closes', () => {
       const { removeListener, closeHandlers } = setUpWithNavigationEvents();
 
