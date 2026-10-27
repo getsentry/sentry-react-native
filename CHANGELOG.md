@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
+
 ### Dependencies
 
 - Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))
