@@ -8,6 +8,17 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#382)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.8.1...3.8.2)
+- Bump Android SDK from v8.61.0 to v8.62.0 ([#6932](https://github.com/getsentry/sentry-react-native/pull/6932))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8620)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.61.0...8.62.0)
+
+## 8.32.0
+
 ### Features
 
 - Connect React Native traces with embedded WebViews via `sentryWebViewProps` ([#6794](https://github.com/getsentry/sentry-react-native/pull/6794))
@@ -41,9 +52,6 @@
 - Bump CLI from v3.8.0 to v3.8.1 ([#6924](https://github.com/getsentry/sentry-react-native/pull/6924))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#381)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.8.0...3.8.1)
-- Bump Android SDK from v8.61.0 to v8.61.1 ([#6929](https://github.com/getsentry/sentry-react-native/pull/6929))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8611)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.61.0...8.61.1)
 
 ## 8.31.0
 

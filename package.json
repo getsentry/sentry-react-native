@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@naturalcycles/ktlint": "^1.13.0",
-    "@sentry/cli": "3.8.1",
+    "@sentry/cli": "3.8.2",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
     "lerna": "^9.0.7",
@@ -54,8 +54,8 @@
     "samples/expo"
   ],
   "volta": {
-    "node": "18.20.8",
-    "yarn": "3.6.4"
+    "node": "22.22.2",
+    "yarn": "4.17.0"
   },
   "//": [
     "Appium has a dependency on @xmldom/xmldom@^0.x, which causes chromedrive build to fail yarn install",
@@ -146,7 +146,7 @@
     "downlevel-dts@npm:0.11.0/typescript": "5.9.3",
     "deepmerge-ts": "^8.0.0",
     "browserslist": "^4.28.7",
-    "fast-uri": "^3.1.8",
+    "fast-uri": "^3.1.9",
     "smol-toml": "^1.7.1",
     "joi": "^17.13.6",
     "tinypool": "^2.1.2"
