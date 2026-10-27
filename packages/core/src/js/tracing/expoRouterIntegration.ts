@@ -5,7 +5,11 @@ import { debug } from '@sentry/core';
 import type { ExpoRouterStore, ExpoRouterUrlObject } from './expoRouterStore';
 import type { RouteOverride } from './reactnavigation';
 
-import { buildExpoRouterTemplatedPath, tryGetExpoRouterStore } from './expoRouterStore';
+import {
+  buildExpoRouterTemplatedPath,
+  tryGetExpoRouterNavigationEvents,
+  tryGetExpoRouterStore,
+} from './expoRouterStore';
 import { getReactNavigationIntegration, reactNavigationIntegration } from './reactnavigation';
 
 export { buildExpoRouterTemplatedPath };
@@ -14,6 +18,21 @@ export const INTEGRATION_NAME = 'ExpoRouter';
 
 const POLL_INTERVAL_MS = 50;
 const POLL_MAX_DURATION_MS = 5_000;
+
+// Expo Router 58 emits `actionDispatched` for every reducer action, including internal
+// ones such as `ROUTE_NAMES_CHANGED`, `PRELOAD`, and `SET_PARAMS`. Only user navigations
+// start a navigation span; the rest would ship as empty "Route Change" transactions.
+const NAVIGATION_ACTION_TYPES = new Set([
+  'NAVIGATE',
+  'PUSH',
+  'REPLACE',
+  'GO_BACK',
+  'POP',
+  'POP_TO',
+  'POP_TO_TOP',
+  'JUMP_TO',
+  'RESET',
+]);
 
 export type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
 
@@ -30,6 +49,7 @@ export type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationInte
  */
 export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}): Integration => {
   let pollTimer: ReturnType<typeof setTimeout> | undefined;
+  let removeActionListener: (() => void) | undefined;
 
   const afterAllSetup = (client: Client): void => {
     const store = tryGetExpoRouterStore();
@@ -58,6 +78,18 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
         }
         reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
         reactNavigation.registerNavigationContainer(navigationRef);
+        removeActionListener = tryGetExpoRouterNavigationEvents()?.addListener('actionDispatched', event => {
+          if (!event.actionType || !NAVIGATION_ACTION_TYPES.has(event.actionType)) {
+            return;
+          }
+          reactNavigation._startIdleNavigationSpan?.({
+            data: {
+              action: { type: event.actionType, payload: event.payload as object | undefined },
+              noop: false,
+              stack: undefined,
+            },
+          });
+        });
         pollTimer = undefined;
         return;
       }
@@ -65,7 +97,7 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
       if (Date.now() - startedAt >= POLL_MAX_DURATION_MS) {
         if (!navigationRef) {
           debug.warn(
-            `${INTEGRATION_NAME} Found expo-router router-store but it does not expose a \`navigationRef\`. ` +
+            `${INTEGRATION_NAME} Found expo-router but it does not expose a \`navigationRef\`. ` +
               `This likely means the installed expo-router version is incompatible with this integration.`,
           );
         } else {
@@ -85,6 +117,8 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
         clearTimeout(pollTimer);
         pollTimer = undefined;
       }
+      removeActionListener?.();
+      removeActionListener = undefined;
     });
   };
 

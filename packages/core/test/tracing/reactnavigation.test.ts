@@ -267,6 +267,32 @@ describe('ReactNavigationInstrumentation', () => {
     );
   });
 
+  test('transaction sent on navigation started through _startIdleNavigationSpan', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.navigateToNewScreenWithoutUnsafeAction();
+    jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+    await client.flush();
+
+    expect(client.event).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'New Screen',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: expect.objectContaining({
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'New Screen',
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
   describe('pendingExpoRouterNavigation hand-off', () => {
     afterEach(() => {
       clearPendingExpoRouterNavigation();

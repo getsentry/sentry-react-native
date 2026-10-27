@@ -10,6 +10,7 @@
 
 export interface ExpoRouterNavigationRef {
   current: unknown | null;
+  getRootState?: () => unknown;
 }
 
 export interface ExpoRouterUrlObject {
@@ -22,7 +23,7 @@ export interface ExpoRouterUrlObject {
 
 export interface ExpoRouterStore {
   navigationRef?: ExpoRouterNavigationRef;
-  getRouteInfo?: () => ExpoRouterUrlObject;
+  getRouteInfo?: () => ExpoRouterUrlObject | undefined;
 }
 
 export interface NormalizedExpoRouterRouteInfo {
@@ -42,17 +43,91 @@ export interface NormalizedExpoRouterRouteInfo {
   segments?: string[];
 }
 
+export interface ExpoRouterActionDispatchedEvent {
+  actionType?: string;
+  payload?: unknown;
+}
+
+export interface ExpoRouterInternalNavigationEvents {
+  addListener: (
+    name: 'actionDispatched',
+    callback: (event: ExpoRouterActionDispatchedEvent) => void,
+  ) => (() => void) | undefined;
+}
+
 /**
- * Returns Expo Router's internal router store, or `null` if `expo-router` is
- * not installed or the build does not expose the expected module path.
+ * Returns the navigation container ref and route info of Expo Router, or `null`
+ * if `expo-router` is not installed or does not expose the expected API.
+ *
+ * Expo Router 58 declares `exports`, so Metro warns about any deep path that is
+ * missing from it. Older versions have no `exports`, so a missing deep path
+ * there is a silent optional dependency.
  */
 export function tryGetExpoRouterStore(): ExpoRouterStore | null {
+  let getNavigationContainerRef: (() => ExpoRouterNavigationRef | undefined) | undefined;
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require('expo-router/build/global-state/router-store') as {
-      store?: ExpoRouterStore;
+    const expoRouter = require('expo-router') as {
+      useNavigationContainerRef?: () => ExpoRouterNavigationRef | undefined;
     };
-    return mod?.store ?? null;
+    // Not a React hook: it reads a module-level store, so it is safe to call outside render.
+    getNavigationContainerRef = expoRouter?.useNavigationContainerRef;
+  } catch {
+    return null;
+  }
+  if (!getNavigationContainerRef) {
+    return null;
+  }
+  const getRef = getNavigationContainerRef;
+  const readNavigationContainerRef = (): ExpoRouterNavigationRef | undefined => {
+    try {
+      return getRef();
+    } catch {
+      return undefined;
+    }
+  };
+  const getRouteInfoFromState = tryGetRouteInfoFromState();
+
+  return {
+    // Before Expo Router 58 the ref is undefined until the Root Layout renders, so read it on every access.
+    get navigationRef() {
+      return readNavigationContainerRef();
+    },
+    getRouteInfo: getRouteInfoFromState
+      ? () => {
+          const navigationRef = readNavigationContainerRef();
+          const state = navigationRef?.current ? navigationRef.getRootState?.() : undefined;
+          return state ? getRouteInfoFromState(state) : undefined;
+        }
+      : undefined,
+  };
+}
+
+/** `getRouteInfoFromState` exists only in Expo Router 56 and later. */
+function tryGetRouteInfoFromState(): ((state: unknown) => ExpoRouterUrlObject) | undefined {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require('expo-router/build/global-state/getRouteInfoFromState') as {
+      getRouteInfoFromState?: (state: unknown) => ExpoRouterUrlObject;
+    };
+    return mod?.getRouteInfoFromState;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Returns the internal navigation event emitter of Expo Router 58 and later, or
+ * `null` for older versions. Expo Router 58 does not emit React Navigation's
+ * `__unsafe_action__` event, so this is the only signal of a dispatched action.
+ */
+export function tryGetExpoRouterNavigationEvents(): ExpoRouterInternalNavigationEvents | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require('expo-router/build/global-state/internalNavigationEvents') as {
+      internalNavigationEvents?: ExpoRouterInternalNavigationEvents;
+    };
+    return mod?.internalNavigationEvents ?? null;
   } catch {
     return null;
   }
