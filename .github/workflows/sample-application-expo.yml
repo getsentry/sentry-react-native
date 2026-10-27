@@ -57,14 +57,14 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           package-manager-cache: false
           node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - uses: ruby/setup-ruby@e81a8fa391b11a595c1b7ed84177cc0fe02faf83 # v1
+      - uses: ruby/setup-ruby@26e5b7d197ebf60545ee9667bcbace0be11ccaec # v1
         with:
           working-directory: samples/expo
           ruby-version: "3.3.0" # based on what is used in the sample
@@ -127,7 +127,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-expo-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: samples/expo/ios/*.log
@@ -154,7 +154,7 @@ jobs:
       - name: Enable Corepack (NPM)
         run: npm i -g corepack
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           package-manager-cache: false
           node-version: 22
@@ -200,7 +200,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-sample-expo-android-${{ matrix.build-type }}-logs
           path: samples/expo/android/*.log
@@ -223,7 +223,7 @@ jobs:
       - name: Enable Corepack (NPM)
         run: npm i -g corepack
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           package-manager-cache: false
           node-version: 22
