@@ -931,6 +931,7 @@ export interface ReactNativeWrapperOptions {
 export const reactNavigationIntegration: (input?: Partial<ReactNavigationIntegrationOptions>) => Integration & {
     registerNavigationContainer: (navigationContainerRef: unknown) => void;
     _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
+    _startIdleNavigationSpan: (event: UnsafeAction) => void;
     options: ReactNavigationIntegrationOptions;
 };
 
@@ -1337,6 +1338,7 @@ export function wrapTurboModule<T extends object>(name: string, module: T | null
 //
 // src/js/tracing/reactnativetracing.ts:93:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnavigation.ts:228:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
+// src/js/tracing/reactnavigation.ts:233:3 - (ae-forgotten-export) The symbol "UnsafeAction" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
