@@ -17,6 +17,9 @@
   "compilerOptions": {
     "rootDir": ".",
     "jsx": "react",
-    "types": ["jest"]
+    "types": ["jest"],
+    // Jest compiles with this config. Keep async/await downleveled like Metro's Babel preset does in apps,
+    // so SDK async code runs on the global (polyfilled) Promise that `Sentry.init` installs.
+    "target": "es2016"
   }
 }

@@ -19,7 +19,7 @@
     "rootDir": "src",
     "lib": ["es7"],
     "types": ["node"],
-    "target": "es6",
+    "target": "es2018",
     "module": "CommonJS",
     "skipLibCheck": true,
     "importHelpers": false

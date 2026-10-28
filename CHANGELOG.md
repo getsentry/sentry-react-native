@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Changes
+
+- Compile the SDK to ES2018 to stop inlining TypeScript helpers (`__awaiter`, `__rest`) in every file, reducing bundle size ([#6955](https://github.com/getsentry/sentry-react-native/issues/6955))
+
 ### Fixes
 
 - Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
