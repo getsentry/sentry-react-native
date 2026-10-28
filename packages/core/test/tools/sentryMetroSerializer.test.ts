@@ -161,7 +161,7 @@ describe('Sentry Metro Serializer', () => {
       const snippet = createModuleMetadataSnippet(unsafeMetadata);
       const globalObject: { Error: ErrorConstructor; _sentryModuleMetadata?: Record<string, unknown> } = { Error };
 
-      vm.runInNewContext(snippet, { window: globalObject });
+      vm.runInNewContext(snippet, globalObject);
 
       expect(snippet).not.toContain('</script>');
       expect(snippet).not.toMatch(/[\u2028\u2029]/);
