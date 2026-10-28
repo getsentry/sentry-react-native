@@ -98,6 +98,47 @@ final class RNSentryStartFromFileTests: XCTestCase {
         XCTAssertEqual(actualOptions.environment, "new-environment")
     }
 
+    func testDoesNotStartWithNullDsnInOptionsFile() throws {
+        let path = try writeTemporaryOptionsFile("{ \"dsn\": null, \"environment\": \"environment-from-null-dsn-file\" }")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+
+        var wasConfigurationCalled = false
+        RNSentrySDK.start(path, configureOptions: { options in
+            wasConfigurationCalled = true
+            XCTAssertEqual(options.environment, "environment-from-null-dsn-file")
+        })
+
+        XCTAssertTrue(wasConfigurationCalled)
+        XCTAssertFalse(SentrySDK.isEnabled)
+    }
+
+    func testDoesNotStartWhenConfigureOptionsSetsInvalidDsn() {
+        RNSentrySDK.start(getValidOptionsPath(), configureOptions: { options in
+            options.dsn = "invalid-dsn"
+        })
+
+        XCTAssertFalse(SentrySDK.isEnabled)
+    }
+
+    func testStartsFromJsAfterSkippedNativeStart() throws {
+        RNSentrySDK.start(getNonExistingOptionsPath(), configureOptions: nil)
+        XCTAssertFalse(SentrySDK.isEnabled)
+
+        var error: NSError?
+        RNSentryStart.start(options: ["dsn": "https://abcd@efgh.ingest.sentry.io/123456"], error: &error)
+
+        XCTAssertNil(error)
+        XCTAssertTrue(SentrySDK.isEnabled)
+        XCTAssertEqual(SentrySDK.internal.options.dsn, "https://abcd@efgh.ingest.sentry.io/123456")
+    }
+
+    func writeTemporaryOptionsFile(_ content: String) throws -> String {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(UUID().uuidString).options.json")
+        try content.write(to: url, atomically: true, encoding: .utf8)
+        return url.path
+    }
+
     func getNonExistingOptionsPath() -> String {
         return "/non-existing.options.json"
     }
