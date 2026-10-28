@@ -16,6 +16,7 @@
 - Support Expo Router 58 in `expoRouterIntegration`. Metro no longer warns about the removed `expo-router/build/global-state/router-store` module, and the integration creates navigation spans again ([#6923](https://github.com/getsentry/sentry-react-native/pull/6923))
 - Start the native iOS SDK from `RNSentrySDK` when `sentry.options.json` is missing or can't be parsed and the DSN is set in `configureOptions` ([#6956](https://github.com/getsentry/sentry-react-native/pull/6956))
   - The fallback options always failed to parse, so `configureOptions` never ran. Before 8.30.0 the app crashed at launch; since then the native SDK silently never started.
+- Don't crash the iOS app at launch when `sentry.options.json` contains `"dsn": null` ([#6958](https://github.com/getsentry/sentry-react-native/pull/6958))
 
 ### Internal
 
