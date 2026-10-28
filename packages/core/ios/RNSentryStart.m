@@ -301,7 +301,7 @@
     event.tags = newTags;
 }
 
-+ (NSString *_Nullable)getURLFromDSN:(id _Nullable)dsn
++ (NSString *_Nullable)getURLFromDSN:(NSString *)dsn
 {
     // The options file may contain `"dsn": null`, which arrives here as NSNull.
     if (![dsn isKindOfClass:[NSString class]]) {
