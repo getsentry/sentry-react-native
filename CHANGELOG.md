@@ -10,7 +10,7 @@
 
 ### Changes
 
-- Compile the SDK to ES2018 to stop inlining TypeScript helpers (`__awaiter`, `__rest`) in every file, reducing bundle size ([#6955](https://github.com/getsentry/sentry-react-native/issues/6955))
+- Compile the SDK to ES2018 to stop inlining TypeScript helpers (`__awaiter`, `__rest`) in every file, reducing bundle size ([#6957](https://github.com/getsentry/sentry-react-native/pull/6957))
 
 ### Fixes
 
