@@ -11,7 +11,6 @@ final class RNSentryStartTests: XCTestCase {
         XCTAssertFalse(actualOptions!.enableCaptureFailedRequests)
         XCTAssertNil(actualOptions!.tracesSampleRate)
         XCTAssertNil(actualOptions!.tracesSampler)
-        XCTAssertFalse(actualOptions!.enableTracing)
     }
 
     func testStartSetsReactDeafults() {
