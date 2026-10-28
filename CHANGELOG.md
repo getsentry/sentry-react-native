@@ -13,6 +13,8 @@
 - Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
 - Persist fatal JS error envelopes to disk on Android before the process exits ([#6937](https://github.com/getsentry/sentry-react-native/pull/6937))
   - The hard-crash envelope was only queued on the transport thread, so the event was lost when React Native terminated the process right after. It is now written to the offline cache on the calling thread and sent on the next launch, matching iOS.
+- Place Session Replay network requests at the correct time in the replay timeline ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+  - The network span timestamps came from a different clock than the breadcrumb timestamp. After the device slept or corrected its time, the two drifted apart and the replay timeline was stretched backwards by minutes, which showed an empty gap at the start and misplaced taps.
 - Support Expo Router 58 in `expoRouterIntegration`. Metro no longer warns about the removed `expo-router/build/global-state/router-store` module, and the integration creates navigation spans again ([#6923](https://github.com/getsentry/sentry-react-native/pull/6923))
 
 ### Internal

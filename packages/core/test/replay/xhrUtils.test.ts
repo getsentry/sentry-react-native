@@ -32,19 +32,24 @@ describe('xhrUtils', () => {
       expect(breadcrumb).toEqual({ category: 'xhr' });
     });
 
-    it('set start and end timestamp', () => {
-      const breadcrumb: Breadcrumb = { category: 'xhr' };
-      enrichXhrBreadcrumbsForMobileReplay(breadcrumb, getValidXhrHint());
+    it('anchors span timestamps to the breadcrumb timestamp and keeps the hint duration', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', timestamp: 1_700_000_000 };
+      enrichXhrBreadcrumbsForMobileReplay(breadcrumb, {
+        ...getValidXhrHint(),
+        // performance clock drifted 12 minutes behind the breadcrumb clock
+        startTimestamp: 1_700_000_000_000 - 12 * 60 * 1000 - 250,
+        endTimestamp: 1_700_000_000_000 - 12 * 60 * 1000,
+      });
       expect(breadcrumb.data).toEqual(
         expect.objectContaining({
-          start_timestamp: 1,
-          end_timestamp: 2,
+          start_timestamp: 1_700_000_000_000 - 250,
+          end_timestamp: 1_700_000_000_000,
         }),
       );
     });
 
-    it('uses now as default timestamp', () => {
-      const breadcrumb: Breadcrumb = { category: 'xhr' };
+    it('uses the breadcrumb timestamp for both ends when the hint has no timestamps', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', timestamp: 1_700_000_000 };
       enrichXhrBreadcrumbsForMobileReplay(breadcrumb, {
         ...getValidXhrHint(),
         startTimestamp: undefined,
@@ -52,10 +57,21 @@ describe('xhrUtils', () => {
       });
       expect(breadcrumb.data).toEqual(
         expect.objectContaining({
-          start_timestamp: expect.any(Number),
-          end_timestamp: expect.any(Number),
+          start_timestamp: 1_700_000_000_000,
+          end_timestamp: 1_700_000_000_000,
         }),
       );
+    });
+
+    it('uses now when the breadcrumb has no timestamp', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr' };
+      const before = Date.now();
+      enrichXhrBreadcrumbsForMobileReplay(breadcrumb, getValidXhrHint());
+      const after = Date.now();
+      const end = breadcrumb.data?.end_timestamp as number;
+      expect(end).toBeGreaterThanOrEqual(before);
+      expect(end).toBeLessThanOrEqual(after);
+      expect(breadcrumb.data?.start_timestamp).toBe(end - 1);
     });
 
     it('sets request body size', () => {
