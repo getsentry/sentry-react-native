@@ -14,6 +14,11 @@
 		3339C4832D6625570088EB3A /* RNSentryReplayControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3339C4822D6625570088EB3A /* RNSentryReplayControlTests.m */; };
 		336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */; };
 		3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */; };
+		339C6C3C2D3EB25100CA72ED /* RNSentryStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */; };
+		339C6C422D3FD3AE00CA72ED /* RNSentryStartFromFileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339C6C412D3FD39500CA72ED /* RNSentryStartFromFileTests.swift */; };
+		339C6C482D3FD9A700CA72ED /* invalid.options.json in Resources */ = {isa = PBXBuildFile; fileRef = 339C6C462D3FD91900CA72ED /* invalid.options.json */; };
+		339C6C492D3FD9A700CA72ED /* invalid.options.txt in Resources */ = {isa = PBXBuildFile; fileRef = 339C6C452D3FD90200CA72ED /* invalid.options.txt */; };
+		339C6C4B2D3FD9B200CA72ED /* valid.options.json in Resources */ = {isa = PBXBuildFile; fileRef = 339C6C4A2D3FD9AB00CA72ED /* valid.options.json */; };
 		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */; };
 		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */; };
 		33DEDFEA2D8DBE67006066E4 /* RNSentryOnDrawReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFE92D8DBE5B006066E4 /* RNSentryOnDrawReporterTests.swift */; };
@@ -47,6 +52,11 @@
 		3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryReplayPostInitTests.swift; sourceTree = "<group>"; };
 		338739072A7D7D2800950DDD /* RNSentryReplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryReplay.h; path = ../ios/RNSentryReplay.h; sourceTree = "<group>"; };
 		33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryOnDrawReporter.h; path = ../ios/RNSentryOnDrawReporter.h; sourceTree = "<group>"; };
+		339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryStartTests.swift; sourceTree = "<group>"; };
+		339C6C412D3FD39500CA72ED /* RNSentryStartFromFileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryStartFromFileTests.swift; sourceTree = "<group>"; };
+		339C6C452D3FD90200CA72ED /* invalid.options.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = invalid.options.txt; sourceTree = "<group>"; };
+		339C6C462D3FD91900CA72ED /* invalid.options.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = invalid.options.json; sourceTree = "<group>"; };
+		339C6C4A2D3FD9AB00CA72ED /* valid.options.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = valid.options.json; sourceTree = "<group>"; };
 		33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryFramesTrackerListenerTests.m; sourceTree = "<group>"; };
 		33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryDependencyContainerTests.m; sourceTree = "<group>"; };
 		33AFE0132B8F31AF00AAB120 /* RNSentryDependencyContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryDependencyContainer.h; path = ../ios/RNSentryDependencyContainer.h; sourceTree = "<group>"; };
@@ -91,6 +101,7 @@
 		3360896929524163007C7730 = {
 			isa = PBXGroup;
 			children = (
+				339C6C432D3FD41C00CA72ED /* TestAssets */,
 				33AFE0122B8F319000AAB120 /* RNSentry */,
 				3360899029524164007C7730 /* RNSentryCocoaTesterTests */,
 				3360897329524163007C7730 /* Products */,
@@ -131,6 +142,8 @@
 				3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */,
 				26C9B2501FF3EBD8B91BA6C1 /* RNSentryStartInvalidOptionsTests.swift */,
 				864F5BFD9CFDA4502ADAE72E /* RNSentrySDKStartInvalidOptionsTests.swift */,
+				339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */,
+				339C6C412D3FD39500CA72ED /* RNSentryStartFromFileTests.swift */,
 			);
 			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
@@ -142,6 +155,16 @@
 				3380C6C12CDEC5850018B9B6 /* RNSentryReplayUnmask.h */,
 			);
 			path = Replay;
+			sourceTree = "<group>";
+		};
+		339C6C432D3FD41C00CA72ED /* TestAssets */ = {
+			isa = PBXGroup;
+			children = (
+				339C6C4A2D3FD9AB00CA72ED /* valid.options.json */,
+				339C6C462D3FD91900CA72ED /* invalid.options.json */,
+				339C6C452D3FD90200CA72ED /* invalid.options.txt */,
+			);
+			path = TestAssets;
 			sourceTree = "<group>";
 		};
 		33AFE0122B8F319000AAB120 /* RNSentry */ = {
@@ -181,6 +204,7 @@
 				3360898929524164007C7730 /* Sources */,
 				BB7D14838753E6599863899B /* Frameworks */,
 				CC7959F3721CB3AD7CB6A047 /* [CP] Copy Pods Resources */,
+				339C6C472D3FD99900CA72ED /* Resources */,
 			);
 			buildRules = (
 			);
@@ -224,6 +248,19 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		339C6C472D3FD99900CA72ED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				339C6C482D3FD9A700CA72ED /* invalid.options.json in Resources */,
+				339C6C4B2D3FD9B200CA72ED /* valid.options.json in Resources */,
+				339C6C492D3FD9A700CA72ED /* invalid.options.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		30F19D4E16BEEFEC68733838 /* [CP] Check Pods Manifest.lock */ = {
@@ -289,6 +326,8 @@
 				33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */,
 				00C7702ED388EA0682DBCC48 /* RNSentryStartInvalidOptionsTests.swift in Sources */,
 				AC4EE11A6E697E75C3753C16 /* RNSentrySDKStartInvalidOptionsTests.swift in Sources */,
+				339C6C3C2D3EB25100CA72ED /* RNSentryStartTests.swift in Sources */,
+				339C6C422D3FD3AE00CA72ED /* RNSentryStartFromFileTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

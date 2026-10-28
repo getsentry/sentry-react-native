@@ -3,6 +3,11 @@ import XCTest
 
 final class RNSentryStartFromFileTests: XCTestCase {
 
+    override func setUp() {
+        super.setUp()
+        SentrySDK.close()
+    }
+
     func testNoThrowOnMissingOptionsFile() {
         var wasConfigurationCalled = false
 
@@ -11,10 +16,16 @@ final class RNSentryStartFromFileTests: XCTestCase {
         })
 
         XCTAssertTrue(wasConfigurationCalled)
+        XCTAssertFalse(SentrySDK.isEnabled)
+    }
 
-        let actualOptions = SentrySDK.internal.options
-        XCTAssertNil(actualOptions.dsn)
-        XCTAssertNil(actualOptions.parsedDsn)
+    func testStartsWithConfigureDsnOnMissingOptionsFile() {
+        RNSentrySDK.start(getNonExistingOptionsPath(), configureOptions: { options in
+            options.dsn = "https://abcd@efgh.ingest.sentry.io/123456"
+        })
+
+        XCTAssertTrue(SentrySDK.isEnabled)
+        XCTAssertEqual(SentrySDK.internal.options.dsn, "https://abcd@efgh.ingest.sentry.io/123456")
     }
 
     func testNoThrowOnInvalidFileType() {
@@ -25,10 +36,16 @@ final class RNSentryStartFromFileTests: XCTestCase {
         })
 
         XCTAssertTrue(wasConfigurationCalled)
+        XCTAssertFalse(SentrySDK.isEnabled)
+    }
 
-        let actualOptions = SentrySDK.internal.options
-        XCTAssertNil(actualOptions.dsn)
-        XCTAssertNil(actualOptions.parsedDsn)
+    func testStartsWithConfigureDsnOnInvalidFileType() {
+        RNSentrySDK.start(getInvalidOptionsTypePath(), configureOptions: { options in
+            options.dsn = "https://abcd@efgh.ingest.sentry.io/123456"
+        })
+
+        XCTAssertTrue(SentrySDK.isEnabled)
+        XCTAssertEqual(SentrySDK.internal.options.dsn, "https://abcd@efgh.ingest.sentry.io/123456")
     }
 
     func testNoThrowOnInvalidOptions() {
@@ -41,7 +58,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
         XCTAssertTrue(wasConfigurationCalled)
 
         let actualOptions = SentrySDK.internal.options
-        XCTAssertNil(actualOptions.dsn)
+        XCTAssertEqual(actualOptions.dsn, "https://abcd@efgh.ingest.sentry.io/123456")
         XCTAssertNotNil(actualOptions.parsedDsn)
         XCTAssertEqual(actualOptions.environment, "environment-from-invalid-file")
     }
@@ -56,7 +73,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
         XCTAssertTrue(wasConfigurationCalled)
 
         let actualOptions = SentrySDK.internal.options
-        XCTAssertNil(actualOptions.dsn)
+        XCTAssertEqual(actualOptions.dsn, "https://abcd@efgh.ingest.sentry.io/123456")
         XCTAssertNotNil(actualOptions.parsedDsn)
         XCTAssertEqual(actualOptions.environment, "environment-from-valid-file")
     }
