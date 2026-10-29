@@ -16,6 +16,9 @@
 - Place Session Replay network requests at the correct time in the replay timeline ([#6959](https://github.com/getsentry/sentry-react-native/pull/6959))
   - The network span timestamps came from a different clock than the breadcrumb timestamp. After the device slept or corrected its time, the two drifted apart and the replay timeline was stretched backwards by minutes, which showed an empty gap at the start and misplaced taps.
 - Support Expo Router 58 in `expoRouterIntegration`. Metro no longer warns about the removed `expo-router/build/global-state/router-store` module, and the integration creates navigation spans again ([#6923](https://github.com/getsentry/sentry-react-native/pull/6923))
+- Start the native iOS SDK from `RNSentrySDK` when `sentry.options.json` is missing or can't be parsed and the DSN is set in `configureOptions` ([#6956](https://github.com/getsentry/sentry-react-native/pull/6956))
+  - The fallback options always failed to parse, so `configureOptions` never ran. Before 8.30.0 the app crashed at launch; since then the native SDK silently never started.
+- Don't crash the iOS app at launch when `sentry.options.json` contains `"dsn": null` ([#6958](https://github.com/getsentry/sentry-react-native/pull/6958))
 
 ### Internal
 
@@ -29,6 +32,12 @@
 - Bump Android SDK from v8.61.0 to v8.62.0 ([#6932](https://github.com/getsentry/sentry-react-native/pull/6932))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8620)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.61.0...8.62.0)
+- Bump JavaScript SDK from v10.76.2 to v10.77.1 ([#6952](https://github.com/getsentry/sentry-react-native/pull/6952))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10771)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.76.2...10.77.1)
+- Bump Cocoa SDK from v9.31.0 to v9.32.0 ([#6963](https://github.com/getsentry/sentry-react-native/pull/6963))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9320)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.31.0...9.32.0)
 
 ## 8.32.0
 

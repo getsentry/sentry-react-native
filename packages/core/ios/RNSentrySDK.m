@@ -59,19 +59,7 @@ static NSString *SENTRY_OPTIONS_RESOURCE_TYPE = @"json";
 
     if (options == nil) {
         // Fallback in case that options file could not be parsed.
-        NSError *fallbackError = nil;
-        options = [RNSentryInternal optionsFromDictionary:@{ } error:&fallbackError];
-        if (fallbackError != nil) {
-            NSLog(@"[RNSentry] Failed to create fallback options with error: %@",
-                fallbackError.localizedDescription);
-        }
-    }
-
-    if (options == nil) {
-        // Even the fallback failed. Skip starting instead of passing nil options to
-        // the native SDK, which would crash it.
-        NSLog(@"[RNSentry] Could not create options; skipping native SDK start.");
-        return;
+        options = [[SentryOptions alloc] init];
     }
 
     [RNSentryStart updateWithReactDefaults:options];
@@ -79,6 +67,14 @@ static NSString *SENTRY_OPTIONS_RESOURCE_TYPE = @"json";
         configureOptions(options);
     }
     [RNSentryStart updateWithReactFinals:options];
+
+    if (options.parsedDsn == nil) {
+        // Don't start without a DSN, so that a later init from JS can still start the native SDK.
+        NSLog(@"[RNSentry] No valid DSN in the options file or configureOptions; skipping native "
+              @"SDK start.");
+        return;
+    }
+
     [RNSentryStart startWithOptions:options];
 }
 
