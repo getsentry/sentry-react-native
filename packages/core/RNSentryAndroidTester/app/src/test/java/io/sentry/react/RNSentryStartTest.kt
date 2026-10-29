@@ -315,6 +315,38 @@ class RNSentryStartTest {
     }
 
     @Test
+    fun `when enableLogs is true, logs are enabled`() {
+        val rnOptions = JavaOnlyMap.of("enableLogs", true)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertTrue("Logs should be enabled", options.logs.isEnabled)
+    }
+
+    @Test
+    fun `when enableLogs is false, logs are disabled`() {
+        val rnOptions = JavaOnlyMap.of("enableLogs", false)
+        val options = SentryAndroidOptions()
+        options.logs.isEnabled = true
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse("Logs should be disabled", options.logs.isEnabled)
+    }
+
+    @Test
+    fun `when enableLogs is not set, logs remain at the native default`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+        val defaultValue = options.logs.isEnabled
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals("Logs should remain at the native default", defaultValue, options.logs.isEnabled)
+    }
+
+    @Test
     fun `when enableHistoricalTombstoneReporting is true, historical tombstone reporting is enabled`() {
         val rnOptions = JavaOnlyMap.of("enableHistoricalTombstoneReporting", true)
         val options = SentryAndroidOptions()

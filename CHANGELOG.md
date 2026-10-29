@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Enable native logs on Android when `enableLogs` is set ([#TBD](https://github.com/getsentry/sentry-react-native/pull/TBD))
+
 ## 8.33.0
 
 ### Changes
