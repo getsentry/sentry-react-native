@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Detect `expo/fetch` in Expo Router apps on `@expo/metro-runtime` versions that hide it, so fetch tracing and fetch breadcrumbs are enabled by default
+- Detect `expo/fetch` in Expo Router apps on `@expo/metro-runtime` versions that hide it, so fetch tracing and fetch breadcrumbs are enabled by default ([#6965](https://github.com/getsentry/sentry-react-native/pull/6965))
 
 ## 8.33.0
 
