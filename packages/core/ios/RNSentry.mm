@@ -61,6 +61,12 @@
 #endif
 
 #import "RNSentryExperimentalOptions.h"
+#import "RNSentryJSHangTracker.h"
+
+#if __has_include(<React/RCTCallInvoker.h>)
+#    import <React/RCTCallInvoker.h>
+#    define RNSENTRY_HAS_CALL_INVOKER 1
+#endif
 #import "RNSentryStart.h"
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
@@ -179,11 +185,20 @@ static bool hasFetchedAppStart;
     // dict reaches sentry-cocoa; strip so it does not leak into
     // SentryOptions (which would not know what to do with it).
     [mutableOptions removeObjectForKey:@"enableTurboModuleTracking"];
+    [mutableOptions removeObjectForKey:@"enableJsHangTracking"];
+    [mutableOptions removeObjectForKey:@"jsHangTimeoutInterval"];
 
     [self trySetIgnoreErrors:mutableOptions];
 
     return mutableOptions;
 }
+
+#ifdef RNSENTRY_HAS_CALL_INVOKER
+- (void)setCallInvoker:(RCTCallInvoker *)callInvoker
+{
+    [[RNSentryJSHangTracker sharedInstance] setJSInvoker:callInvoker.callInvoker];
+}
+#endif
 
 RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
@@ -211,6 +226,12 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     // the RN perf-logger slot stays untouched while the option is off.
     Sentry_SetTurboModuleTrackingEnabled(
         [RNSentry turboModuleTrackingEnabledFromOptions:options] ? 1 : 0);
+
+    if ([options[@"enableJsHangTracking"] boolValue]) {
+        NSNumber *timeout = options[@"jsHangTimeoutInterval"];
+        [[RNSentryJSHangTracker sharedInstance]
+            startWithTimeoutInterval:timeout != nil ? timeout.doubleValue : 2.0];
+    }
 
     // RNSentryStart.startWithOptions already handles:
     // - Session tracking notification (SentryHybridSdkDidBecomeActive)

@@ -1,10 +1,13 @@
 #import <Foundation/Foundation.h>
 
+@class SentryEvent;
 @class SentryScope;
 
 @interface SentrySDKWrapper : NSObject
 
 + (void)configureScope:(void (^)(SentryScope *scope))callback;
+
++ (void)captureEvent:(SentryEvent *)event;
 
 + (void)crash;
 
