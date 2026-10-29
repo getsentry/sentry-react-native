@@ -374,6 +374,16 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.startProfiling).not.toHaveBeenCalled();
     });
 
+    it('does not start the Hermes sampler when the client closes before the native start resolves', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+
+      profiler.startProfiler();
+      client.emit('close');
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).not.toHaveBeenCalled();
+    });
+
     it('adds the Hermes chunk thread id to spans', () => {
       setupClient({ lifecycle: 'trace' });
 
