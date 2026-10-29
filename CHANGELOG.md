@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add JavaScript (Hermes) samples to UI profiles on Android 15 and newer ([#PLACEHOLDER](https://github.com/getsentry/sentry-react-native/pull/PLACEHOLDER))
+- Add JavaScript (Hermes) samples to UI profiles on Android 15 and newer ([#6966](https://github.com/getsentry/sentry-react-native/pull/6966))
   - When `_experiments.profilingOptions` is set, the SDK sends the Hermes samples as profile chunks of the native profiler session, so the profile of a transaction shows its JavaScript functions.
 
 ## 8.33.0
