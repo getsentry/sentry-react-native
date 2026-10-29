@@ -89,8 +89,20 @@ function enrichXhrBreadcrumb(
     return;
   }
 
-  const now = Date.now();
-  const { startTimestamp = now, endTimestamp = now, input, xhr } = xhrHint;
+  const { input, xhr } = xhrHint;
+
+  // The hint timestamps come from `timestampInSeconds()` (performance clock), while
+  // `breadcrumb.timestamp` comes from `Date.now()`. The native SDKs select breadcrumbs
+  // for a segment by `breadcrumb.timestamp` but emit the rrweb span with the data
+  // timestamps, so a drift between the two clocks (device sleep, NTP correction)
+  // places the network span minutes away from the rest of the replay. Keep only the
+  // request duration from the hint and anchor it to the breadcrumb clock.
+  const endTimestamp = breadcrumb.timestamp !== undefined ? breadcrumb.timestamp * 1000 : Date.now();
+  const duration =
+    xhrHint.startTimestamp !== undefined && xhrHint.endTimestamp !== undefined
+      ? Math.max(0, xhrHint.endTimestamp - xhrHint.startTimestamp)
+      : 0;
+  const startTimestamp = endTimestamp - duration;
 
   // An asynchronously resolved snapshot taken while the xhr was still current —
   // read from it, never from the (possibly reused) live xhr.
