@@ -235,7 +235,7 @@ export const uiProfilingIntegration = (): Integration => {
         Number(Platform.Version) >= MIN_HERMES_CHUNK_ANDROID_API &&
         isHermesEnabled() &&
         // The transaction profiler uses the same Hermes sampler.
-        client.getOptions().profilesSampleRate === undefined;
+        !((client.getOptions().profilesSampleRate ?? 0) > 0);
 
       const tracingEnabled = hasSpansEnabled(client.getOptions());
       if (tracingEnabled) {
