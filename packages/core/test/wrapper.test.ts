@@ -1341,6 +1341,34 @@ describe('Tests Native Wrapper', () => {
       });
       expect(NATIVE.stopProfiling()).toBe(null);
     });
+    test('stop profiling warns about a missing native profile when platform profilers were started', () => {
+      const warn = jest.spyOn(debug, 'warn');
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        started: true,
+      });
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "hermes" }',
+      });
+
+      NATIVE.startProfiling(true);
+      NATIVE.stopProfiling();
+
+      expect(warn).toHaveBeenCalledWith('[NATIVE] Stop Profiling Failed: No Native Profile');
+    });
+    test('stop profiling does not warn about a missing native profile when only Hermes was started', () => {
+      const warn = jest.spyOn(debug, 'warn');
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        started: true,
+      });
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "hermes" }',
+      });
+
+      NATIVE.startProfiling(false);
+      NATIVE.stopProfiling();
+
+      expect(warn).not.toHaveBeenCalledWith('[NATIVE] Stop Profiling Failed: No Native Profile');
+    });
     test('stop profiling returns null on invalid json profile', () => {
       (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
         profile: 'invalid',

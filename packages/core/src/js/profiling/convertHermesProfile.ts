@@ -26,13 +26,16 @@ const JS_THREAD_PRIORITY = 1;
  *
  * @returns Sentry profile or null if no samples are found.
  */
-export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThreadCpuProfile | null {
+export function convertToSentryProfile(
+  hermesProfile: Hermes.Profile,
+  maxElapsedSinceStartNs: number = MAX_PROFILE_DURATION_NS,
+): RawThreadCpuProfile | null {
   if (hermesProfile.samples.length === 0) {
     debug.warn('[Profiling] No samples found in profile.');
     return null;
   }
 
-  const { samples, hermesStacks, jsThreads } = mapSamples(hermesProfile.samples);
+  const { samples, hermesStacks, jsThreads } = mapSamples(hermesProfile.samples, maxElapsedSinceStartNs);
 
   const { frames, hermesStackFrameIdToSentryFrameIdMap } = mapFrames(hermesProfile.stackFrames);
 

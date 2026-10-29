@@ -74,6 +74,7 @@ interface SentryNativeWrapper {
 
   _NativeClientError: Error;
   _DisabledNativeError: Error;
+  _platformProfilers: boolean;
 
   _setPrimitiveProcessor: (processor: (value: Primitive) => void) => void;
   _processItem(envelopeItem: EnvelopeItem): EnvelopeItem;
@@ -826,6 +827,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
+    this._platformProfilers = platformProfilers;
     const { started, error } = RNSentry.startProfiling(platformProfilers);
     if (started) {
       debug.log('[NATIVE] Start Profiling');
@@ -891,10 +893,10 @@ export const NATIVE: SentryNativeWrapper = {
       debug.error('[NATIVE] Stop Profiling Failed', error);
       return null;
     }
-    if (Platform.OS === 'ios' && !nativeProfile) {
+    if (this._platformProfilers && Platform.OS === 'ios' && !nativeProfile) {
       debug.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
     }
-    if (Platform.OS === 'android' && !androidProfile) {
+    if (this._platformProfilers && Platform.OS === 'android' && !androidProfile) {
       debug.warn('[NATIVE] Stop Profiling Failed: No Android Profile');
     }
 
@@ -1214,6 +1216,7 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   _DisabledNativeError: new SentryError('Native is disabled'),
+  _platformProfilers: false,
 
   _NativeClientError: new SentryError("Native Client is not available, can't start on native."),
 
