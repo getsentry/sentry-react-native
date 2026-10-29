@@ -45,10 +45,15 @@ function buildDemoPage(dsn: string): string {
     <p>Injected <code>sentry-trace</code>:</p>
     <pre id="trace" style="white-space: pre-wrap; word-break: break-all;">(reading…)</pre>
     <script>
-      // On Android the injected script runs slightly after this page's initial
-      // script, so poll briefly for the meta tag. A real app's @sentry/browser reads
-      // it during pageload init (which happens later), so it doesn't need this.
+      // On Android the injected script runs asynchronously, slightly after this
+      // page's initial script, so poll for the meta tag. The window is generous
+      // (20s) because a cold-start release build on a slow CI emulator can inject
+      // noticeably later than on a local device — a shorter window intermittently
+      // declared the trace "not injected" before it landed, flaking the e2e test.
+      // It stays within the e2e's 30s wait on the connected status. A real app's
+      // @sentry/browser reads the tag during pageload init, so it doesn't need this.
       var tries = 0;
+      var maxTries = 200; // 200 * 100ms = 20s
       function report() {
         var trace = document.querySelector('meta[name="sentry-trace"]');
         var baggage = document.querySelector('meta[name="baggage"]');
@@ -64,9 +69,9 @@ function buildDemoPage(dsn: string): string {
       if (!report()) {
         var iv = setInterval(function () {
           tries++;
-          if (report() || tries > 30) {
+          if (report() || tries >= maxTries) {
             clearInterval(iv);
-            if (tries > 30) document.getElementById('trace').textContent = '(none — not injected)';
+            if (tries >= maxTries) document.getElementById('trace').textContent = '(none — not injected)';
           }
         }, 100);
       }
