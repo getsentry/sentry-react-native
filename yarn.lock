@@ -7959,7 +7959,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@npm:8.32.0, @sentry/react-native@workspace:packages/core":
+"@sentry/react-native@npm:8.33.0, @sentry/react-native@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
@@ -25236,7 +25236,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/preset-typescript": "npm:^7.18.6"
     "@sentry/core": "npm:10.77.1"
-    "@sentry/react-native": "npm:8.32.0"
+    "@sentry/react-native": "npm:8.33.0"
     "@types/node": "npm:^20.9.3"
     "@types/react": "npm:^19.1.4"
     appium: "npm:3.2.2"
@@ -25266,7 +25266,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.0"
     "@sentry/bundler-plugins": "npm:10.77.1"
     "@sentry/core": "npm:10.77.1"
-    "@sentry/react-native": "npm:8.32.0"
+    "@sentry/react-native": "npm:8.33.0"
     "@types/node": "npm:20.10.4"
     "@types/react": "npm:~19.3.0"
     expo: "npm:^58.0.14"
@@ -25308,7 +25308,7 @@ __metadata:
     "@react-navigation/stack": "npm:^6.3.20"
     "@sentry/core": "npm:10.77.1"
     "@sentry/react": "npm:10.77.1"
-    "@sentry/react-native": "npm:8.32.0"
+    "@sentry/react-native": "npm:8.33.0"
     "@types/react": "npm:^19.1.4"
     "@types/react-native-vector-icons": "npm:^6.4.18"
     babel-plugin-module-resolver: "npm:^5.0.0"
@@ -25355,7 +25355,7 @@ __metadata:
     "@sentry/bundler-plugins": "npm:10.77.1"
     "@sentry/core": "npm:10.77.1"
     "@sentry/react": "npm:10.77.1"
-    "@sentry/react-native": "npm:8.32.0"
+    "@sentry/react-native": "npm:8.33.0"
     "@shopify/flash-list": "npm:^2.0.2"
     "@testing-library/react-native": "npm:^13.2.2"
     "@types/jest": "npm:^29.5.14"
@@ -25410,7 +25410,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.87.1"
     "@react-native/metro-config": "npm:0.87.1"
     "@react-native/typescript-config": "npm:0.87.1"
-    "@sentry/react-native": "npm:8.32.0"
+    "@sentry/react-native": "npm:8.33.0"
     "@types/react": "npm:^19.0.0"
     jest: "npm:^29.6.3"
     react: "npm:19.2.3"
@@ -25442,7 +25442,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.79.6"
     "@react-native/metro-config": "npm:0.79.6"
     "@react-native/typescript-config": "npm:0.79.6"
-    "@sentry/react-native": "npm:8.32.0"
+    "@sentry/react-native": "npm:8.33.0"
     "@types/react": "npm:^19.0.0"
     jest: "npm:^29.6.3"
     react: "npm:19.0.0"
