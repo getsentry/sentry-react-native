@@ -39,7 +39,7 @@
     // react-native's global types are pulled in via the `paths` mapping above; classic `node`
     // resolution can no longer discover them through the removed root `types` field.
     "types": [],
-    "target": "es6",
+    "target": "es2018",
     "module": "es6",
     "skipLibCheck": true,
     "strictBindCallApply": true,

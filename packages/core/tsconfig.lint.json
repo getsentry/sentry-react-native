@@ -54,7 +54,7 @@
     "lib": ["es7"],
     "jsx": "react",
     "types": ["jest"],
-    "target": "es6",
+    "target": "es2018",
     "module": "es6",
     "skipLibCheck": true,
     "strictBindCallApply": true,
