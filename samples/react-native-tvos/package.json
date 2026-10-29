@@ -15,7 +15,7 @@
   "dependencies": {
     "@sentry/react-native": "8.32.0",
     "react": "19.2.3",
-    "react-native": "0.88.1"
+    "react-native": "npm:react-native-tvos@0.87.1-0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -16,7 +16,7 @@
     "@callstack/react-native-visionos": "0.79.6",
     "@sentry/react-native": "8.32.0",
     "react": "19.0.0",
-    "react-native": "0.88.1"
+    "react-native": "0.79.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
