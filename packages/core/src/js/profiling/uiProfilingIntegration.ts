@@ -1,11 +1,24 @@
-import type { Event, Integration, Span } from '@sentry/core';
+import type { Client, Event, Integration, ProfileChunk, ProfileChunkEnvelope, Span } from '@sentry/core';
 
-import { debug, getRootSpan, hasSpansEnabled, spanIsSampled, spanToJSON } from '@sentry/core';
+import {
+  createEnvelope,
+  debug,
+  getRootSpan,
+  getSdkMetadataForEnvelopeHeader,
+  hasSpansEnabled,
+  spanIsSampled,
+  spanToJSON,
+  uuid4,
+} from '@sentry/core';
+import { Platform } from 'react-native';
 
 import type { ReactNativeClient } from '../client';
 import type { ProfilingLifecycle, ProfilingOptions, ReactNativeClientOptions } from '../options';
+import type * as Hermes from './hermes';
 
+import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
+import { createHermesProfileChunk, HERMES_CHUNK_THREAD_ID } from './hermesProfileChunk';
 
 // `Sentry.profiler` from `@sentry/core` looks the integration up by this name.
 export const UI_PROFILING_INTEGRATION_NAME = 'ProfilingIntegration';
@@ -19,6 +32,12 @@ const SPAN_THREAD_ID = 'thread.id';
  */
 export const TRACE_STOP_DELAY_MS = 60_000;
 
+/** Matches the chunk duration of the native profilers. */
+export const HERMES_CHUNK_DURATION_MS = 60_000;
+
+/** sentry-java uses the Perfetto profiler from API 35. vroom can merge only its sample format with Hermes chunks. */
+const MIN_HERMES_CHUNK_ANDROID_API = 35;
+
 interface UIProfilingIntegration extends Integration {
   _profiler: {
     start: () => void;
@@ -28,6 +47,11 @@ interface UIProfilingIntegration extends Integration {
 
 interface ProfileSession {
   profilerId: Promise<string | null>;
+}
+
+interface HermesChunk {
+  profilerId: string;
+  startTimestampMs: number;
 }
 
 /** Returns the UI profiling options, including the deprecated `androidProfilingOptions`. */
@@ -55,6 +79,10 @@ export const uiProfilingIntegration = (): Integration => {
   let isAppStartPending = false;
   let jsThreadId: string | null = null;
   let resolveAppStartSession: ((profilerId: string | null) => void) | undefined;
+  let profilingClient: Client | undefined;
+  let sendsHermesChunks = false;
+  let hermesChunk: HermesChunk | undefined;
+  let hermesChunkTimeout: ReturnType<typeof setTimeout> | undefined;
 
   const shouldRun = (): boolean =>
     lifecycle === 'trace' ? isAppStartPending || activeRootSpanIds.size > 0 : isManualRequested;
@@ -64,8 +92,75 @@ export const uiProfilingIntegration = (): Integration => {
     stopTimeout = undefined;
   };
 
+  const startHermesChunk = (profilerId: string): void => {
+    try {
+      if (!NATIVE.startProfiling(false)) {
+        return;
+      }
+    } catch (error) {
+      debug.warn('[Profiling] Failed to start the Hermes profiler.', error);
+      return;
+    }
+    hermesChunk = { profilerId, startTimestampMs: Date.now() };
+    hermesChunkTimeout = setTimeout(() => {
+      collectHermesChunk();
+      startHermesChunk(profilerId);
+    }, HERMES_CHUNK_DURATION_MS);
+  };
+
+  const stopHermesSampler = (): { chunk: HermesChunk; hermesProfile: Hermes.Profile } | undefined => {
+    clearTimeout(hermesChunkTimeout);
+    hermesChunkTimeout = undefined;
+    const chunk = hermesChunk;
+    hermesChunk = undefined;
+    if (!chunk) {
+      return undefined;
+    }
+
+    try {
+      const profiles = NATIVE.stopProfiling();
+      return profiles ? { chunk, hermesProfile: profiles.hermesProfile } : undefined;
+    } catch (error) {
+      debug.warn('[Profiling] Failed to stop the Hermes profiler.', error);
+      return undefined;
+    }
+  };
+
+  const collectHermesChunk = (): void => {
+    const stopped = stopHermesSampler();
+    if (!stopped || !profilingClient) {
+      return;
+    }
+    const { chunk, hermesProfile } = stopped;
+    const profileChunk = createHermesProfileChunk(
+      hermesProfile,
+      chunk.startTimestampMs,
+      chunk.profilerId,
+      profilingClient,
+    );
+    if (profileChunk) {
+      sendProfileChunk(profilingClient, profileChunk);
+    }
+  };
+
+  const startHermesChunks = (newSession: ProfileSession): void => {
+    if (!sendsHermesChunks) {
+      return;
+    }
+    newSession.profilerId.then(
+      profilerId => {
+        // The native SDK returns no id when it does not profile this session.
+        if (profilerId && session === newSession) {
+          startHermesChunk(profilerId);
+        }
+      },
+      () => {},
+    );
+  };
+
   const stopNativeProfiler = (): void => {
     clearStopTimeout();
+    collectHermesChunk();
     session = undefined;
     NATIVE.stopProfiler().then(undefined, () => {});
   };
@@ -80,6 +175,7 @@ export const uiProfilingIntegration = (): Integration => {
       if (!session) {
         const newSession: ProfileSession = { profilerId: NATIVE.startProfiler() };
         session = newSession;
+        startHermesChunks(newSession);
         activeRootSpanIds.forEach(spanId => {
           // A root span that started under an earlier session keeps that profile.
           if (!sessionByRootSpanId.has(spanId)) {
@@ -133,6 +229,7 @@ export const uiProfilingIntegration = (): Integration => {
   const integration: UIProfilingIntegration = {
     name: UI_PROFILING_INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
+      profilingClient = client;
       const profilingOptions = getProfilingOptions(client.getOptions());
       if (!profilingOptions) {
         debug.warn('[Profiling] `_experiments.profilingOptions` is not set. UI profiling is disabled.');
@@ -145,9 +242,16 @@ export const uiProfilingIntegration = (): Integration => {
       isManualRequested = lifecycle === 'manual' && startOnAppStart;
       isAppStartPending = lifecycle === 'trace' && startOnAppStart;
 
+      sendsHermesChunks =
+        Platform.OS === 'android' &&
+        Number(Platform.Version) >= MIN_HERMES_CHUNK_ANDROID_API &&
+        isHermesEnabled() &&
+        // The transaction profiler uses the same Hermes sampler.
+        !((client.getOptions().profilesSampleRate ?? 0) > 0);
+
       const tracingEnabled = hasSpansEnabled(client.getOptions());
       if (tracingEnabled) {
-        jsThreadId = NATIVE.getCurrentThreadId();
+        jsThreadId = sendsHermesChunks ? HERMES_CHUNK_THREAD_ID : NATIVE.getCurrentThreadId();
         client.on('spanStart', onSpanStart);
         client.on('spanEnd', onSpanEnd);
       } else if (lifecycle === 'trace') {
@@ -163,6 +267,7 @@ export const uiProfilingIntegration = (): Integration => {
             resolveAppStartSession = resolve;
           }),
         };
+        startHermesChunks(session);
       }
 
       client.on('afterInit', () => {
@@ -181,6 +286,9 @@ export const uiProfilingIntegration = (): Integration => {
 
       client.on('close', () => {
         clearStopTimeout();
+        // The client is already disabled here, so it would drop the last chunk.
+        stopHermesSampler();
+        session = undefined;
         resolveAppStartSession?.(null);
       });
     },
@@ -212,3 +320,14 @@ export const uiProfilingIntegration = (): Integration => {
   };
   return integration;
 };
+
+function sendProfileChunk(client: Client, chunk: ProfileChunk): void {
+  const sdk = getSdkMetadataForEnvelopeHeader(client.getSdkMetadata());
+  const envelope = createEnvelope<ProfileChunkEnvelope>(
+    { event_id: uuid4(), sent_at: new Date().toISOString(), ...(sdk && { sdk }) },
+    [[{ type: 'profile_chunk', platform: 'javascript' }, chunk]],
+  );
+  client.sendEnvelope(envelope).then(null, error => {
+    debug.error('[Profiling] Failed to send the Hermes profile chunk.', error);
+  });
+}

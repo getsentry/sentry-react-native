@@ -1,4 +1,4 @@
-import type { Event } from '@sentry/core';
+import type { Envelope, Event } from '@sentry/core';
 
 import {
   debug,
@@ -9,18 +9,30 @@ import {
   startInactiveSpan,
   startSpan,
 } from '@sentry/core';
+import { Platform } from 'react-native';
 
 import type { ProfilingOptions } from '../../src/js/options';
 
-import { TRACE_STOP_DELAY_MS, uiProfilingIntegration } from '../../src/js/profiling/uiProfilingIntegration';
+import { HERMES_CHUNK_THREAD_ID } from '../../src/js/profiling/hermesProfileChunk';
+import {
+  HERMES_CHUNK_DURATION_MS,
+  TRACE_STOP_DELAY_MS,
+  uiProfilingIntegration,
+} from '../../src/js/profiling/uiProfilingIntegration';
+import { isHermesEnabled } from '../../src/js/utils/environment';
 import { getDefaultTestClientOptions, setupTestClient, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
+import { createMockMinimalValidHermesProfile } from './fixtures';
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
+jest.mock('../../src/js/utils/environment', () => ({
+  ...jest.requireActual('../../src/js/utils/environment'),
+  isHermesEnabled: jest.fn(() => false),
+}));
 
 function setupClient(
   profilingOptions: ProfilingOptions,
-  clientOptions: { tracesSampleRate?: number } = {},
+  clientOptions: { tracesSampleRate?: number; profilesSampleRate?: number } = {},
 ): TestClient {
   return setupTestClient({
     ...clientOptions,
@@ -41,6 +53,7 @@ describe('uiProfilingIntegration', () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     getCurrentScope().setClient(undefined);
   });
 
@@ -277,6 +290,143 @@ describe('uiProfilingIntegration', () => {
       await jest.runAllTimersAsync();
 
       expect(getTransaction(client, 'root')?.contexts?.profile).toEqual({ profiler_id: 'first-profiler-id' });
+    });
+  });
+
+  describe('Hermes profile chunks', () => {
+    const PROFILER_ID = '0123456789abcdef0123456789abcdef';
+
+    function getSentChunkItems(sendEnvelope: jest.SpyInstance): unknown[] {
+      return sendEnvelope.mock.calls.map(([envelope]: [Envelope]) => envelope[1][0]);
+    }
+
+    beforeEach(() => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+      jest.spyOn(Platform, 'Version', 'get').mockReturnValue(35);
+      (isHermesEnabled as jest.Mock).mockReturnValue(true);
+      NATIVE.startProfiler.mockResolvedValue(PROFILER_ID);
+      NATIVE.startProfiling.mockReturnValue(true);
+      NATIVE.stopProfiling.mockReturnValue({ hermesProfile: createMockMinimalValidHermesProfile() });
+    });
+
+    afterEach(() => {
+      (isHermesEnabled as jest.Mock).mockReturnValue(false);
+      NATIVE.startProfiler.mockResolvedValue(null);
+      NATIVE.startProfiling.mockReturnValue(false);
+      NATIVE.stopProfiling.mockReturnValue(null);
+    });
+
+    it('sends the Hermes samples of a native profile session as a profile chunk', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+      const sendEnvelope = jest.spyOn(client, 'sendEnvelope');
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+      profiler.stopProfiler();
+
+      expect(NATIVE.startProfiling).toHaveBeenCalledExactlyOnceWith(false);
+      expect(NATIVE.stopProfiling).toHaveBeenCalledTimes(1);
+      expect(getSentChunkItems(sendEnvelope)).toEqual([
+        [
+          { type: 'profile_chunk', platform: 'javascript' },
+          expect.objectContaining({ profiler_id: PROFILER_ID, platform: 'javascript' }),
+        ],
+      ]);
+    });
+
+    it('sends a chunk and restarts the Hermes sampler after each chunk duration', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+      const sendEnvelope = jest.spyOn(client, 'sendEnvelope');
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(HERMES_CHUNK_DURATION_MS);
+
+      expect(NATIVE.stopProfiling).toHaveBeenCalledTimes(1);
+      expect(NATIVE.startProfiling).toHaveBeenCalledTimes(2);
+      expect(sendEnvelope).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts the Hermes sampler for the app start profile after native init', async () => {
+      setupClient({ lifecycle: 'manual', startOnAppStart: true });
+
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).toHaveBeenCalledExactlyOnceWith(false);
+    });
+
+    it('does not start the Hermes sampler when the native SDK does not profile the session', async () => {
+      NATIVE.startProfiler.mockResolvedValue(null);
+      setupClient({ lifecycle: 'manual' });
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).not.toHaveBeenCalled();
+    });
+
+    it('does not start the Hermes sampler when the session stops before the native start resolves', async () => {
+      setupClient({ lifecycle: 'manual' });
+
+      profiler.startProfiler();
+      profiler.stopProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).not.toHaveBeenCalled();
+    });
+
+    it('does not start the Hermes sampler when the client closes before the native start resolves', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+
+      profiler.startProfiler();
+      client.emit('close');
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).not.toHaveBeenCalled();
+    });
+
+    it('stops the Hermes sampler without sending a chunk when the client closes', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+      const sendEnvelope = jest.spyOn(client, 'sendEnvelope');
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+      client.emit('close');
+
+      expect(NATIVE.stopProfiling).toHaveBeenCalledTimes(1);
+      expect(sendEnvelope).not.toHaveBeenCalled();
+    });
+
+    it('starts the Hermes sampler when transaction profiling has a zero sample rate', async () => {
+      setupClient({ lifecycle: 'manual' }, { profilesSampleRate: 0 });
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).toHaveBeenCalledExactlyOnceWith(false);
+    });
+
+    it('adds the Hermes chunk thread id to spans', () => {
+      setupClient({ lifecycle: 'trace' });
+
+      const span = startInactiveSpan({ name: 'root' });
+
+      expect(spanToJSON(span).data['thread.id']).toBe(HERMES_CHUNK_THREAD_ID);
+    });
+
+    it.each([
+      ['Android API 34', () => jest.spyOn(Platform, 'Version', 'get').mockReturnValue(34), {}],
+      ['iOS', () => jest.replaceProperty(Platform, 'OS', 'ios'), {}],
+      ['JSC', () => (isHermesEnabled as jest.Mock).mockReturnValue(false), {}],
+      ['transaction profiling', () => {}, { profilesSampleRate: 1 }],
+    ])('does not start the Hermes sampler on %s', async (_, arrange, clientOptions) => {
+      arrange();
+      setupClient({ lifecycle: 'manual' }, clientOptions);
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
+      expect(NATIVE.startProfiling).not.toHaveBeenCalled();
     });
   });
 });
