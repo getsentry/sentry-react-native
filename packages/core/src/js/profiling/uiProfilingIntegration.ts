@@ -275,6 +275,7 @@ export const uiProfilingIntegration = (): Integration => {
       client.on('close', () => {
         clearStopTimeout();
         collectHermesChunk();
+        session = undefined;
         resolveAppStartSession?.(null);
       });
     },
