@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Enable native logs on Android when `enableLogs` is set ([#TBD](https://github.com/getsentry/sentry-react-native/pull/TBD))
+- Enable native logs on Android when `enableLogs` is set ([#6967](https://github.com/getsentry/sentry-react-native/pull/6967))
 
 ## 8.33.0
 
