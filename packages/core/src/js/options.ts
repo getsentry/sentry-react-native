@@ -528,6 +528,24 @@ export interface BaseReactNativeOptions {
   enableTurboModuleTracking?: boolean;
 
   /**
+   * Reports an error event when the JavaScript thread stays blocked for longer than `jsHangTimeoutInterval`.
+   *
+   * @default false
+   * @experimental
+   * @internal
+   */
+  enableJsHangTracking?: boolean;
+
+  /**
+   * The minimum time in seconds that the JavaScript thread must stay blocked before the SDK reports a JS hang.
+   *
+   * @default 2
+   * @experimental
+   * @internal
+   */
+  jsHangTimeoutInterval?: number;
+
+  /**
    * Trace User Interaction events like touch and gestures.
    *
    * @default false

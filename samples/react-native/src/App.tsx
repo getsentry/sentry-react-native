@@ -80,6 +80,7 @@ Sentry.init({
   _experiments: {
     enableUnhandledCPPExceptionsV2: true,
   },
+  enableJsHangTracking: true,
   logsOrigin: 'all',
   enableLogs: true,
   beforeSendLog: log => {

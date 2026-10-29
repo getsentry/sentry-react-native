@@ -5,6 +5,11 @@
 
 @implementation SentrySDKWrapper
 
++ (void)captureEvent:(SentryEvent *)event
+{
+    [SentrySDK captureEvent:event];
+}
+
 + (void)crash
 {
     [SentrySDK crash];
