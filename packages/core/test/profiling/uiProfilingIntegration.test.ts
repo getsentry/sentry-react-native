@@ -384,6 +384,18 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.startProfiling).not.toHaveBeenCalled();
     });
 
+    it('stops the Hermes sampler without sending a chunk when the client closes', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+      const sendEnvelope = jest.spyOn(client, 'sendEnvelope');
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+      client.emit('close');
+
+      expect(NATIVE.stopProfiling).toHaveBeenCalledTimes(1);
+      expect(sendEnvelope).not.toHaveBeenCalled();
+    });
+
     it('starts the Hermes sampler when transaction profiling has a zero sample rate', async () => {
       setupClient({ lifecycle: 'manual' }, { profilesSampleRate: 0 });
 

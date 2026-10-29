@@ -14,6 +14,7 @@ import { Platform } from 'react-native';
 
 import type { ReactNativeClient } from '../client';
 import type { ProfilingLifecycle, ProfilingOptions, ReactNativeClientOptions } from '../options';
+import type * as Hermes from './hermes';
 
 import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
@@ -107,25 +108,36 @@ export const uiProfilingIntegration = (): Integration => {
     }, HERMES_CHUNK_DURATION_MS);
   };
 
-  const collectHermesChunk = (): void => {
+  const stopHermesSampler = (): { chunk: HermesChunk; hermesProfile: Hermes.Profile } | undefined => {
     clearTimeout(hermesChunkTimeout);
     hermesChunkTimeout = undefined;
     const chunk = hermesChunk;
     hermesChunk = undefined;
-    if (!chunk || !profilingClient) {
-      return;
+    if (!chunk) {
+      return undefined;
     }
 
-    let profiles: ReturnType<typeof NATIVE.stopProfiling>;
     try {
-      profiles = NATIVE.stopProfiling();
+      const profiles = NATIVE.stopProfiling();
+      return profiles ? { chunk, hermesProfile: profiles.hermesProfile } : undefined;
     } catch (error) {
       debug.warn('[Profiling] Failed to stop the Hermes profiler.', error);
+      return undefined;
+    }
+  };
+
+  const collectHermesChunk = (): void => {
+    const stopped = stopHermesSampler();
+    if (!stopped || !profilingClient) {
       return;
     }
-    const profileChunk =
-      profiles &&
-      createHermesProfileChunk(profiles.hermesProfile, chunk.startTimestampMs, chunk.profilerId, profilingClient);
+    const { chunk, hermesProfile } = stopped;
+    const profileChunk = createHermesProfileChunk(
+      hermesProfile,
+      chunk.startTimestampMs,
+      chunk.profilerId,
+      profilingClient,
+    );
     if (profileChunk) {
       sendProfileChunk(profilingClient, profileChunk);
     }
@@ -274,7 +286,8 @@ export const uiProfilingIntegration = (): Integration => {
 
       client.on('close', () => {
         clearStopTimeout();
-        collectHermesChunk();
+        // The client is already disabled here, so it would drop the last chunk.
+        stopHermesSampler();
         session = undefined;
         resolveAppStartSession?.(null);
       });
