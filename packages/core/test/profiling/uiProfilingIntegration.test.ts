@@ -384,6 +384,15 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.startProfiling).not.toHaveBeenCalled();
     });
 
+    it('starts the Hermes sampler when transaction profiling has a zero sample rate', async () => {
+      setupClient({ lifecycle: 'manual' }, { profilesSampleRate: 0 });
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiling).toHaveBeenCalledExactlyOnceWith(false);
+    });
+
     it('adds the Hermes chunk thread id to spans', () => {
       setupClient({ lifecycle: 'trace' });
 
