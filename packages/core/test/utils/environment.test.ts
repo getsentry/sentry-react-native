@@ -1,5 +1,6 @@
 import { isExpoFetchEnabled, isResourceTimingSupported } from '../../src/js/utils/environment';
 import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
+import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 
 describe('isExpoFetchEnabled', () => {
   const originalFetch = globalThis.fetch;
@@ -42,6 +43,82 @@ describe('isExpoFetchEnabled', () => {
     });
     globalThis.fetch = expoFetch;
     expect(isExpoFetchEnabled()).toBe(false);
+  });
+
+  describe('with the Expo Router fetch wrapper', () => {
+    const originalExpo = RN_GLOBAL_OBJ.expo;
+
+    const mockRouterFetchWrapper = (): void => {
+      const wrapper = jest.fn() as unknown as typeof fetch;
+      Object.defineProperty(wrapper, Symbol.for('expo.polyfillFetchWithWindowLocation'), { value: true });
+      globalThis.fetch = wrapper;
+    };
+
+    const mockExpoManifest = (manifest: unknown): void => {
+      RN_GLOBAL_OBJ.expo = {
+        modules: { ExponentConstants: { manifest } },
+      } as typeof RN_GLOBAL_OBJ.expo;
+    };
+
+    const mockExpoSdkVersion = (sdkVersion: string | undefined): void => {
+      mockExpoManifest({ sdkVersion });
+    };
+
+    afterEach(() => {
+      RN_GLOBAL_OBJ.expo = originalExpo;
+      delete process.env.EXPO_PUBLIC_USE_RN_FETCH;
+    });
+
+    it.each(['56.0.0', '57.0.0', '58.0.0'])('returns true on Expo SDK %s', sdkVersion => {
+      mockRouterFetchWrapper();
+      mockExpoSdkVersion(sdkVersion);
+
+      expect(isExpoFetchEnabled()).toBe(true);
+    });
+
+    it('returns false on Expo SDK 55, which does not install expo/fetch', () => {
+      mockRouterFetchWrapper();
+      mockExpoSdkVersion('55.0.0');
+
+      expect(isExpoFetchEnabled()).toBe(false);
+    });
+
+    it('reads the Expo SDK version from a JSON string manifest (Android)', () => {
+      mockRouterFetchWrapper();
+      mockExpoManifest(JSON.stringify({ sdkVersion: '57.0.0' }));
+
+      expect(isExpoFetchEnabled()).toBe(true);
+    });
+
+    it('returns false when the manifest is not valid JSON', () => {
+      mockRouterFetchWrapper();
+      mockExpoManifest('{');
+
+      expect(isExpoFetchEnabled()).toBe(false);
+    });
+
+    it('returns false when the Expo SDK version is unknown', () => {
+      mockRouterFetchWrapper();
+      mockExpoSdkVersion(undefined);
+
+      expect(isExpoFetchEnabled()).toBe(false);
+    });
+
+    it.each(['1', 'true'])('returns false when EXPO_PUBLIC_USE_RN_FETCH is %s', value => {
+      mockRouterFetchWrapper();
+      mockExpoSdkVersion('57.0.0');
+      process.env.EXPO_PUBLIC_USE_RN_FETCH = value;
+
+      expect(isExpoFetchEnabled()).toBe(false);
+    });
+
+    it('returns true when EXPO_PUBLIC_USE_RN_FETCH is not an opt-in value', () => {
+      mockRouterFetchWrapper();
+      mockExpoSdkVersion('57.0.0');
+      process.env.EXPO_PUBLIC_USE_RN_FETCH = '0';
+
+      expect(isExpoFetchEnabled()).toBe(true);
+    });
   });
 });
 

@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Detect `expo/fetch` in Expo Router apps on `@expo/metro-runtime` versions that hide it, so fetch tracing and fetch breadcrumbs are enabled by default
+
 ## 8.33.0
 
 ### Changes
