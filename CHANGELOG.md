@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Enable native logs on Android when `enableLogs` is set ([#6967](https://github.com/getsentry/sentry-react-native/pull/6967))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.77.1 to v10.78.0 ([#6973](https://github.com/getsentry/sentry-react-native/pull/6973))

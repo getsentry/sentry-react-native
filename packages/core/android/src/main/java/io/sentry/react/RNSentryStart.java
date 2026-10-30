@@ -169,6 +169,9 @@ final class RNSentryStart {
     if (rnOptions.hasKey("enableNdk")) {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
+    if (rnOptions.hasKey("enableLogs")) {
+      options.getLogs().setEnabled(rnOptions.getBoolean("enableLogs"));
+    }
     if (rnOptions.hasKey("enableTombstone")) {
       options.setTombstoneEnabled(rnOptions.getBoolean("enableTombstone"));
     }
