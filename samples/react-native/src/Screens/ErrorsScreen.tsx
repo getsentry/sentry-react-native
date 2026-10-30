@@ -52,6 +52,22 @@ const ErrorsScreen = (_props: Props) => {
       <ScrollView style={styles.mainView}>
         <TimeToFullDisplay record={true} />
         <Button
+          title="Block JS thread for 5s"
+          onPress={function blockJsThreadForFiveSeconds() {
+            const end = Date.now() + 5_000;
+            while (Date.now() < end) {}
+          }}
+        />
+        <Button
+          title="Block JS thread forever"
+          onPress={function blockJsThreadForever() {
+            let i = 1;
+            while (i > 0) {
+              i++;
+            }
+          }}
+        />
+        <Button
           title="Capture message"
           onPress={() => {
             Sentry.captureMessage('Captured message');
