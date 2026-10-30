@@ -13,6 +13,12 @@
 - Enable native logs on Android when `enableLogs` is set ([#6967](https://github.com/getsentry/sentry-react-native/pull/6967))
 - Honor `<Sentry.Mask>` in iOS error screenshots ([#6974](https://github.com/getsentry/sentry-react-native/pull/6974))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.77.1 to v11.10.0 ([#6773](https://github.com/getsentry/sentry-react-native/pull/6773))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#11100)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.77.1...11.10.0)
+
 ## 8.33.0
 
 ### Changes
