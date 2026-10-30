@@ -121,6 +121,16 @@
             sentryOptions.screenshot.unmaskedViewClasses = classes;
         }
     }
+
+    // Honor <Sentry.Mask> in error screenshots, the same as in Session Replay. The native SDK only
+    // lets hybrid SDKs set the mask container class on the replay photographer, so register it as
+    // a masked view class instead: the wrapper's whole frame is masked, covering its children.
+    // <Sentry.Unmask> needs a container class (children are unmasked), which isn't available yet.
+    Class maskClass = [RNSentryReplay getMaskClass];
+    if (![sentryOptions.screenshot.maskedViewClasses containsObject:maskClass]) {
+        sentryOptions.screenshot.maskedViewClasses =
+            [sentryOptions.screenshot.maskedViewClasses arrayByAddingObject:maskClass];
+    }
 #endif
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
