@@ -102,10 +102,15 @@ export const uiProfilingIntegration = (): Integration => {
       return;
     }
     hermesChunk = { profilerId, startTimestampMs: Date.now() };
-    hermesChunkTimeout = setTimeout(() => {
+    hermesChunkTimeout = setTimeout(rotateHermesChunk, HERMES_CHUNK_DURATION_MS);
+  };
+
+  const rotateHermesChunk = (): void => {
+    const profilerId = hermesChunk?.profilerId;
+    if (profilerId) {
       collectHermesChunk();
       startHermesChunk(profilerId);
-    }, HERMES_CHUNK_DURATION_MS);
+    }
   };
 
   const stopHermesSampler = (): { chunk: HermesChunk; hermesProfile: Hermes.Profile } | undefined => {
@@ -284,9 +289,11 @@ export const uiProfilingIntegration = (): Integration => {
         syncNativeProfiler();
       });
 
+      // `close` flushes before it disables the client, so the last chunk is sent here.
+      client.on('flush', rotateHermesChunk);
+
       client.on('close', () => {
         clearStopTimeout();
-        // The client is already disabled here, so it would drop the last chunk.
         stopHermesSampler();
         session = undefined;
         resolveAppStartSession?.(null);
