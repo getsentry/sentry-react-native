@@ -181,6 +181,7 @@ Data flow, in call order:
 | `turbomodule/wrapTurboModule.ts` | `wrapTurboModule(name, module, { skip, arch })` — replaces each method with a timing wrapper. De-dupes via a module-level `WeakSet`. Walks the prototype chain (`Object.getPrototypeOf`) because JSI HostObject proxies expose nothing as own properties. |
 | `turbomodule/turboModuleTracker.ts` | LIFO stack of in-flight calls, mirrored onto the **isolation scope** (that is what `enableSyncToNative` forwards to native). This is the crash-attribution frame. Writes `contexts.turbo_module` plus the `turbo_module.name` / `turbo_module.method` tags. |
 | `turbomodule/turboModuleAggregator.ts` | O(1) counters per `(module, method, kind, arch)` plus a fixed-bucket latency histogram (`HISTOGRAM_BUCKETS_MS`). Fans out to record/call-start observers. |
+| `turbomodule/turboModuleCallbacks.ts` | Wraps trailing success/failure callbacks so callback-style methods are timed until completion. Bounded by `MAX_PENDING_CALLBACK_CALLS` and `CALLBACK_MAX_AGE_MS`. |
 | `turbomodule/wrapNativeModules.ts` | Old Architecture `NativeModules.*` auto-wrap. Returns `[]` immediately when `isTurboModuleEnabled()`. Opt-in via `enableLegacyNativeModules`. |
 | `integrations/turboModuleContext.ts` | Wiring: integration `name` is `'TurboModuleContext'`, factory is `turboModuleContextIntegration()`. Owns `TurboModuleContextOptions` and all defaults. |
 | `integrations/turboModuleContextFlush.ts` | Drains the aggregate onto transaction events (child span + measurements) and onto a periodic standalone event. |
@@ -196,19 +197,17 @@ Gotchas, all of which have already caused bugs:
   periodic flush timer forever.
 - **`logger` imported from `@sentry/core` is the Logs API, not the debug
   logger.** `@sentry/core` exports `logger` as `./logs/public-api` and the
-  debug logger as `debug`. The 7 `logger.warn` calls in `wrapTurboModule.ts`
-  and 2 in `wrapNativeModules.ts` therefore capture log *events* from the wrap
-  hot path, recursing through the wrapped `RNSentry.captureEnvelope`. **Use
-  `debug` in new code here**; the pre-existing calls are a known bug.
+  debug logger as `debug`. Calling `logger.*` from the wrap hot path captures
+  log *events* that recurse through the wrapped `RNSentry.captureEnvelope`.
+  **Always use `debug` for SDK diagnostics here.**
 - **Crash attribution pops synchronously**, even for async calls. Holding the
   frame until completion that may never arrive would blame this module for an
   unrelated later native crash.
-- **A method with no completion signal is recorded as ~0ms.** Only a plain
-  return and a thenable return are recognised. Fire-and-forget bridge methods
-  that report completion through a trailing callback return `undefined`, so they
-  close on return and land in the aggregate as sync calls with a near-zero
-  duration. Tracked in
-  [#6542](https://github.com/getsentry/sentry-react-native/issues/6542).
+- **Callback-style methods return `undefined`.** Without
+  `turboModuleCallbacks.ts` wrapping their trailing callbacks they would close
+  on return as ~0ms sync calls. A callback that never fires (or fires after
+  `CALLBACK_MAX_AGE_MS`) is counted with a zero duration rather than pinning
+  state or poisoning the histogram.
 
 Tests: `test/turbomodule/*.test.ts` and `test/integrations/turboModuleContext.test.ts`.
 
