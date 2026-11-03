@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.12.0'
+  MAESTRO_VERSION: '2.12.1'
   IOS_DEVICE: "iPhone 17"
   IOS_VERSION: ">=18.0"
 
@@ -153,7 +153,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
 
       - name: Setup Global Tools
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -168,7 +168,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
-      - uses: ruby/setup-ruby@26e5b7d197ebf60545ee9667bcbace0be11ccaec # v1
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: "3.3.0"
@@ -286,7 +286,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
 
       - name: Setup KVM
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}

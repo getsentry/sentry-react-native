@@ -43,12 +43,10 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Prepare release
-        uses: getsentry/craft@7a7857552e2cdc08b502de96e6076849c01fba32 # v2.35.0
+        uses: getsentry/craft@3f1f02d50b08b8c509a28d2cc2abf594e9a28011 # v3.5.0
         env:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         with:
           version: ${{ inputs.version }}
           force: ${{ inputs.force }}
           merge_target: ${{ inputs.merge_target }}
-          # Craft cannot get its version from a SHA ref. Keep this value the same as the SHA tag.
-          craft_version: 2.35.0

@@ -64,7 +64,7 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - uses: ruby/setup-ruby@26e5b7d197ebf60545ee9667bcbace0be11ccaec # v1
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1
         with:
           working-directory: samples/expo
           ruby-version: "3.3.0" # based on what is used in the sample
@@ -167,7 +167,7 @@ jobs:
           distribution: "temurin"
 
       - name: Gradle cache
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
 
       - name: Install SDK Dependencies
         run: yarn install

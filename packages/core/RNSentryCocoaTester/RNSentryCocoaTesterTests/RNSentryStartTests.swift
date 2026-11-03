@@ -225,6 +225,44 @@ final class RNSentryStartTests: XCTestCase {
         XCTAssertTrue(actualOptions.screenshot.maskAllImages)
     }
 
+    func testScreenshotMasksSentryMaskComponent() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "attachScreenshot": true,
+            "screenshot": [
+                "maskAllText": false,
+                "maskAllImages": false
+            ]
+        ])
+
+        let maskedViewClasses = SentrySDK.internal.options.screenshot.maskedViewClasses
+        XCTAssertTrue(maskedViewClasses.contains { $0 == RNSentryReplay.getMaskClass() })
+    }
+
+    func testScreenshotMasksSentryMaskComponentWithoutScreenshotOptions() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "attachScreenshot": true
+        ])
+
+        let maskedViewClasses = SentrySDK.internal.options.screenshot.maskedViewClasses
+        XCTAssertTrue(maskedViewClasses.contains { $0 == RNSentryReplay.getMaskClass() })
+    }
+
+    func testScreenshotKeepsUserMaskedViewClassesWithSentryMaskComponent() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "attachScreenshot": true,
+            "screenshot": [
+                "maskedViewClasses": ["UILabel"]
+            ]
+        ])
+
+        let maskedViewClasses = SentrySDK.internal.options.screenshot.maskedViewClasses
+        XCTAssertTrue(maskedViewClasses.contains { $0 == UILabel.self })
+        XCTAssertTrue(maskedViewClasses.contains { $0 == RNSentryReplay.getMaskClass() })
+    }
+
     func testMemoryIntrospectionOption() throws {
         try startFromRN(options: [
             "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
