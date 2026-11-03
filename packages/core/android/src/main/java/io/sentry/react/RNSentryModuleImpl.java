@@ -64,7 +64,6 @@ import io.sentry.cache.EnvelopeCache;
 import io.sentry.cache.IEnvelopeCache;
 import io.sentry.profilemeasurements.ProfileMeasurement;
 import io.sentry.profilemeasurements.ProfileMeasurementValue;
-import io.sentry.protocol.DebugImage;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.User;
@@ -347,32 +346,12 @@ public class RNSentryModuleImpl {
     // No-op: App hang tracking is iOS-only
   }
 
-  public void startJsHangTracking(ReadableMap options) {
-    if (!options.hasKey("timeoutIntervalMs")
-        || options.getType("timeoutIntervalMs") != ReadableType.Number
-        || options.getDouble("timeoutIntervalMs") <= 0) {
+  public void startJsHangTracking(double timeoutIntervalMs, @Nullable String bundleDebugId) {
+    if (timeoutIntervalMs <= 0) {
       logger.log(SentryLevel.WARNING, "Not starting JS hang tracking, invalid timeoutIntervalMs.");
       return;
     }
-    final List<DebugImage> debugImages = new ArrayList<>();
-    final @Nullable ReadableArray images =
-        options.hasKey("debugImages") && options.getType("debugImages") == ReadableType.Array
-            ? options.getArray("debugImages")
-            : null;
-    if (images != null) {
-      for (int i = 0; i < images.size(); i++) {
-        if (images.getType(i) != ReadableType.Map) {
-          continue;
-        }
-        final ReadableMap image = images.getMap(i);
-        final DebugImage debugImage = new DebugImage();
-        debugImage.setType(image.hasKey("type") ? image.getString("type") : null);
-        debugImage.setDebugId(image.hasKey("debug_id") ? image.getString("debug_id") : null);
-        debugImage.setCodeFile(image.hasKey("code_file") ? image.getString("code_file") : null);
-        debugImages.add(debugImage);
-      }
-    }
-    jsHangTracker.start((long) options.getDouble("timeoutIntervalMs"), debugImages);
+    jsHangTracker.start((long) timeoutIntervalMs, bundleDebugId);
   }
 
   public void stopJsHangTracking() {

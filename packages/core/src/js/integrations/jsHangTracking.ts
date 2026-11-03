@@ -24,10 +24,7 @@ export const jsHangTrackingIntegration = ({
     setup(client: ReactNativeClient): void {
       // The JS bundle Debug ID lets the backend symbolicate the frames of the native event.
       client.on('afterInit', () => {
-        NATIVE.startJsHangTracking({
-          timeoutIntervalMs: timeoutIntervalSeconds * 1000,
-          debugImages: getDebugMetadata(),
-        });
+        NATIVE.startJsHangTracking(timeoutIntervalSeconds * 1000, getDebugMetadata()[0]?.debug_id ?? null);
       });
       client.on('close', () => {
         NATIVE.stopJsHangTracking();

@@ -2,7 +2,6 @@
 import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
-  DebugImage,
   Envelope,
   EnvelopeItem,
   Event,
@@ -53,11 +52,6 @@ export interface Screenshot {
   data: Uint8Array;
   contentType: string;
   filename: string;
-}
-
-export interface NativeJsHangTrackingOptions {
-  timeoutIntervalMs: number;
-  debugImages: DebugImage[];
 }
 
 export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
@@ -112,7 +106,7 @@ interface SentryNativeWrapper {
   enableNativeFramesTracking(): void;
   pauseAppHangTracking(): void;
   resumeAppHangTracking(): void;
-  startJsHangTracking(options: NativeJsHangTrackingOptions): void;
+  startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void;
   stopJsHangTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
@@ -789,13 +783,13 @@ export const NATIVE: SentryNativeWrapper = {
     RNSentry.resumeAppHangTracking();
   },
 
-  startJsHangTracking(options: NativeJsHangTrackingOptions): void {
+  startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void {
     if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.startJsHangTracking !== 'function') {
       return;
     }
 
     try {
-      RNSentry.startJsHangTracking(options);
+      RNSentry.startJsHangTracking(timeoutIntervalMs, bundleDebugId);
     } catch (error) {
       debug.error('[NATIVE] Start JS Hang Tracking Failed', error);
     }

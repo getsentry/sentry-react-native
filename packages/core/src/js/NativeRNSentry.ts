@@ -75,7 +75,7 @@ export interface Spec extends TurboModule {
   disableShakeDetection(): void;
   pauseAppHangTracking(): void;
   resumeAppHangTracking(): void;
-  startJsHangTracking(options: UnsafeObject): void;
+  startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void;
   stopJsHangTracking(): void;
 }
 

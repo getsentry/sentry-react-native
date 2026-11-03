@@ -40,16 +40,13 @@ describe('jsHangTrackingIntegration', () => {
     expect(NATIVE.startJsHangTracking).not.toHaveBeenCalled();
   });
 
-  it('starts native tracking with the default timeout and the bundle debug images after init', () => {
+  it('starts native tracking with the default timeout and the bundle Debug ID after init', () => {
     const client = initClient();
 
     // @ts-expect-error Only available on ReactNativeClient
     client.emit('afterInit');
 
-    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith({
-      timeoutIntervalMs: 2000,
-      debugImages: [DEBUG_IMAGE],
-    });
+    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(2000, DEBUG_IMAGE.debug_id);
   });
 
   it('converts the timeout interval from seconds to milliseconds', () => {
@@ -58,7 +55,17 @@ describe('jsHangTrackingIntegration', () => {
     // @ts-expect-error Only available on ReactNativeClient
     client.emit('afterInit');
 
-    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(expect.objectContaining({ timeoutIntervalMs: 500 }));
+    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(500, DEBUG_IMAGE.debug_id);
+  });
+
+  it('starts native tracking without a Debug ID when the bundle has none', () => {
+    mockedGetDebugMetadata.mockReturnValue([]);
+    const client = initClient();
+
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(2000, null);
   });
 
   it('stops native tracking when the client closes', async () => {

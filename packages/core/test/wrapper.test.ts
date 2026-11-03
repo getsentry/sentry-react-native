@@ -1656,67 +1656,26 @@ describe('Tests Native Wrapper', () => {
     });
   });
 
-  describe('startJsHangTracking', () => {
-    const trackingOptions = {
-      timeoutIntervalMs: 2000,
-      debugImages: [{ code_file: 'app:///main.jsbundle', debug_id: 'debug-id', type: 'sourcemap' as const }],
-    };
-
-    test('passes the options to native', async () => {
-      await NATIVE.initNativeSdk({
+  describe('JS hang tracking', () => {
+    const initNative = (enableNative: boolean) =>
+      NATIVE.initNativeSdk({
         dsn: VALID_DSN,
-        enableNative: true,
+        enableNative,
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
-      NATIVE.startJsHangTracking(trackingOptions);
+    test('startJsHangTracking passes the timeout and the bundle Debug ID to native', async () => {
+      await initNative(true);
 
-      expect(RNSentry.startJsHangTracking).toHaveBeenCalledWith(trackingOptions);
+      NATIVE.startJsHangTracking(2000, 'debug-id');
+
+      expect(RNSentry.startJsHangTracking).toHaveBeenCalledWith(2000, 'debug-id');
     });
 
-    test('does not call native when enableNative is false', async () => {
-      await NATIVE.initNativeSdk({
-        dsn: VALID_DSN,
-        enableNative: false,
-        devServerUrl: undefined,
-        defaultSidecarUrl: undefined,
-        mobileReplayOptions: undefined,
-      });
-
-      NATIVE.startJsHangTracking(trackingOptions);
-
-      expect(RNSentry.startJsHangTracking).not.toHaveBeenCalled();
-    });
-
-    test('does not throw when the native module does not have the method', async () => {
-      await NATIVE.initNativeSdk({
-        dsn: VALID_DSN,
-        enableNative: true,
-        devServerUrl: undefined,
-        defaultSidecarUrl: undefined,
-        mobileReplayOptions: undefined,
-      });
-      const original = RNSentry.startJsHangTracking;
-      // @ts-expect-error simulates an older native binary
-      RNSentry.startJsHangTracking = undefined;
-
-      expect(() => NATIVE.startJsHangTracking(trackingOptions)).not.toThrow();
-
-      RNSentry.startJsHangTracking = original;
-    });
-  });
-
-  describe('stopJsHangTracking', () => {
-    test('calls native stopJsHangTracking', async () => {
-      await NATIVE.initNativeSdk({
-        dsn: VALID_DSN,
-        enableNative: true,
-        devServerUrl: undefined,
-        defaultSidecarUrl: undefined,
-        mobileReplayOptions: undefined,
-      });
+    test('stopJsHangTracking calls native', async () => {
+      await initNative(true);
 
       NATIVE.stopJsHangTracking();
 
@@ -1724,17 +1683,28 @@ describe('Tests Native Wrapper', () => {
     });
 
     test('does not call native when enableNative is false', async () => {
-      await NATIVE.initNativeSdk({
-        dsn: VALID_DSN,
-        enableNative: false,
-        devServerUrl: undefined,
-        defaultSidecarUrl: undefined,
-        mobileReplayOptions: undefined,
-      });
+      await initNative(false);
 
+      NATIVE.startJsHangTracking(2000, null);
       NATIVE.stopJsHangTracking();
 
+      expect(RNSentry.startJsHangTracking).not.toHaveBeenCalled();
       expect(RNSentry.stopJsHangTracking).not.toHaveBeenCalled();
+    });
+
+    test('does not throw when an older native binary does not have the methods', async () => {
+      await initNative(true);
+      const { startJsHangTracking, stopJsHangTracking } = RNSentry;
+      // @ts-expect-error simulates an older native binary
+      RNSentry.startJsHangTracking = undefined;
+      // @ts-expect-error simulates an older native binary
+      RNSentry.stopJsHangTracking = undefined;
+
+      expect(() => NATIVE.startJsHangTracking(2000, null)).not.toThrow();
+      expect(() => NATIVE.stopJsHangTracking()).not.toThrow();
+
+      RNSentry.startJsHangTracking = startJsHangTracking;
+      RNSentry.stopJsHangTracking = stopJsHangTracking;
     });
   });
 

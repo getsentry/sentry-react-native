@@ -16,13 +16,9 @@ typedef void (^RNSentryJSThreadScheduler)(dispatch_block_t block);
 
 + (instancetype)sharedInstance;
 
-/**
- * Starts tracking, or restarts it with the new values when it already runs.
- *
- * @param debugImages Dictionaries with `type`, `debug_id`, and `code_file` of the JS bundle.
- */
+/// Starts tracking, or restarts it with the new values when it already runs.
 - (void)startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
-                       debugImages:(NSArray<NSDictionary *> *)debugImages
+                     bundleDebugId:(nullable NSString *)bundleDebugId
                 scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread;
 
 - (void)stop;

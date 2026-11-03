@@ -874,19 +874,17 @@ RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracki
     return ^(dispatch_block_t block) { [weakBridge dispatchBlock:block queue:RCTJSThread]; };
 }
 
-RCT_EXPORT_METHOD(startJsHangTracking : (NSDictionary *)options)
+RCT_EXPORT_METHOD(startJsHangTracking : (double)timeoutIntervalMs bundleDebugId : (
+    NSString *_Nullable)bundleDebugId)
 {
-    NSNumber *timeoutIntervalMs = options[@"timeoutIntervalMs"];
-    NSArray *debugImages = options[@"debugImages"];
-    if (![timeoutIntervalMs isKindOfClass:[NSNumber class]] || timeoutIntervalMs.doubleValue <= 0) {
-        NSLog(@"[Sentry] Not starting JS hang tracking, invalid timeoutIntervalMs: %@",
+    if (timeoutIntervalMs <= 0) {
+        NSLog(@"[Sentry] Not starting JS hang tracking, invalid timeoutIntervalMs: %f",
             timeoutIntervalMs);
         return;
     }
-    [[RNSentryJSHangTracker sharedInstance]
-        startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs.doubleValue
-                       debugImages:[debugImages isKindOfClass:[NSArray class]] ? debugImages : @[]
-                scheduleOnJSThread:[self jsThreadScheduler]];
+    [[RNSentryJSHangTracker sharedInstance] startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                                                         bundleDebugId:bundleDebugId
+                                                    scheduleOnJSThread:[self jsThreadScheduler]];
 }
 
 RCT_EXPORT_METHOD(stopJsHangTracking) { [[RNSentryJSHangTracker sharedInstance] stop]; }

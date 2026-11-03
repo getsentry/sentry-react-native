@@ -51,11 +51,10 @@ final class RNSentryJSHangTracker {
   }
 
   /** Starts tracking, or restarts it with the new values when it already runs. */
-  synchronized void start(
-      final long timeoutIntervalMs, final @NotNull List<DebugImage> debugImages) {
+  synchronized void start(final long timeoutIntervalMs, final @Nullable String bundleDebugId) {
     stop();
     final Thread newThread =
-        new Thread(() -> run(timeoutIntervalMs, debugImages), "io.sentry.react.js-hang-tracker");
+        new Thread(() -> run(timeoutIntervalMs, bundleDebugId), "io.sentry.react.js-hang-tracker");
     newThread.setDaemon(true);
     thread = newThread;
     newThread.start();
@@ -79,7 +78,7 @@ final class RNSentryJSHangTracker {
     }
   }
 
-  private void run(final long timeoutIntervalMs, final @NotNull List<DebugImage> debugImages) {
+  private void run(final long timeoutIntervalMs, final @Nullable String bundleDebugId) {
     // The tracker measures only after the JS thread answered once, so loading the bundle is not
     // a hang.
     final AtomicBoolean inFlight = new AtomicBoolean(false);
@@ -121,7 +120,7 @@ final class RNSentryJSHangTracker {
           reported = false;
         } else if (!reported && armed.get() && System.nanoTime() - sentAt.get() >= timeoutNs) {
           reported = true;
-          reportHang(timeoutIntervalMs, debugImages);
+          reportHang(timeoutIntervalMs, bundleDebugId);
         }
       }
     } catch (InterruptedException e) {
@@ -137,14 +136,13 @@ final class RNSentryJSHangTracker {
     }
   }
 
-  private void reportHang(
-      final long timeoutIntervalMs, final @NotNull List<DebugImage> debugImages) {
+  private void reportHang(final long timeoutIntervalMs, final @Nullable String bundleDebugId) {
     try {
       final @Nullable String trace =
           RNSentryHermesSampler.sample(STACK_SAMPLE_WINDOW_MS, reactContext.getCacheDir());
       final List<SentryStackFrame> frames =
           trace != null ? framesFromHermesTrace(trace) : Collections.emptyList();
-      Sentry.captureEvent(createEvent(timeoutIntervalMs, frames, debugImages));
+      Sentry.captureEvent(createEvent(timeoutIntervalMs, frames, bundleDebugId));
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
       logger.log(SentryLevel.WARNING, "Failed to report JS thread hang.", e);
     }
@@ -224,7 +222,7 @@ final class RNSentryJSHangTracker {
   static @NotNull SentryEvent createEvent(
       final long timeoutIntervalMs,
       final @NotNull List<SentryStackFrame> frames,
-      final @NotNull List<DebugImage> debugImages) {
+      final @Nullable String bundleDebugId) {
     final Mechanism mechanism = new Mechanism();
     mechanism.setType("JSHang");
     mechanism.setHandled(false);
@@ -254,9 +252,13 @@ final class RNSentryJSHangTracker {
     event.setLevel(SentryLevel.ERROR);
     event.setExceptions(Collections.singletonList(exception));
     event.setThreads(Collections.singletonList(thread));
-    if (!debugImages.isEmpty()) {
+    if (bundleDebugId != null) {
+      final DebugImage bundle = new DebugImage();
+      bundle.setType("sourcemap");
+      bundle.setDebugId(bundleDebugId);
+      bundle.setCodeFile(BUNDLE_FILE_NAME);
       final DebugMeta debugMeta = new DebugMeta();
-      debugMeta.setImages(new ArrayList<>(debugImages));
+      debugMeta.setImages(new ArrayList<>(Collections.singletonList(bundle)));
       event.setDebugMeta(debugMeta);
     }
     return event;

@@ -1,5 +1,6 @@
 package io.sentry.react;
 
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -310,8 +311,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void startJsHangTracking(ReadableMap options) {
-    this.impl.startJsHangTracking(options);
+  public void startJsHangTracking(double timeoutIntervalMs, @Nullable String bundleDebugId) {
+    this.impl.startJsHangTracking(timeoutIntervalMs, bundleDebugId);
   }
 
   @ReactMethod

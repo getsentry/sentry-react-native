@@ -81,7 +81,7 @@ isDebuggerAttached()
 }
 
 - (void)startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
-                       debugImages:(NSArray<NSDictionary *> *)debugImages
+                     bundleDebugId:(nullable NSString *)bundleDebugId
                 scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread
 {
     if ([NSThread isMainThread]) {
@@ -89,13 +89,13 @@ isDebuggerAttached()
             [UIApplication sharedApplication].applicationState != UIApplicationStateBackground;
     }
 
-    NSArray<NSDictionary *> *images = [debugImages copy];
+    NSString *debugId = [bundleDebugId copy];
     RNSentryJSThreadScheduler schedule = [scheduleOnJSThread copy];
     @synchronized(self) {
         [_thread cancel];
         _thread = [[NSThread alloc] initWithBlock:^{
             [self runWithTimeoutIntervalMs:timeoutIntervalMs
-                               debugImages:images
+                             bundleDebugId:debugId
                         scheduleOnJSThread:schedule];
         }];
         _thread.name = @"io.sentry.react.js-hang-tracker";
@@ -112,7 +112,7 @@ isDebuggerAttached()
 }
 
 - (void)runWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
-                     debugImages:(NSArray<NSDictionary *> *)debugImages
+                   bundleDebugId:(nullable NSString *)bundleDebugId
               scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread
 {
     // The tracker measures only after the JS thread answered once, so loading the bundle is not a
@@ -149,13 +149,13 @@ isDebuggerAttached()
             reported = false;
         } else if (!reported && state->armed && nowNs() - state->sentAt >= timeoutNs) {
             reported = true;
-            [self reportHangWithTimeoutIntervalMs:timeoutIntervalMs debugImages:debugImages];
+            [self reportHangWithTimeoutIntervalMs:timeoutIntervalMs bundleDebugId:bundleDebugId];
         }
     }
 }
 
 - (void)reportHangWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
-                            debugImages:(NSArray<NSDictionary *> *)debugImages
+                          bundleDebugId:(nullable NSString *)bundleDebugId
 {
     @try {
         NSArray<SentryFrame *> *frames = @[];
@@ -167,7 +167,7 @@ isDebuggerAttached()
         [SentrySDKWrapper
             captureEvent:[RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
                                                                     frames:frames
-                                                               debugImages:debugImages]];
+                                                             bundleDebugId:bundleDebugId]];
     } @catch (NSException *exception) {
         NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
     }
@@ -175,43 +175,36 @@ isDebuggerAttached()
 
 + (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace
 {
-    NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
-    if (![profile isKindOfClass:[NSDictionary class]]) {
-        return @[];
-    }
-    NSArray *samples = profile[@"samples"];
-    NSDictionary *stackFrames = profile[@"stackFrames"];
-    if (![samples isKindOfClass:[NSArray class]] || samples.count == 0
-        || ![stackFrames isKindOfClass:[NSDictionary class]]) {
-        return @[];
-    }
-    NSDictionary *lastSample = samples.lastObject;
-    if (![lastSample isKindOfClass:[NSDictionary class]]) {
-        return @[];
-    }
+    // A trace with unexpected JSON types gives an event without a stack trace.
+    @try {
+        NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
+        NSDictionary *stackFrames = profile[@"stackFrames"];
+        id frameId = [profile[@"samples"] lastObject][@"sf"];
 
-    // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
-    NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
-    id frameId = lastSample[@"sf"];
-    for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
-        NSDictionary *hermesFrame = stackFrames[[NSString stringWithFormat:@"%@", frameId]];
-        if (![hermesFrame isKindOfClass:[NSDictionary class]]) {
-            break;
+        // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
+        NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
+        for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
+            NSDictionary *hermesFrame = stackFrames[[frameId description]];
+            if (hermesFrame == nil) {
+                break;
+            }
+            SentryFrame *frame = [self frameFromHermesFrame:hermesFrame];
+            if (frame != nil) {
+                [frames insertObject:frame atIndex:0];
+            }
+            frameId = hermesFrame[@"parent"];
         }
-        SentryFrame *frame = [self frameFromHermesFrame:hermesFrame];
-        if (frame != nil) {
-            [frames insertObject:frame atIndex:0];
-        }
-        frameId = hermesFrame[@"parent"];
+        return frames;
+    } @catch (NSException *exception) {
+        return @[];
     }
-    return frames;
 }
 
 + (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame
 {
-    id name = hermesFrame[@"name"];
-    if (![hermesFrame[@"category"] isEqual:@"JavaScript"] || ![name isKindOfClass:[NSString class]]
-        || [name isEqualToString:@"[root]"]) {
+    NSString *name = hermesFrame[@"name"];
+    if (![hermesFrame[@"category"] isEqual:@"JavaScript"] || name == nil ||
+        [name isEqualToString:@"[root]"]) {
         return nil;
     }
 
@@ -240,7 +233,7 @@ isDebuggerAttached()
 
 + (SentryEvent *)eventWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
                                      frames:(NSArray<SentryFrame *> *)frames
-                                debugImages:(NSArray<NSDictionary *> *)debugImages
+                              bundleDebugId:(nullable NSString *)bundleDebugId
 {
     // The value uses the timeout and not the measured time, so events without a stack trace group
     // together.
@@ -267,23 +260,15 @@ isDebuggerAttached()
         thread.stacktrace = stacktrace;
     }
 
-    NSMutableArray<SentryDebugMeta *> *debugMeta = [NSMutableArray array];
-    for (NSDictionary *image in debugImages) {
-        if (![image isKindOfClass:[NSDictionary class]]) {
-            continue;
-        }
-        SentryDebugMeta *meta = [[SentryDebugMeta alloc] init];
-        meta.type = image[@"type"];
-        meta.debugID = image[@"debug_id"];
-        meta.codeFile = image[@"code_file"];
-        [debugMeta addObject:meta];
-    }
-
     SentryEvent *event = [[SentryEvent alloc] initWithLevel:kSentryLevelError];
     event.exceptions = @[ exception ];
     event.threads = @[ thread ];
-    if (debugMeta.count > 0) {
-        event.debugMeta = debugMeta;
+    if (bundleDebugId != nil) {
+        SentryDebugMeta *bundle = [[SentryDebugMeta alloc] init];
+        bundle.type = @"sourcemap";
+        bundle.debugID = bundleDebugId;
+        bundle.codeFile = kBundleFileName;
+        event.debugMeta = @[ bundle ];
     }
     return event;
 }
