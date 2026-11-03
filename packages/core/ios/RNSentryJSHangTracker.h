@@ -1,23 +1,29 @@
 #import <Foundation/Foundation.h>
 
-#ifdef __cplusplus
-#    include <memory>
-namespace facebook::react {
-class CallInvoker;
-}
-#endif
-
 NS_ASSUME_NONNULL_BEGIN
 
+typedef void (^RNSentryJSThreadScheduler)(dispatch_block_t block);
+
+/**
+ * Reports the JS thread when it stays blocked, because no JS code can report it while it is
+ * blocked.
+ *
+ * A native thread schedules an empty block on the JS thread and waits for it to run. When the block
+ * does not run within the timeout, the tracker samples the JS stack with Hermes and captures an
+ * error event.
+ */
 @interface RNSentryJSHangTracker : NSObject
 
 + (instancetype)sharedInstance;
 
-#ifdef __cplusplus
-- (void)setJSInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker;
-#endif
-
-- (void)startWithTimeoutInterval:(NSTimeInterval)timeoutInterval;
+/**
+ * Starts tracking, or restarts it with the new values when it already runs.
+ *
+ * @param debugImages Dictionaries with `type`, `debug_id`, and `code_file` of the JS bundle.
+ */
+- (void)startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                       debugImages:(NSArray<NSDictionary *> *)debugImages
+                scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread;
 
 - (void)stop;
 

@@ -63,6 +63,8 @@ jest.mock('react-native', () => {
     stopProfiling: jest.fn(),
     pauseAppHangTracking: jest.fn(),
     resumeAppHangTracking: jest.fn(),
+    startJsHangTracking: jest.fn(),
+    stopJsHangTracking: jest.fn(),
     startReplay: jest.fn(() => Promise.resolve()),
     startReplayBuffering: jest.fn(() => Promise.resolve()),
     stopReplay: jest.fn(() => Promise.resolve()),
@@ -345,6 +347,24 @@ describe('Tests Native Wrapper', () => {
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSend');
       expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter JS hang tracking options when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableJsHangTracking: true,
+        jsHangTimeoutInterval: 3,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('enableJsHangTracking');
+      expect(initParameter).not.toHaveProperty('jsHangTimeoutInterval');
     });
 
     test('filter beforeBreadcrumb when initializing Native SDK', async () => {
@@ -1633,6 +1653,88 @@ describe('Tests Native Wrapper', () => {
       });
       NATIVE.resumeAppHangTracking();
       expect(RNSentry.resumeAppHangTracking).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('startJsHangTracking', () => {
+    const trackingOptions = {
+      timeoutIntervalMs: 2000,
+      debugImages: [{ code_file: 'app:///main.jsbundle', debug_id: 'debug-id', type: 'sourcemap' as const }],
+    };
+
+    test('passes the options to native', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      NATIVE.startJsHangTracking(trackingOptions);
+
+      expect(RNSentry.startJsHangTracking).toHaveBeenCalledWith(trackingOptions);
+    });
+
+    test('does not call native when enableNative is false', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      NATIVE.startJsHangTracking(trackingOptions);
+
+      expect(RNSentry.startJsHangTracking).not.toHaveBeenCalled();
+    });
+
+    test('does not throw when the native module does not have the method', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      const original = RNSentry.startJsHangTracking;
+      // @ts-expect-error simulates an older native binary
+      RNSentry.startJsHangTracking = undefined;
+
+      expect(() => NATIVE.startJsHangTracking(trackingOptions)).not.toThrow();
+
+      RNSentry.startJsHangTracking = original;
+    });
+  });
+
+  describe('stopJsHangTracking', () => {
+    test('calls native stopJsHangTracking', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      NATIVE.stopJsHangTracking();
+
+      expect(RNSentry.stopJsHangTracking).toHaveBeenCalled();
+    });
+
+    test('does not call native when enableNative is false', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      NATIVE.stopJsHangTracking();
+
+      expect(RNSentry.stopJsHangTracking).not.toHaveBeenCalled();
     });
   });
 

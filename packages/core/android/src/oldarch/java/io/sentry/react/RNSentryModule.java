@@ -309,6 +309,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.resumeAppHangTracking();
   }
 
+  @ReactMethod
+  public void startJsHangTracking(ReadableMap options) {
+    this.impl.startJsHangTracking(options);
+  }
+
+  @ReactMethod
+  public void stopJsHangTracking() {
+    this.impl.stopJsHangTracking();
+  }
+
   @Override
   public void invalidate() {
     this.impl.invalidate();

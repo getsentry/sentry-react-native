@@ -47,6 +47,7 @@ import {
   userInteractionIntegration,
   viewHierarchyIntegration,
 } from './exports';
+import { jsHangTrackingIntegration } from './jsHangTracking';
 
 const STANDALONE_APP_START_INTEGRATION_NAME = 'StandaloneAppStart';
 
@@ -117,6 +118,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     }
     if (getProfilingOptions(options)) {
       integrations.push(uiProfilingIntegration());
+    }
+    if (options.enableJsHangTracking) {
+      integrations.push(jsHangTrackingIntegration({ timeoutIntervalSeconds: options.jsHangTimeoutInterval }));
     }
   }
 

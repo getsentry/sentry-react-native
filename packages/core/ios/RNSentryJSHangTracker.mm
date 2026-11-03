@@ -1,24 +1,17 @@
 #import "RNSentryJSHangTracker.h"
-#import "SentrySDKWrapper.h"
 
+#import "RNSentryHermesSampler.h"
+#import "SentrySDKWrapper.h"
 #import <Sentry/Sentry.h>
 #import <UIKit/UIKit.h>
 #import <atomic>
-#import <mutex>
-#import <sstream>
+#import <memory>
+#import <sys/sysctl.h>
 #import <time.h>
-
-#import <ReactCommon/CallInvoker.h>
-
-#if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
-#    define SENTRY_JS_HANG_HERMES_STACK 1
-#    import <hermes/hermes.h>
-#else
-#    define SENTRY_JS_HANG_HERMES_STACK 0
-#endif
+#import <unistd.h>
 
 static const useconds_t kPollIntervalUs = 100 * 1000;
-static const useconds_t kStackSampleWindowUs = 300 * 1000;
+static const std::chrono::milliseconds kStackSampleWindow(300);
 static NSString *const kBundleFileName = @"app:///main.jsbundle";
 
 namespace {
@@ -33,15 +26,23 @@ nowNs()
 {
     return clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
 }
+
+bool
+isDebuggerAttached()
+{
+    struct kinfo_proc info = { };
+    size_t size = sizeof(info);
+    int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
+    if (sysctl(mib, 4, &info, &size, NULL, 0) != 0) {
+        return false;
+    }
+    return (info.kp_proc.p_flag & P_TRACED) != 0;
+}
 }
 
 @implementation RNSentryJSHangTracker {
-    std::mutex _invokerMutex;
-    std::shared_ptr<facebook::react::CallInvoker> _jsInvoker;
-    std::shared_ptr<PingState> _state;
     NSThread *_thread;
-    uint64_t _timeoutNs;
-    std::atomic<bool> _appActive;
+    std::atomic<bool> _inForeground;
 }
 
 + (instancetype)sharedInstance
@@ -55,41 +56,48 @@ nowNs()
 - (instancetype)init
 {
     if (self = [super init]) {
-        _state = std::make_shared<PingState>();
-        _appActive = true;
+        _inForeground = true;
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self
-                   selector:@selector(appDidBecomeActive)
-                       name:UIApplicationDidBecomeActiveNotification
+                   selector:@selector(appDidEnterBackground)
+                       name:UIApplicationDidEnterBackgroundNotification
                      object:nil];
         [center addObserver:self
-                   selector:@selector(appWillResignActive)
-                       name:UIApplicationWillResignActiveNotification
+                   selector:@selector(appWillEnterForeground)
+                       name:UIApplicationWillEnterForegroundNotification
                      object:nil];
     }
     return self;
 }
 
-- (void)setJSInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker
+- (void)appDidEnterBackground
 {
-    std::lock_guard<std::mutex> lock(_invokerMutex);
-    _jsInvoker = std::move(jsInvoker);
+    _inForeground = false;
 }
 
-- (std::shared_ptr<facebook::react::CallInvoker>)jsInvoker
+- (void)appWillEnterForeground
 {
-    std::lock_guard<std::mutex> lock(_invokerMutex);
-    return _jsInvoker;
+    _inForeground = true;
 }
 
-- (void)startWithTimeoutInterval:(NSTimeInterval)timeoutInterval
+- (void)startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                       debugImages:(NSArray<NSDictionary *> *)debugImages
+                scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread
 {
+    if ([NSThread isMainThread]) {
+        _inForeground =
+            [UIApplication sharedApplication].applicationState != UIApplicationStateBackground;
+    }
+
+    NSArray<NSDictionary *> *images = [debugImages copy];
+    RNSentryJSThreadScheduler schedule = [scheduleOnJSThread copy];
     @synchronized(self) {
-        if (_thread != nil) {
-            return;
-        }
-        _timeoutNs = (uint64_t)(timeoutInterval * NSEC_PER_SEC);
-        _thread = [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];
+        [_thread cancel];
+        _thread = [[NSThread alloc] initWithBlock:^{
+            [self runWithTimeoutIntervalMs:timeoutIntervalMs
+                               debugImages:images
+                        scheduleOnJSThread:schedule];
+        }];
         _thread.name = @"io.sentry.react.js-hang-tracker";
         [_thread start];
     }
@@ -103,29 +111,33 @@ nowNs()
     }
 }
 
-- (void)appDidBecomeActive
+- (void)runWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                     debugImages:(NSArray<NSDictionary *> *)debugImages
+              scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread
 {
-    _state->armed = false;
-    _appActive = true;
-}
-
-- (void)appWillResignActive
-{
-    _appActive = false;
-}
-
-- (void)run
-{
-    auto state = _state;
+    // The tracker measures only after the JS thread answered once, so loading the bundle is not a
+    // hang.
+    auto state = std::make_shared<PingState>();
+    uint64_t timeoutNs = timeoutIntervalMs * NSEC_PER_MSEC;
     bool reported = false;
-    uint64_t timeoutNs = _timeoutNs;
+    bool paused = false;
+    NSThread *thread = [NSThread currentThread];
 
-    while (![NSThread currentThread].isCancelled) {
-        auto invoker = [self jsInvoker];
-        if (invoker && _appActive && !state->inFlight.load()) {
-            state->inFlight = true;
+    while (!thread.isCancelled) {
+        if (!_inForeground || isDebuggerAttached()) {
+            paused = true;
+            usleep(kPollIntervalUs);
+            continue;
+        }
+        if (paused) {
+            paused = false;
             state->sentAt = nowNs();
-            invoker->invokeAsync([state](facebook::jsi::Runtime &) {
+        }
+
+        if (!state->inFlight) {
+            state->sentAt = nowNs();
+            state->inFlight = true;
+            scheduleOnJSThread(^{
                 state->inFlight = false;
                 state->armed = true;
             });
@@ -133,98 +145,73 @@ nowNs()
 
         usleep(kPollIntervalUs);
 
-        if (state->inFlight.load()) {
-            uint64_t blockedNs = nowNs() - state->sentAt.load();
-            if (!reported && _appActive && state->armed.load() && blockedNs >= timeoutNs) {
-                reported = true;
-                [self reportHangBlockedFor:blockedNs];
-            }
-        } else if (reported) {
-            NSLog(@"[Sentry] JS thread hang ended.");
+        if (!state->inFlight) {
             reported = false;
+        } else if (!reported && state->armed && nowNs() - state->sentAt >= timeoutNs) {
+            reported = true;
+            [self reportHangWithTimeoutIntervalMs:timeoutIntervalMs debugImages:debugImages];
         }
     }
 }
 
-- (void)reportHangBlockedFor:(uint64_t)blockedNs
+- (void)reportHangWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                            debugImages:(NSArray<NSDictionary *> *)debugImages
 {
-    NSArray<SentryFrame *> *frames = [self captureJSStack];
-    NSString *value = [NSString
-        stringWithFormat:@"JS thread blocked for at least %llu ms.", blockedNs / NSEC_PER_MSEC];
-    NSLog(@"[Sentry] %@ Captured %lu JS frames.", value, (unsigned long)frames.count);
-
-    SentryException *exception = [[SentryException alloc] initWithValue:value
-                                                                   type:@"JS Thread Hang"];
-    SentryMechanism *mechanism = [[SentryMechanism alloc] initWithType:@"js_hang"];
-    mechanism.handled = @NO;
-    exception.mechanism = mechanism;
-    if (frames.count > 0) {
-        exception.stacktrace = [[SentryStacktrace alloc] initWithFrames:frames registers:@{ }];
+    @try {
+        NSArray<SentryFrame *> *frames = @[];
+        std::optional<std::string> trace = sentry::react::sampleHermesTrace(kStackSampleWindow);
+        if (trace) {
+            frames = [RNSentryJSHangTracker
+                framesFromHermesTrace:[NSData dataWithBytes:trace->data() length:trace->size()]];
+        }
+        [SentrySDKWrapper
+            captureEvent:[RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
+                                                                    frames:frames
+                                                               debugImages:debugImages]];
+    } @catch (NSException *exception) {
+        NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
     }
-
-    SentryEvent *event = [[SentryEvent alloc] initWithLevel:kSentryLevelError];
-    event.exceptions = @[ exception ];
-    [SentrySDKWrapper captureEvent:event];
 }
 
-- (NSArray<SentryFrame *> *)captureJSStack
++ (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace
 {
-#if SENTRY_JS_HANG_HERMES_STACK
-    std::stringstream ss;
-    try {
-#    ifdef NEW_HERMES_RUNTIME
-        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
-            facebook::hermes::makeHermesRootAPI());
-        if (!hermesAPI) {
-            return @[];
-        }
-        hermesAPI->enableSamplingProfiler();
-        usleep(kStackSampleWindowUs);
-        hermesAPI->disableSamplingProfiler();
-        hermesAPI->dumpSampledTraceToStream(ss);
-#    else
-        facebook::hermes::HermesRuntime::enableSamplingProfiler();
-        usleep(kStackSampleWindowUs);
-        facebook::hermes::HermesRuntime::disableSamplingProfiler();
-        facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
-#    endif
-    } catch (...) {
+    NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
+    if (![profile isKindOfClass:[NSDictionary class]]) {
         return @[];
     }
-
-    std::string trace = ss.str();
-    NSData *data = [NSData dataWithBytes:trace.data() length:trace.size()];
-    NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
     NSArray *samples = profile[@"samples"];
     NSDictionary *stackFrames = profile[@"stackFrames"];
     if (![samples isKindOfClass:[NSArray class]] || samples.count == 0
         || ![stackFrames isKindOfClass:[NSDictionary class]]) {
         return @[];
     }
+    NSDictionary *lastSample = samples.lastObject;
+    if (![lastSample isKindOfClass:[NSDictionary class]]) {
+        return @[];
+    }
 
+    // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
     NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
-    id frameId = samples.lastObject[@"sf"];
-    while (frameId != nil && frameId != [NSNull null]) {
+    id frameId = lastSample[@"sf"];
+    for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
         NSDictionary *hermesFrame = stackFrames[[NSString stringWithFormat:@"%@", frameId]];
-        if (hermesFrame == nil) {
+        if (![hermesFrame isKindOfClass:[NSDictionary class]]) {
             break;
         }
-        SentryFrame *frame = [self sentryFrameFromHermesFrame:hermesFrame];
+        SentryFrame *frame = [self frameFromHermesFrame:hermesFrame];
         if (frame != nil) {
             [frames insertObject:frame atIndex:0];
         }
         frameId = hermesFrame[@"parent"];
     }
     return frames;
-#else
-    return @[];
-#endif
 }
 
-- (nullable SentryFrame *)sentryFrameFromHermesFrame:(NSDictionary *)hermesFrame
++ (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame
 {
-    NSString *name = hermesFrame[@"name"];
-    if (![hermesFrame[@"category"] isEqual:@"JavaScript"] || [name isEqual:@"[root]"]) {
+    id name = hermesFrame[@"name"];
+    if (![hermesFrame[@"category"] isEqual:@"JavaScript"] || ![name isKindOfClass:[NSString class]]
+        || [name isEqualToString:@"[root]"]) {
         return nil;
     }
 
@@ -232,18 +219,73 @@ nowNs()
     frame.platform = @"javascript";
     frame.fileName = kBundleFileName;
     NSRange paren = [name rangeOfString:@"("];
-    frame.function = paren.location == NSNotFound ? name : [name substringToIndex:paren.location];
+    NSString *function
+        = paren.location == NSNotFound ? name : [name substringToIndex:paren.location];
+    frame.function = function.length > 0 ? function : nil;
 
     id funcVirtAddr = hermesFrame[@"funcVirtAddr"];
     id offset = hermesFrame[@"offset"];
     if (funcVirtAddr != nil && offset != nil) {
+        // Hermes bytecode has one line, and its column is 0-based while Sentry's is 1-based.
         frame.lineNumber = @1;
         frame.columnNumber = @([funcVirtAddr longLongValue] + [offset longLongValue] + 1);
     } else {
-        frame.lineNumber = @([hermesFrame[@"line"] longLongValue]);
-        frame.columnNumber = @([hermesFrame[@"column"] longLongValue]);
+        id line = hermesFrame[@"line"];
+        id column = hermesFrame[@"column"];
+        frame.lineNumber = line != nil ? @([line longLongValue]) : nil;
+        frame.columnNumber = column != nil ? @([column longLongValue]) : nil;
     }
     return frame;
+}
+
++ (SentryEvent *)eventWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                                     frames:(NSArray<SentryFrame *> *)frames
+                                debugImages:(NSArray<NSDictionary *> *)debugImages
+{
+    // The value uses the timeout and not the measured time, so events without a stack trace group
+    // together.
+    NSString *value =
+        [NSString stringWithFormat:@"JS thread blocked for at least %llu ms.", timeoutIntervalMs];
+    SentryException *exception = [[SentryException alloc] initWithValue:value
+                                                                   type:@"JS Thread Hang"];
+    SentryMechanism *mechanism = [[SentryMechanism alloc] initWithType:@"JSHang"];
+    mechanism.handled = @NO;
+    exception.mechanism = mechanism;
+
+    // A thread of its own keeps the native SDK from attaching the native threads, which do not
+    // show the JS code.
+    SentryThread *thread = [[SentryThread alloc] initWithThreadId:@0];
+    thread.name = @"JavaScript";
+    thread.crashed = @YES;
+    thread.current = @NO;
+    thread.isMain = @NO;
+    exception.threadId = thread.threadId;
+    if (frames.count > 0) {
+        SentryStacktrace *stacktrace = [[SentryStacktrace alloc] initWithFrames:frames
+                                                                      registers:@{ }];
+        exception.stacktrace = stacktrace;
+        thread.stacktrace = stacktrace;
+    }
+
+    NSMutableArray<SentryDebugMeta *> *debugMeta = [NSMutableArray array];
+    for (NSDictionary *image in debugImages) {
+        if (![image isKindOfClass:[NSDictionary class]]) {
+            continue;
+        }
+        SentryDebugMeta *meta = [[SentryDebugMeta alloc] init];
+        meta.type = image[@"type"];
+        meta.debugID = image[@"debug_id"];
+        meta.codeFile = image[@"code_file"];
+        [debugMeta addObject:meta];
+    }
+
+    SentryEvent *event = [[SentryEvent alloc] initWithLevel:kSentryLevelError];
+    event.exceptions = @[ exception ];
+    event.threads = @[ thread ];
+    if (debugMeta.count > 0) {
+        event.debugMeta = debugMeta;
+    }
+    return event;
 }
 
 @end

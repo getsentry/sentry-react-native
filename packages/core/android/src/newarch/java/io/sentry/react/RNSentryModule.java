@@ -310,6 +310,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void startJsHangTracking(ReadableMap options) {
+    this.impl.startJsHangTracking(options);
+  }
+
+  @Override
+  public void stopJsHangTracking() {
+    this.impl.stopJsHangTracking();
+  }
+
+  @Override
   public void invalidate() {
     this.impl.invalidate();
     super.invalidate();

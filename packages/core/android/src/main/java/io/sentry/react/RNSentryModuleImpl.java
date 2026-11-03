@@ -18,7 +18,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
-import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -65,6 +64,7 @@ import io.sentry.cache.EnvelopeCache;
 import io.sentry.cache.IEnvelopeCache;
 import io.sentry.profilemeasurements.ProfileMeasurement;
 import io.sentry.profilemeasurements.ProfileMeasurementValue;
+import io.sentry.protocol.DebugImage;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.User;
@@ -165,6 +165,7 @@ public class RNSentryModuleImpl {
 
   private final @NotNull SentryDateProvider dateProvider;
   private final @NotNull LoadClass loadClass;
+  private final @NotNull RNSentryJSHangTracker jsHangTracker;
 
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
@@ -172,6 +173,7 @@ public class RNSentryModuleImpl {
     this.emitNewFrameEvent = createEmitNewFrameEvent();
     this.dateProvider = new SentryAndroidDateProvider();
     this.loadClass = new LoadClass();
+    this.jsHangTracker = new RNSentryJSHangTracker(reactApplicationContext, logger);
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -343,6 +345,38 @@ public class RNSentryModuleImpl {
 
   public void resumeAppHangTracking() {
     // No-op: App hang tracking is iOS-only
+  }
+
+  public void startJsHangTracking(ReadableMap options) {
+    if (!options.hasKey("timeoutIntervalMs")
+        || options.getType("timeoutIntervalMs") != ReadableType.Number
+        || options.getDouble("timeoutIntervalMs") <= 0) {
+      logger.log(SentryLevel.WARNING, "Not starting JS hang tracking, invalid timeoutIntervalMs.");
+      return;
+    }
+    final List<DebugImage> debugImages = new ArrayList<>();
+    final @Nullable ReadableArray images =
+        options.hasKey("debugImages") && options.getType("debugImages") == ReadableType.Array
+            ? options.getArray("debugImages")
+            : null;
+    if (images != null) {
+      for (int i = 0; i < images.size(); i++) {
+        if (images.getType(i) != ReadableType.Map) {
+          continue;
+        }
+        final ReadableMap image = images.getMap(i);
+        final DebugImage debugImage = new DebugImage();
+        debugImage.setType(image.hasKey("type") ? image.getString("type") : null);
+        debugImage.setDebugId(image.hasKey("debug_id") ? image.getString("debug_id") : null);
+        debugImage.setCodeFile(image.hasKey("code_file") ? image.getString("code_file") : null);
+        debugImages.add(debugImage);
+      }
+    }
+    jsHangTracker.start((long) options.getDouble("timeoutIntervalMs"), debugImages);
+  }
+
+  public void stopJsHangTracking() {
+    jsHangTracker.stop();
   }
 
   public void fetchModules(Promise promise) {
@@ -1123,11 +1157,7 @@ public class RNSentryModuleImpl {
     }
 
     try {
-      // Defensive reset: the Hermes sampling profiler is global with no state
-      // introspection, so flush any leaked registration from a prior run before
-      // enabling. See https://github.com/facebook/hermes/issues/1853.
-      HermesSamplingProfiler.disable();
-      HermesSamplingProfiler.enable();
+      RNSentryHermesSampler.startProfiling();
       // Mark profiling active immediately after enable() succeeds so a concurrent
       // invalidate() observes the running state even if androidProfiler.start() below throws.
       isProfiling.set(true);
@@ -1146,7 +1176,7 @@ public class RNSentryModuleImpl {
       // this idempotent with a concurrent invalidate()/stopProfiling().
       if (isProfiling.getAndSet(false)) {
         try {
-          HermesSamplingProfiler.disable();
+          RNSentryHermesSampler.disable();
         } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
         }
       }
@@ -1176,8 +1206,6 @@ public class RNSentryModuleImpl {
       if (profiler != null) {
         end = profiler.endAndCollect(false, performanceCollectionData);
       }
-      HermesSamplingProfiler.disable();
-
       output =
           File.createTempFile(
               "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
@@ -1185,7 +1213,7 @@ public class RNSentryModuleImpl {
         logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
       }
 
-      HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+      RNSentryHermesSampler.stopProfiling(output.getPath());
       result.putString("profile", readStringFromFile(output));
 
       if (end != null) {
@@ -1222,6 +1250,11 @@ public class RNSentryModuleImpl {
         result.putMap("androidProfile", androidProfile);
       }
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      // The sampler is still enabled when the trace file could not be created.
+      try {
+        RNSentryHermesSampler.disable();
+      } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
+      }
       result.putString("error", e.toString());
     } finally {
       if (output != null) {
@@ -1251,6 +1284,7 @@ public class RNSentryModuleImpl {
    * https://github.com/facebook/hermes/issues/1853.
    */
   public void invalidate() {
+    jsHangTracker.stop();
     // Atomic gate: only one caller (invalidate vs stopProfiling vs a re-entrant invalidate)
     // wins the right to clean up; the rest no-op.
     if (!isProfiling.getAndSet(false)) {
@@ -1265,7 +1299,7 @@ public class RNSentryModuleImpl {
     // joined. Isolated in its own try/catch so a failure in the Android profiler cleanup
     // below cannot skip this call.
     try {
-      HermesSamplingProfiler.disable();
+      RNSentryHermesSampler.disable();
       logger.log(SentryLevel.INFO, "Stopped Hermes sampling profiler on React instance destroy.");
     } catch (Throwable e) { // NOPMD - Guards the JNI boundary; does not catch native SIGABRT.
       logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
@@ -1363,7 +1397,7 @@ public class RNSentryModuleImpl {
     return null;
   }
 
-  private String readStringFromFile(File path) throws IOException {
+  static String readStringFromFile(File path) throws IOException {
     try (BufferedReader br = new BufferedReader(new FileReader(path)); ) {
 
       final StringBuilder text = new StringBuilder();

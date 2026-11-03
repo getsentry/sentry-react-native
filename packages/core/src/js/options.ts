@@ -212,6 +212,29 @@ export interface BaseReactNativeOptions {
   appHangTimeoutInterval?: number;
 
   /**
+   * When enabled, the SDK reports an error event when the JavaScript thread stays blocked
+   * for longer than `jsHangTimeoutInterval`. This catches hangs that `enableAppHangTracking`
+   * does not see, for example an infinite loop in JavaScript while the UI thread stays responsive.
+   *
+   * The event contains the JavaScript stack trace when the app uses Hermes. The native SDK
+   * creates the event, so JavaScript `beforeSend` is not applied to it.
+   *
+   * @default false
+   * @experimental
+   */
+  enableJsHangTracking?: boolean;
+
+  /**
+   * The minimum amount of time the JavaScript thread must stay blocked to be classified as a JS hang.
+   * The actual amount may be a little longer.
+   * Value should be in seconds.
+   *
+   * @default 2
+   * @experimental
+   */
+  jsHangTimeoutInterval?: number;
+
+  /**
    * When enabled, the SDK uses sentry-native's heartbeat-based app-hang detection
    * to track when the application stops responding for a specific amount of time
    * defined by the `ndkAppHangTimeoutIntervalMillis` option.
@@ -526,24 +549,6 @@ export interface BaseReactNativeOptions {
    * @internal
    */
   enableTurboModuleTracking?: boolean;
-
-  /**
-   * Reports an error event when the JavaScript thread stays blocked for longer than `jsHangTimeoutInterval`.
-   *
-   * @default false
-   * @experimental
-   * @internal
-   */
-  enableJsHangTracking?: boolean;
-
-  /**
-   * The minimum time in seconds that the JavaScript thread must stay blocked before the SDK reports a JS hang.
-   *
-   * @default 2
-   * @experimental
-   * @internal
-   */
-  jsHangTimeoutInterval?: number;
 
   /**
    * Trace User Interaction events like touch and gestures.
