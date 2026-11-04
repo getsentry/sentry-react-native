@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Add JavaScript (Hermes) samples to UI profiles on Android 15 and newer ([#6966](https://github.com/getsentry/sentry-react-native/pull/6966))
+  - When `_experiments.profilingOptions` is set, the SDK sends the Hermes samples as profile chunks of the native profiler session, so the profile of a transaction shows its JavaScript functions.
+
 ### Fixes
 
 - Detect `expo/fetch` in Expo Router apps on `@expo/metro-runtime` versions that hide it, so fetch tracing and fetch breadcrumbs are enabled by default ([#6965](https://github.com/getsentry/sentry-react-native/pull/6965))
