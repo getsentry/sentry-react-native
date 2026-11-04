@@ -727,6 +727,15 @@ export const logEnricherIntegration: () => Integration;
 
 export { logger }
 
+// @public
+export const longTaskIntegration: (options?: LongTaskOptions) => Integration;
+
+// @public
+export interface LongTaskOptions {
+    minDurationMs?: number;
+    sampleRate?: number;
+}
+
 // @public (undocumented)
 export const Mask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
 
