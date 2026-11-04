@@ -3,11 +3,14 @@
 #import "RNSentryHermesSampler.h"
 #import "SentrySDKWrapper.h"
 #import <Sentry/Sentry.h>
-#import <UIKit/UIKit.h>
 #import <atomic>
 #import <memory>
 #import <sys/sysctl.h>
 #import <time.h>
+
+#if SENTRY_HAS_UIKIT
+#    import <UIKit/UIKit.h>
+#endif
 
 static const int64_t kPollIntervalNs = 100 * NSEC_PER_MSEC;
 static const int64_t kStopTimeoutNs = NSEC_PER_SEC;
@@ -59,6 +62,7 @@ isDebuggerAttached()
 {
     if (self = [super init]) {
         _inForeground = true;
+#if SENTRY_HAS_UIKIT
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self
                    selector:@selector(appDidEnterBackground)
@@ -68,6 +72,7 @@ isDebuggerAttached()
                    selector:@selector(appWillEnterForeground)
                        name:UIApplicationWillEnterForegroundNotification
                      object:nil];
+#endif
     }
     return self;
 }
@@ -86,10 +91,12 @@ isDebuggerAttached()
                      bundleDebugId:(nullable NSString *)bundleDebugId
                 scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread
 {
+#if SENTRY_HAS_UIKIT
     if ([NSThread isMainThread]) {
         _inForeground =
             [UIApplication sharedApplication].applicationState != UIApplicationStateBackground;
     }
+#endif
 
     NSString *debugId = [bundleDebugId copy];
     RNSentryJSThreadScheduler schedule = [scheduleOnJSThread copy];
@@ -205,25 +212,38 @@ isDebuggerAttached()
     @try {
         NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
         NSDictionary *stackFrames = profile[@"stackFrames"];
-        id frameId = [profile[@"samples"] lastObject][@"sf"];
-
-        // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
-        NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
-        for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
-            NSDictionary *hermesFrame = stackFrames[[frameId description]];
-            if (hermesFrame == nil) {
-                break;
+        // The JS thread can recover during the sample window, so the first JS stack is the one
+        // closest to the hang.
+        for (NSDictionary *sample in profile[@"samples"]) {
+            NSArray<SentryFrame *> *frames = [self framesFromFrameId:sample[@"sf"]
+                                                         stackFrames:stackFrames];
+            if (frames.count > 0) {
+                return frames;
             }
-            SentryFrame *frame = [self frameFromHermesFrame:hermesFrame];
-            if (frame != nil) {
-                [frames insertObject:frame atIndex:0];
-            }
-            frameId = hermesFrame[@"parent"];
         }
-        return frames;
+        return @[];
     } @catch (NSException *exception) {
         return @[];
     }
+}
+
++ (NSArray<SentryFrame *> *)framesFromFrameId:(nullable id)frameId
+                                  stackFrames:(NSDictionary *)stackFrames
+{
+    // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
+    NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
+    for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
+        NSDictionary *hermesFrame = stackFrames[[frameId description]];
+        if (hermesFrame == nil) {
+            break;
+        }
+        SentryFrame *frame = [self frameFromHermesFrame:hermesFrame];
+        if (frame != nil) {
+            [frames insertObject:frame atIndex:0];
+        }
+        frameId = hermesFrame[@"parent"];
+    }
+    return frames;
 }
 
 + (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame
