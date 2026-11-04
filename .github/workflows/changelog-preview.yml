@@ -15,4 +15,4 @@ permissions:
 
 jobs:
   changelog-preview:
-    uses: getsentry/craft/.github/workflows/changelog-preview.yml@90e8e203ad86c8ab8ee134e8d387def13e620e81 # v3
+    uses: getsentry/craft/.github/workflows/changelog-preview.yml@2e29b0819113d334c15da3d8cac2138cb9dc111a # 3.9.0
