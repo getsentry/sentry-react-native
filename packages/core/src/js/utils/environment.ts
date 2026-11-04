@@ -4,6 +4,9 @@ import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { getExpoConstants, getExpoGo } from './expomodules';
 import { ReactNativeLibraries } from './rnlibraries';
 
+// Provided by Metro. Declared here because the SDK isn't built with Node types.
+declare const process: { env: Record<string, string | undefined> };
+
 /** Checks if the React Native Hermes engine is running */
 export function isHermesEnabled(): boolean {
   return !!RN_GLOBAL_OBJ.HermesInternal;
@@ -66,10 +69,45 @@ export function isWeb(): boolean {
  * fetch instrumentation instead of relying on XHR instrumentation.
  */
 export function isExpoFetchEnabled(): boolean {
+  if (typeof globalThis.fetch !== 'function') {
+    return false;
+  }
+  const fetch = globalThis.fetch as unknown as Record<symbol, unknown>;
+  if (fetch[Symbol.for('expo.builtin')] === true) {
+    return true;
+  }
+  // `@expo/metro-runtime` < 58.0.15 wraps fetch in Expo Router apps and drops the `expo.builtin` marker.
+  // Behind the wrapper, `expo/fetch` is active on Expo SDK 56+ unless the app opted out.
   return (
-    typeof globalThis.fetch === 'function' &&
-    (globalThis.fetch as unknown as Record<symbol, unknown>)[Symbol.for('expo.builtin')] === true
+    fetch[Symbol.for('expo.polyfillFetchWithWindowLocation')] === true &&
+    (getExpoSdkMajorVersion() ?? 0) >= 56 &&
+    !isReactNativeFetchForced()
   );
+}
+
+function getExpoSdkMajorVersion(): number | undefined {
+  // The native module exposes the embedded app config as `manifest` (a JSON string on Android).
+  // `expoConfig` is only built by the `expo-constants` JS module.
+  const manifest: unknown = getExpoConstants()?.manifest;
+  let sdkVersion: unknown;
+  try {
+    const appConfig = typeof manifest === 'string' ? JSON.parse(manifest) : manifest;
+    sdkVersion = (appConfig as { sdkVersion?: unknown } | null | undefined)?.sdkVersion;
+  } catch {
+    return undefined;
+  }
+  const major = typeof sdkVersion === 'string' ? parseInt(sdkVersion, 10) : NaN;
+  return isNaN(major) ? undefined : major;
+}
+
+function isReactNativeFetchForced(): boolean {
+  try {
+    // Read exactly like `expo`'s runtime does, so both resolve the same value after babel-preset-expo.
+    const useRnFetch = process.env.EXPO_PUBLIC_USE_RN_FETCH;
+    return useRnFetch === '1' || useRnFetch === 'true';
+  } catch {
+    return false;
+  }
 }
 
 /**
