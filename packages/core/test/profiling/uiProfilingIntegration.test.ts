@@ -244,6 +244,40 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
     });
 
+    it('stops the native profiler when the client closes', async () => {
+      const client = setupClient({ lifecycle: 'manual' });
+
+      profiler.startProfiler();
+      await jest.advanceTimersByTimeAsync(0);
+      client.emit('close');
+
+      expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['a manual start', { lifecycle: 'manual' }],
+      ['the app start profile', { lifecycle: 'manual', startOnAppStart: true }],
+    ] as const)(
+      'does not start the native profiler for %s when native init ends after close',
+      (_, profilingOptions) => {
+        const client = new TestClient(
+          getDefaultTestClientOptions({
+            _experiments: { profilingOptions },
+            integrations: [uiProfilingIntegration()],
+          }),
+        );
+        setCurrentClient(client);
+        client.init();
+
+        profiler.startProfiler();
+        client.emit('close');
+        // @ts-expect-error Only available on ReactNativeClient
+        client.emit('afterInit');
+
+        expect(NATIVE.startProfiler).not.toHaveBeenCalled();
+      },
+    );
+
     it('waits for the native SDK before it starts the profiler', () => {
       const client = new TestClient(
         getDefaultTestClientOptions({

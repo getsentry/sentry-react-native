@@ -75,6 +75,7 @@ export const uiProfilingIntegration = (): Integration => {
   let session: ProfileSession | undefined;
   let stopTimeout: ReturnType<typeof setTimeout> | undefined;
   let isNativeReady = false;
+  let isClosed = false;
   let isManualRequested = false;
   let isAppStartPending = false;
   let jsThreadId: string | null = null;
@@ -171,7 +172,7 @@ export const uiProfilingIntegration = (): Integration => {
   };
 
   const syncNativeProfiler = (): void => {
-    if (!isNativeReady) {
+    if (!isNativeReady || isClosed) {
       return;
     }
 
@@ -276,6 +277,9 @@ export const uiProfilingIntegration = (): Integration => {
       }
 
       client.on('afterInit', () => {
+        if (isClosed) {
+          return;
+        }
         isNativeReady = true;
         const resolve = resolveAppStartSession;
         resolveAppStartSession = undefined;
@@ -293,10 +297,15 @@ export const uiProfilingIntegration = (): Integration => {
       client.on('flush', rotateHermesChunk);
 
       client.on('close', () => {
+        isClosed = true;
         clearStopTimeout();
         stopHermesSampler();
-        session = undefined;
         resolveAppStartSession?.(null);
+        resolveAppStartSession = undefined;
+        if (session) {
+          session = undefined;
+          NATIVE.stopProfiler().then(undefined, () => {});
+        }
       });
     },
     processEvent(event: Event): Event | PromiseLike<Event> {
