@@ -75,4 +75,14 @@ describe('jsHangTrackingIntegration', () => {
 
     expect(NATIVE.stopJsHangTracking).toHaveBeenCalledTimes(1);
   });
+
+  it('does not start native tracking when the native SDK is initialized after close', async () => {
+    const client = initClient();
+
+    await client.close();
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.startJsHangTracking).not.toHaveBeenCalled();
+  });
 });

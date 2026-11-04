@@ -22,11 +22,17 @@ export const jsHangTrackingIntegration = ({
   return {
     name: INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
+      // `afterInit` waits for the native SDK, so it can come after `close`.
+      let closed = false;
       // The JS bundle Debug ID lets the backend symbolicate the frames of the native event.
       client.on('afterInit', () => {
+        if (closed) {
+          return;
+        }
         NATIVE.startJsHangTracking(timeoutIntervalSeconds * 1000, getDebugMetadata()[0]?.debug_id ?? null);
       });
       client.on('close', () => {
+        closed = true;
         NATIVE.stopJsHangTracking();
       });
     },
