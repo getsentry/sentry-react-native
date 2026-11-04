@@ -219,8 +219,11 @@ export interface BaseReactNativeOptions {
    * The event contains the JavaScript stack trace when the app uses Hermes. The native SDK
    * creates the event, so JavaScript `beforeSend` is not applied to it.
    *
+   * iOS only
+   *
    * @default false
    * @experimental
+   * @platform ios
    */
   enableJsHangTracking?: boolean;
 
@@ -229,8 +232,11 @@ export interface BaseReactNativeOptions {
    * The actual amount may be a little longer.
    * Value should be in seconds.
    *
+   * iOS only
+   *
    * @default 2
    * @experimental
+   * @platform ios
    */
   jsHangTimeoutInterval?: number;
 
