@@ -12,6 +12,16 @@
 
 - Add JavaScript (Hermes) samples to UI profiles on Android 15 and newer ([#6966](https://github.com/getsentry/sentry-react-native/pull/6966))
   - When `_experiments.profilingOptions` is set, the SDK sends the Hermes samples as profile chunks of the native profiler session, so the profile of a transaction shows its JavaScript functions.
+- Report JS thread hangs as errors on iOS with the experimental `enableJsHangTracking` option ([#6964](https://github.com/getsentry/sentry-react-native/pull/6964))
+  - App Hang tracking watches only the UI thread, so an infinite loop in JS sent no event. The new tracker sends an error event when the JS thread stays blocked for longer than `jsHangTimeoutInterval` (2 seconds by default).
+  - With Hermes, the event contains the JS stack trace and the bundle Debug ID for source map symbolication.
+
+  ```js
+  Sentry.init({
+    dsn: '__DSN__',
+    enableJsHangTracking: true,
+  });
+  ```
 
 ### Fixes
 
