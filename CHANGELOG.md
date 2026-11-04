@@ -23,7 +23,7 @@
     enableJsHangTracking: true,
   });
   ```
-- Add `longTaskIntegration` to report JS thread long tasks as the `react_native.long_task.duration` metric, also outside of transactions ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Add `longTaskIntegration` to report JS thread long tasks as the `react_native.long_task.duration` metric, also outside of transactions ([#6986](https://github.com/getsentry/sentry-react-native/pull/6986))
   - It requires React Native 0.82 or newer on the New Architecture. Set `minDurationMs` (default `200`) and `sampleRate` (default `1`) to control what it reports.
 
 ### Fixes
