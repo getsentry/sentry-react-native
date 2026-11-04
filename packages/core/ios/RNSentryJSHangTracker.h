@@ -2,7 +2,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void (^RNSentryJSThreadScheduler)(dispatch_block_t block);
+/// Returns NO when the block could not be scheduled, for example after the JS runtime is gone.
+typedef BOOL (^RNSentryJSThreadScheduler)(dispatch_block_t block);
 
 /**
  * Reports the JS thread when it stays blocked, because no JS code can report it while it is
@@ -21,6 +22,8 @@ typedef void (^RNSentryJSThreadScheduler)(dispatch_block_t block);
                      bundleDebugId:(nullable NSString *)bundleDebugId
                 scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread;
 
+/// Stops tracking and waits until a running Hermes sample ends, so the sampler is off before the JS
+/// runtime is destroyed.
 - (void)stop;
 
 @end

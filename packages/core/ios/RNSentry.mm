@@ -863,15 +863,25 @@ RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracki
 #ifdef RNSENTRY_HAS_CALL_INVOKER
     std::weak_ptr<facebook::react::CallInvoker> weakInvoker = _jsInvoker;
     if (!weakInvoker.expired()) {
-        return ^(dispatch_block_t block) {
-            if (auto invoker = weakInvoker.lock()) {
-                invoker->invokeAsync(std::function<void()>([block]() { block(); }));
+        return ^BOOL(dispatch_block_t block) {
+            auto invoker = weakInvoker.lock();
+            if (!invoker) {
+                return NO;
             }
+            invoker->invokeAsync(std::function<void()>([block]() { block(); }));
+            return YES;
         };
     }
 #endif
     __weak RCTBridge *weakBridge = self.bridge;
-    return ^(dispatch_block_t block) { [weakBridge dispatchBlock:block queue:RCTJSThread]; };
+    return ^BOOL(dispatch_block_t block) {
+        RCTBridge *bridge = weakBridge;
+        if (bridge == nil) {
+            return NO;
+        }
+        [bridge dispatchBlock:block queue:RCTJSThread];
+        return YES;
+    };
 }
 
 RCT_EXPORT_METHOD(startJsHangTracking : (double)timeoutIntervalMs bundleDebugId : (

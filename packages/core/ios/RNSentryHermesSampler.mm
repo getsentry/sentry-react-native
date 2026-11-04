@@ -33,19 +33,32 @@ namespace {
 #    endif
     }
 
-    std::string
-    disableSamplerAndDump()
+    void
+    disableSampler()
     {
-        std::stringstream ss;
 #    ifdef NEW_HERMES_RUNTIME
         auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
             facebook::hermes::makeHermesRootAPI());
         if (hermesAPI) {
             hermesAPI->disableSamplingProfiler();
-            hermesAPI->dumpSampledTraceToStream(ss);
         }
 #    else
         facebook::hermes::HermesRuntime::disableSamplingProfiler();
+#    endif
+    }
+
+    std::string
+    disableSamplerAndDump()
+    {
+        disableSampler();
+        std::stringstream ss;
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->dumpSampledTraceToStream(ss);
+        }
+#    else
         // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
 #    endif
@@ -91,6 +104,11 @@ sampleHermesTrace(std::chrono::milliseconds duration)
         std::this_thread::sleep_for(duration);
         return disableSamplerAndDump();
     } catch (...) {
+        // The sampler is global, so it must not stay on after a failed sample.
+        try {
+            disableSampler();
+        } catch (...) {
+        }
         return std::nullopt;
     }
 #else
