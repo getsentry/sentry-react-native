@@ -180,17 +180,22 @@ isDebuggerAttached()
             reported = false;
         } else if (!reported && state->armed && nowNs() - state->sentAt >= timeoutNs) {
             reported = true;
-            [self reportHangWithTimeoutIntervalMs:timeoutIntervalMs bundleDebugId:bundleDebugId];
+            [self reportHangWithTimeoutIntervalMs:timeoutIntervalMs
+                                    bundleDebugId:bundleDebugId
+                                           wakeUp:wakeUp];
         }
     }
 }
 
 - (void)reportHangWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
                           bundleDebugId:(nullable NSString *)bundleDebugId
+                                 wakeUp:(dispatch_semaphore_t)wakeUp
 {
     @try {
         NSArray<SentryFrame *> *frames = @[];
-        std::optional<std::string> trace = sentry::react::sampleHermesTrace(kStackSampleWindow);
+        // `stop` signals `wakeUp`, so it ends a running sample and does not wait for the window.
+        std::optional<std::string> trace
+            = sentry::react::sampleHermesTrace(kStackSampleWindow, wakeUp);
         if (trace) {
             frames = [RNSentryJSHangTracker
                 framesFromHermesTrace:[NSData dataWithBytes:trace->data() length:trace->size()]];

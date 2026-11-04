@@ -5,6 +5,8 @@
 #    include <optional>
 #    include <string>
 
+#    include <dispatch/dispatch.h>
+
 namespace sentry::react {
 
 // The Hermes sampling profiler is global to the process. These functions share one lock, so a
@@ -17,9 +19,10 @@ void startHermesProfiling();
 /// fails.
 std::string stopHermesProfiling();
 
-/// Samples the JS thread for `duration` and returns the trace. Returns nothing when a profile is
-/// running, when Hermes is not available, or when Hermes fails.
-std::optional<std::string> sampleHermesTrace(std::chrono::milliseconds duration);
+/// Samples the JS thread for `duration`, or until `stopSignal` is signaled, and returns the trace.
+/// Returns nothing when a profile is running, when Hermes is not available, or when Hermes fails.
+std::optional<std::string> sampleHermesTrace(
+    std::chrono::milliseconds duration, dispatch_semaphore_t stopSignal);
 
 } // namespace sentry::react
 #endif

@@ -901,8 +901,8 @@ RCT_EXPORT_METHOD(stopJsHangTracking) { [[RNSentryJSHangTracker sharedInstance] 
 
 - (void)invalidate
 {
-    [super invalidate];
     [[RNSentryJSHangTracker sharedInstance] stop];
+    [super invalidate];
 }
 
 // Calls `SentrySDK.internal.replay.capture()` via the Swift bridge and returns
