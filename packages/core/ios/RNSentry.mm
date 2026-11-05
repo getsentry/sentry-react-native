@@ -1,5 +1,6 @@
 #import "RNSentry.h"
 #import "RNSentryTimeToDisplay.h"
+#import <cmath>
 #import <dlfcn.h>
 #import <pthread.h>
 
@@ -887,8 +888,8 @@ RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracki
 RCT_EXPORT_METHOD(startJsHangTracking : (double)timeoutIntervalMs bundleDebugId : (
     NSString *_Nullable)bundleDebugId)
 {
-    // The negated check also rejects NaN.
-    if (!(timeoutIntervalMs > 0)) {
+    // The cast below needs a finite value, and values below 1 ms would become 0.
+    if (!std::isfinite(timeoutIntervalMs) || timeoutIntervalMs < 1) {
         NSLog(@"[Sentry] Not starting JS hang tracking, invalid timeoutIntervalMs: %f",
             timeoutIntervalMs);
         return;
