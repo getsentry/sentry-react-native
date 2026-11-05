@@ -77,8 +77,8 @@ let reactNativeHeaderProducts: [Target.Dependency] = [
 // `scripts/update-cocoa.sh` keeps the version and the checksum in step with
 // `sentry_cocoa_version` in RNSentry.podspec. The checksum is the SHA256 of the
 // archive, which is what both `pod install` and SwiftPM verify.
-let sentryCocoaVersion = "9.32.0"
-let sentryCocoaChecksum = "ae8864b653ede36cea934552348941b92f6dcd5d7e94c3227d8a9bb168256bcc"
+let sentryCocoaVersion = "9.33.0"
+let sentryCocoaChecksum = "ede8d9a33a43f70d33e2f24752a681dc9dcb4a7b6245bd6bca2fa7b30e2c63f5"
 
 let sentryCocoa: Target.Dependency = "Sentry"
 
