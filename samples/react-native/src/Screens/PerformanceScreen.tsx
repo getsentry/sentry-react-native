@@ -77,6 +77,16 @@ const PerformanceScreen = (props: Props) => {
         />
         <Button title="Performance Timing" onPress={onPressPerformanceTiming} />
         <Button
+          title="Block JS thread (300 ms)"
+          onPress={() => {
+            const start = Date.now();
+            while (Date.now() - start < 300) {
+              // busy wait to produce a long task
+            }
+            console.log('Blocked JS thread for', Date.now() - start, 'ms');
+          }}
+        />
+        <Button
           title="Redux Example"
           onPress={() => {
             props.navigation.navigate('Redux');
