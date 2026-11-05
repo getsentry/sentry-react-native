@@ -3,6 +3,7 @@ import type { Metric } from '@sentry/core';
 import { getClient } from '@sentry/core';
 
 import type { LongTaskOptions } from '../../src/js/integrations/longTask';
+import type { TestClientOptions } from '../mocks/client';
 
 import { longTaskIntegration } from '../../src/js/integrations/longTask';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -29,8 +30,8 @@ class FakePerformanceObserver {
 describe('longTaskIntegration', () => {
   let beforeSendMetric: jest.Mock<Metric, [Metric]>;
 
-  const setup = (options?: LongTaskOptions): void => {
-    setupTestClient({ beforeSendMetric, integrations: [longTaskIntegration(options)] });
+  const setup = (options?: LongTaskOptions, clientOptions?: Partial<TestClientOptions>): void => {
+    setupTestClient({ beforeSendMetric, integrations: [longTaskIntegration(options)], ...clientOptions });
   };
 
   beforeEach(() => {
@@ -128,6 +129,23 @@ describe('longTaskIntegration', () => {
 
       expect(FakePerformanceObserver.instances).toHaveLength(0);
     });
+  });
+
+  it('does not observe when metrics are disabled', () => {
+    setup(undefined, { enableMetrics: false });
+
+    expect(FakePerformanceObserver.instances).toHaveLength(0);
+  });
+
+  it('does not throw when reading supportedEntryTypes throws', () => {
+    RN_GLOBAL_OBJ.PerformanceObserver = class extends FakePerformanceObserver {
+      public static get supportedEntryTypes(): ReadonlyArray<string> {
+        throw new Error('native module missing');
+      }
+    };
+
+    expect(() => setup()).not.toThrow();
+    expect(FakePerformanceObserver.instances).toHaveLength(0);
   });
 
   it('does not throw when observe throws', () => {

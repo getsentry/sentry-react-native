@@ -41,17 +41,23 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
   return {
     name: INTEGRATION_NAME,
     setup(client: Client): void {
-      const PerformanceObserver = RN_GLOBAL_OBJ.PerformanceObserver;
-      if (!PerformanceObserver?.supportedEntryTypes?.includes('longtask')) {
-        debug.log(`[${INTEGRATION_NAME}] Long tasks are not supported in this environment.`);
-        return;
-      }
-
-      if (Math.random() >= sampleRate) {
+      if (client.getOptions().enableMetrics === false) {
+        debug.log(`[${INTEGRATION_NAME}] Metrics are disabled, long tasks will not be reported.`);
         return;
       }
 
       try {
+        // Reading the lazy global loads the RN module, and `supportedEntryTypes` calls into native code.
+        const PerformanceObserver = RN_GLOBAL_OBJ.PerformanceObserver;
+        if (!PerformanceObserver?.supportedEntryTypes?.includes('longtask')) {
+          debug.log(`[${INTEGRATION_NAME}] Long tasks are not supported in this environment.`);
+          return;
+        }
+
+        if (Math.random() >= sampleRate) {
+          return;
+        }
+
         const observer = new PerformanceObserver(list => {
           for (const { duration } of list.getEntries()) {
             if (duration >= minDurationMs) {
