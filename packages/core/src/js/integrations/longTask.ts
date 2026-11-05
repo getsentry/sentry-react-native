@@ -19,8 +19,8 @@ export interface LongTaskOptions {
    */
   minDurationMs?: number;
   /**
-   * The probability (0 to 1) that an app launch reports its long tasks.
-   * The SDK decides once per launch. A launch reports all of its long tasks or none of them.
+   * The probability (0.0 to 1.0) that an app launch reports its long tasks.
+   * The SDK decides once per SDK init. A launch reports all of its long tasks or none of them.
    * Sentry does not scale the metric counts by this rate.
    *
    * @default 1
