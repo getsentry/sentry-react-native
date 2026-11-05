@@ -1,5 +1,6 @@
 #import "RNSentry.h"
 #import "RNSentryTimeToDisplay.h"
+#import <cmath>
 #import <dlfcn.h>
 #import <pthread.h>
 
@@ -31,11 +32,6 @@
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary;
 @end
 
-// This guard prevents importing Hermes in JSC apps
-#if SENTRY_PROFILING_ENABLED
-#    import <hermes/hermes.h>
-#endif
-
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 // CocoaPods flattens the generated spec headers into the pod's header dir;
@@ -61,7 +57,17 @@
 #endif
 
 #import "RNSentryExperimentalOptions.h"
+#import "RNSentryHermesSampler.h"
+#import "RNSentryJSHangTracker.h"
 #import "RNSentryStart.h"
+
+#import <React/RCTBridge+Private.h>
+
+#if __has_include(<React/RCTCallInvoker.h>)
+#    import <React/RCTCallInvoker.h>
+#    import <ReactCommon/CallInvoker.h>
+#    define RNSENTRY_HAS_CALL_INVOKER 1
+#endif
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
 
@@ -79,6 +85,9 @@ static bool hasFetchedAppStart;
     RNSentryTimeToDisplay *_timeToDisplay;
     NSArray<NSString *> *_ignoreErrorPatternsStr;
     NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
+#ifdef RNSENTRY_HAS_CALL_INVOKER
+    std::weak_ptr<facebook::react::CallInvoker> _jsInvoker;
+#endif
 }
 
 - (dispatch_queue_t)methodQueue
@@ -842,6 +851,62 @@ RCT_EXPORT_METHOD(pauseAppHangTracking) { [SentrySDKWrapper pauseAppHangTracking
 
 RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracking]; }
 
+#ifdef RNSENTRY_HAS_CALL_INVOKER
+// React Native calls this on modules that implement it, on both architectures.
+- (void)setCallInvoker:(RCTCallInvoker *)callInvoker
+{
+    _jsInvoker = callInvoker.callInvoker;
+}
+#endif
+
+- (RNSentryJSThreadScheduler)jsThreadScheduler
+{
+#ifdef RNSENTRY_HAS_CALL_INVOKER
+    std::weak_ptr<facebook::react::CallInvoker> weakInvoker = _jsInvoker;
+    if (!weakInvoker.expired()) {
+        return ^BOOL(dispatch_block_t block) {
+            auto invoker = weakInvoker.lock();
+            if (!invoker) {
+                return NO;
+            }
+            invoker->invokeAsync(std::function<void()>([block]() { block(); }));
+            return YES;
+        };
+    }
+#endif
+    __weak RCTBridge *weakBridge = self.bridge;
+    return ^BOOL(dispatch_block_t block) {
+        RCTBridge *bridge = weakBridge;
+        if (bridge == nil) {
+            return NO;
+        }
+        [bridge dispatchBlock:block queue:RCTJSThread];
+        return YES;
+    };
+}
+
+RCT_EXPORT_METHOD(startJsHangTracking : (double)timeoutIntervalMs bundleDebugId : (
+    NSString *_Nullable)bundleDebugId)
+{
+    // The cast below needs a finite value, and values below 1 ms would become 0.
+    if (!std::isfinite(timeoutIntervalMs) || timeoutIntervalMs < 1) {
+        NSLog(@"[Sentry] Not starting JS hang tracking, invalid timeoutIntervalMs: %f",
+            timeoutIntervalMs);
+        return;
+    }
+    [[RNSentryJSHangTracker sharedInstance] startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                                                         bundleDebugId:bundleDebugId
+                                                    scheduleOnJSThread:[self jsThreadScheduler]];
+}
+
+RCT_EXPORT_METHOD(stopJsHangTracking) { [[RNSentryJSHangTracker sharedInstance] stop]; }
+
+- (void)invalidate
+{
+    [[RNSentryJSHangTracker sharedInstance] stop];
+    [super invalidate];
+}
+
 // Calls `SentrySDK.internal.replay.capture()` via the Swift bridge and returns
 // the BOOL result. The `@try`/`@catch` is retained as cheap insurance for one
 // release cycle — see getsentry/sentry-react-native#5074 for the historical
@@ -1077,15 +1142,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
 {
 #if SENTRY_PROFILING_ENABLED
     try {
-#    ifdef NEW_HERMES_RUNTIME
-        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
-            facebook::hermes::makeHermesRootAPI());
-        if (hermesAPI) {
-            hermesAPI->enableSamplingProfiler();
-        }
-#    else
-        facebook::hermes::HermesRuntime::enableSamplingProfiler();
-#    endif
+        sentry::react::startHermesProfiling();
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
@@ -1145,21 +1202,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         nativeProfileTraceId = nil;
         nativeProfileStartTime = 0;
 
-        std::stringstream ss;
-#    ifdef NEW_HERMES_RUNTIME
-        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
-            facebook::hermes::makeHermesRootAPI());
-        if (hermesAPI) {
-            hermesAPI->disableSamplingProfiler();
-            hermesAPI->dumpSampledTraceToStream(ss);
-        }
-#    else
-        facebook::hermes::HermesRuntime::disableSamplingProfiler();
-        // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
-        facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
-#    endif
-
-        std::string s = ss.str();
+        std::string s = sentry::react::stopHermesProfiling();
         NSString *data = [NSString stringWithCString:s.c_str()
                                             encoding:[NSString defaultCStringEncoding]];
 

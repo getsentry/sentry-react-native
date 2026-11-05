@@ -173,6 +173,7 @@ export interface BaseReactNativeOptions {
     enableAutoSessionTracking?: boolean;
     enableCaptureFailedRequests?: boolean;
     enableHistoricalTombstoneReporting?: boolean;
+    enableJsHangTracking?: boolean;
     enableMemoryIntrospection?: boolean;
     enableMetricKit?: boolean;
     enableMetricKitRawPayload?: boolean;
@@ -205,6 +206,7 @@ export interface BaseReactNativeOptions {
     };
     // @deprecated
     initialScope?: CaptureContext;
+    jsHangTimeoutInterval?: number;
     logsOrigin?: 'all' | 'js' | 'native';
     maxCacheItems?: number;
     maxQueueSize?: number;

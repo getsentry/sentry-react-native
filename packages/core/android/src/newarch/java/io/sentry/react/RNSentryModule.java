@@ -1,6 +1,7 @@
 package io.sentry.react;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -307,6 +308,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
   @Override
   public void resumeAppHangTracking() {
     this.impl.resumeAppHangTracking();
+  }
+
+  @Override
+  public void startJsHangTracking(double timeoutIntervalMs, @Nullable String bundleDebugId) {
+    this.impl.startJsHangTracking(timeoutIntervalMs, bundleDebugId);
+  }
+
+  @Override
+  public void stopJsHangTracking() {
+    this.impl.stopJsHangTracking();
   }
 
   @Override

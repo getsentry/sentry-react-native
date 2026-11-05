@@ -63,6 +63,8 @@ jest.mock('react-native', () => {
     stopProfiling: jest.fn(),
     pauseAppHangTracking: jest.fn(),
     resumeAppHangTracking: jest.fn(),
+    startJsHangTracking: jest.fn(),
+    stopJsHangTracking: jest.fn(),
     startReplay: jest.fn(() => Promise.resolve()),
     startReplayBuffering: jest.fn(() => Promise.resolve()),
     stopReplay: jest.fn(() => Promise.resolve()),
@@ -345,6 +347,24 @@ describe('Tests Native Wrapper', () => {
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSend');
       expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter JS hang tracking options when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableJsHangTracking: true,
+        jsHangTimeoutInterval: 3,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('enableJsHangTracking');
+      expect(initParameter).not.toHaveProperty('jsHangTimeoutInterval');
     });
 
     test('filter beforeBreadcrumb when initializing Native SDK', async () => {
@@ -1633,6 +1653,58 @@ describe('Tests Native Wrapper', () => {
       });
       NATIVE.resumeAppHangTracking();
       expect(RNSentry.resumeAppHangTracking).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('JS hang tracking', () => {
+    const initNative = (enableNative: boolean) =>
+      NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+    test('startJsHangTracking passes the timeout and the bundle Debug ID to native', async () => {
+      await initNative(true);
+
+      NATIVE.startJsHangTracking(2000, 'debug-id');
+
+      expect(RNSentry.startJsHangTracking).toHaveBeenCalledWith(2000, 'debug-id');
+    });
+
+    test('stopJsHangTracking calls native', async () => {
+      await initNative(true);
+
+      NATIVE.stopJsHangTracking();
+
+      expect(RNSentry.stopJsHangTracking).toHaveBeenCalled();
+    });
+
+    test('does not call native when enableNative is false', async () => {
+      await initNative(false);
+
+      NATIVE.startJsHangTracking(2000, null);
+      NATIVE.stopJsHangTracking();
+
+      expect(RNSentry.startJsHangTracking).not.toHaveBeenCalled();
+      expect(RNSentry.stopJsHangTracking).not.toHaveBeenCalled();
+    });
+
+    test('does not throw when an older native binary does not have the methods', async () => {
+      await initNative(true);
+      const { startJsHangTracking, stopJsHangTracking } = RNSentry;
+      // @ts-expect-error simulates an older native binary
+      RNSentry.startJsHangTracking = undefined;
+      // @ts-expect-error simulates an older native binary
+      RNSentry.stopJsHangTracking = undefined;
+
+      expect(() => NATIVE.startJsHangTracking(2000, null)).not.toThrow();
+      expect(() => NATIVE.stopJsHangTracking()).not.toThrow();
+
+      RNSentry.startJsHangTracking = startJsHangTracking;
+      RNSentry.stopJsHangTracking = stopJsHangTracking;
     });
   });
 

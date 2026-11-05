@@ -39,6 +39,8 @@ const NATIVE: MockInterface<NativeType> = {
   enableNativeFramesTracking: jest.fn(),
   pauseAppHangTracking: jest.fn(),
   resumeAppHangTracking: jest.fn(),
+  startJsHangTracking: jest.fn(),
+  stopJsHangTracking: jest.fn(),
 
   addBreadcrumb: jest.fn(),
   setContext: jest.fn(),

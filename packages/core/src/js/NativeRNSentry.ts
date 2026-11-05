@@ -75,6 +75,8 @@ export interface Spec extends TurboModule {
   disableShakeDetection(): void;
   pauseAppHangTracking(): void;
   resumeAppHangTracking(): void;
+  startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void;
+  stopJsHangTracking(): void;
 }
 
 export type NativeStackFrame = {

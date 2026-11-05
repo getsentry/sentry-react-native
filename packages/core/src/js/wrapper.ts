@@ -106,6 +106,8 @@ interface SentryNativeWrapper {
   enableNativeFramesTracking(): void;
   pauseAppHangTracking(): void;
   resumeAppHangTracking(): void;
+  startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void;
+  stopJsHangTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   // oxlint-disable-next-line typescript-eslint(no-explicit-any)
@@ -342,8 +344,16 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* oxlint-disable typescript-eslint(no-unused-vars) */
-    const { integrations, ignoreErrors, logsOrigin, profilingOptions, androidProfilingOptions, ...remainingOptions } =
-      options;
+    const {
+      integrations,
+      ignoreErrors,
+      logsOrigin,
+      profilingOptions,
+      androidProfilingOptions,
+      enableJsHangTracking,
+      jsHangTimeoutInterval,
+      ...remainingOptions
+    } = options;
     /* oxlint-enable typescript-eslint(no-unused-vars) */
 
     const filteredOptions = withoutFunctionValues(remainingOptions);
@@ -771,6 +781,30 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     RNSentry.resumeAppHangTracking();
+  },
+
+  startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.startJsHangTracking !== 'function') {
+      return;
+    }
+
+    try {
+      RNSentry.startJsHangTracking(timeoutIntervalMs, bundleDebugId);
+    } catch (error) {
+      debug.error('[NATIVE] Start JS Hang Tracking Failed', error);
+    }
+  },
+
+  stopJsHangTracking(): void {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.stopJsHangTracking !== 'function') {
+      return;
+    }
+
+    try {
+      RNSentry.stopJsHangTracking();
+    } catch (error) {
+      debug.error('[NATIVE] Stop JS Hang Tracking Failed', error);
+    }
   },
 
   isNativeAvailable(): boolean {
