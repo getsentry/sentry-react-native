@@ -219,6 +219,9 @@ export interface BaseReactNativeOptions {
    * The event contains the JavaScript stack trace when the app uses Hermes. The native SDK
    * creates the event, so JavaScript `beforeSend` is not applied to it.
    *
+   * The tracker does not run in development builds (`__DEV__`), because a JS debugger that pauses
+   * at a breakpoint would be reported as a hang.
+   *
    * iOS only
    *
    * @default false

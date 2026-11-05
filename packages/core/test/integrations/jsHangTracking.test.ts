@@ -26,12 +26,30 @@ function initClient(integration = jsHangTrackingIntegration()): TestClient {
 describe('jsHangTrackingIntegration', () => {
   const mockedGetDebugMetadata = getDebugMetadata as jest.MockedFunction<typeof getDebugMetadata>;
 
+  // @ts-expect-error __DEV__ is a global
+  const originalDev = globalThis.__DEV__;
+
   beforeEach(() => {
     mockedGetDebugMetadata.mockReturnValue([DEBUG_IMAGE]);
+    // @ts-expect-error __DEV__ is a global
+    globalThis.__DEV__ = false;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    // @ts-expect-error __DEV__ is a global
+    globalThis.__DEV__ = originalDev;
+  });
+
+  it('does not start native tracking in development builds', () => {
+    // @ts-expect-error __DEV__ is a global
+    globalThis.__DEV__ = true;
+    const client = initClient();
+
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.startJsHangTracking).not.toHaveBeenCalled();
   });
 
   it('does not start native tracking before the native SDK is initialized', () => {

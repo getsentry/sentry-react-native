@@ -15,6 +15,7 @@
 - Report JS thread hangs as errors on iOS with the experimental `enableJsHangTracking` option ([#6964](https://github.com/getsentry/sentry-react-native/pull/6964))
   - App Hang tracking watches only the UI thread, so an infinite loop in JS sent no event. The new tracker sends an error event when the JS thread stays blocked for longer than `jsHangTimeoutInterval` (2 seconds by default).
   - With Hermes, the event contains the JS stack trace and the bundle Debug ID for source map symbolication.
+  - The tracker does not run in development builds, where a paused JS debugger would look like a hang.
 
   ```js
   Sentry.init({

@@ -43,6 +43,12 @@ export const jsHangTrackingIntegration = ({
         if (closed) {
           return;
         }
+        // A JS debugger that pauses at a breakpoint blocks the JS thread too, and native code cannot
+        // tell it apart from a hang.
+        if (__DEV__) {
+          debug.log(`[${INTEGRATION_NAME}] Not tracking JS hangs in development builds.`);
+          return;
+        }
         NATIVE.startJsHangTracking(timeoutIntervalMs, getDebugMetadata()[0]?.debug_id ?? null);
       });
       client.on('close', () => {
