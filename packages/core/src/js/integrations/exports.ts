@@ -35,6 +35,7 @@ export { logEnricherIntegration } from './logEnricherIntegration';
 export { graphqlIntegration } from './graphql';
 export { supabaseIntegration } from './supabase';
 export { deeplinkIntegration } from './deeplink';
+export { longTaskIntegration } from './longTask';
 
 // User-facing integration option types. Re-exported from the entry point so their
 // full shape lands in the API report and field-level changes are surfaced in its diff.
@@ -47,6 +48,7 @@ export type { SupabaseReactNativeIntegrationOptions } from './supabase';
 export type { HermesProfilingOptions } from '../profiling/integration';
 export type { MobileReplayOptions, ScreenshotStrategy } from '../replay/mobilereplay';
 export type { ReplayConfiguration } from '../replay/browserReplay';
+export type { LongTaskOptions } from './longTask';
 
 export {
   browserApiErrorsIntegration,

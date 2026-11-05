@@ -38,6 +38,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __BUNDLE_START_TIME__?: number;
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
+  PerformanceObserver?: PerformanceObserver;
   alert?: (message: string) => void;
   __SENTRY_OPTIONS__?: ReactNativeOptions;
   SENTRY_RELEASE?: {
@@ -52,6 +53,14 @@ type TextEncoder = {
   new (): {
     encode(input?: string): Uint8Array;
   };
+};
+
+type PerformanceObserver = {
+  new (callback: (list: { getEntries(): ReadonlyArray<{ duration: number }> }) => void): {
+    observe(options: { type: string; buffered?: boolean }): void;
+    disconnect(): void;
+  };
+  supportedEntryTypes?: ReadonlyArray<string>;
 };
 
 /** Get's the global object for the current JavaScript runtime */
