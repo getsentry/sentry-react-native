@@ -1,5 +1,7 @@
 import type { Integration } from '@sentry/core';
 
+import { debug } from '@sentry/core';
+
 import type { ReactNativeClient } from '../client';
 
 import { getDebugMetadata } from '../profiling/debugid';
@@ -8,6 +10,8 @@ import { NATIVE } from '../wrapper';
 const INTEGRATION_NAME = 'JsHangTracking';
 
 const DEFAULT_TIMEOUT_INTERVAL_SECONDS = 2;
+// Each event also samples the JS thread for 300 ms, so very short stalls must not count as hangs.
+const MIN_TIMEOUT_INTERVAL_SECONDS = 0.25;
 
 /**
  * Starts the native watchdog that reports the JavaScript thread when it stays blocked.
@@ -19,6 +23,16 @@ export const jsHangTrackingIntegration = ({
 }: {
   timeoutIntervalSeconds?: number;
 } = {}): Integration => {
+  let timeoutIntervalMs = DEFAULT_TIMEOUT_INTERVAL_SECONDS * 1000;
+  if (!Number.isFinite(timeoutIntervalSeconds)) {
+    debug.warn(`[${INTEGRATION_NAME}] Invalid timeout interval ${timeoutIntervalSeconds}, using the default.`);
+  } else if (timeoutIntervalSeconds < MIN_TIMEOUT_INTERVAL_SECONDS) {
+    debug.warn(`[${INTEGRATION_NAME}] Timeout interval ${timeoutIntervalSeconds} is too short, using the minimum.`);
+    timeoutIntervalMs = MIN_TIMEOUT_INTERVAL_SECONDS * 1000;
+  } else {
+    timeoutIntervalMs = timeoutIntervalSeconds * 1000;
+  }
+
   return {
     name: INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
@@ -29,7 +43,7 @@ export const jsHangTrackingIntegration = ({
         if (closed) {
           return;
         }
-        NATIVE.startJsHangTracking(timeoutIntervalSeconds * 1000, getDebugMetadata()[0]?.debug_id ?? null);
+        NATIVE.startJsHangTracking(timeoutIntervalMs, getDebugMetadata()[0]?.debug_id ?? null);
       });
       client.on('close', () => {
         closed = true;

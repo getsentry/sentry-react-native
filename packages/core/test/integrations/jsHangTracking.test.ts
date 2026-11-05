@@ -58,6 +58,24 @@ describe('jsHangTrackingIntegration', () => {
     expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(500, DEBUG_IMAGE.debug_id);
   });
 
+  it('uses the minimum timeout when the timeout interval is too short', () => {
+    const client = initClient(jsHangTrackingIntegration({ timeoutIntervalSeconds: 0.1 }));
+
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(250, DEBUG_IMAGE.debug_id);
+  });
+
+  it.each([NaN, Infinity])('uses the default timeout when the timeout interval is %p', timeoutIntervalSeconds => {
+    const client = initClient(jsHangTrackingIntegration({ timeoutIntervalSeconds }));
+
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(2000, DEBUG_IMAGE.debug_id);
+  });
+
   it('starts native tracking without a Debug ID when the bundle has none', () => {
     mockedGetDebugMetadata.mockReturnValue([]);
     const client = initClient();

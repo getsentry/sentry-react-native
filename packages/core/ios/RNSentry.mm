@@ -887,7 +887,8 @@ RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracki
 RCT_EXPORT_METHOD(startJsHangTracking : (double)timeoutIntervalMs bundleDebugId : (
     NSString *_Nullable)bundleDebugId)
 {
-    if (timeoutIntervalMs <= 0) {
+    // The negated check also rejects NaN.
+    if (!(timeoutIntervalMs > 0)) {
         NSLog(@"[Sentry] Not starting JS hang tracking, invalid timeoutIntervalMs: %f",
             timeoutIntervalMs);
         return;

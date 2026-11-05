@@ -230,7 +230,7 @@ export interface BaseReactNativeOptions {
   /**
    * The minimum amount of time the JavaScript thread must stay blocked to be classified as a JS hang.
    * The actual amount may be a little longer.
-   * Value should be in seconds.
+   * Value should be in seconds. Values below 0.25 use 0.25.
    *
    * iOS only
    *
