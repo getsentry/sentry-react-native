@@ -6,6 +6,7 @@ reportOn = "medium"
 
 [[skills]]
 name = "code-review"
+incremental = true
 remote = "getsentry/skills"
 
 [[skills.triggers]]
@@ -14,6 +15,7 @@ actions = ["opened", "synchronize", "reopened"]
 
 [[skills]]
 name = "find-bugs"
+incremental = true
 remote = "getsentry/skills"
 
 [[skills.triggers]]
@@ -30,6 +32,7 @@ actions = ["opened", "synchronize", "reopened"]
 
 [[skills]]
 name = "gha-security-review"
+incremental = true
 remote = "getsentry/skills"
 
 [[skills.triggers]]
