@@ -192,6 +192,7 @@ export interface BaseReactNativeOptions {
     enableTombstone?: boolean;
     // @internal
     enableTurboModuleTracking?: boolean;
+    enableUserInteractionBreadcrumbs?: boolean;
     enableUserInteractionTracing?: boolean;
     enableWatchdogTerminationTracking?: boolean;
     // Warning: (ae-forgotten-export) The symbol "SharedExperimentsSubset" needs to be exported by the entry point index.d.ts

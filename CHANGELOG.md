@@ -21,6 +21,7 @@
     },
   });
   ```
+- Add the `enableUserInteractionBreadcrumbs` option to turn off native user interaction breadcrumbs on Android ([#PR](https://github.com/getsentry/sentry-react-native/pull/PR))
 
 ### Fixes
 
