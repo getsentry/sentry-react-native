@@ -22,8 +22,8 @@ typedef BOOL (^RNSentryJSThreadScheduler)(dispatch_block_t block);
                      bundleDebugId:(nullable NSString *)bundleDebugId
                 scheduleOnJSThread:(RNSentryJSThreadScheduler)scheduleOnJSThread;
 
-/// Stops tracking, ends a running Hermes sample, and waits until the sampler is off, so it is off
-/// before the JS runtime is destroyed.
+/// Stops tracking, ends a running Hermes sample, and waits until the tracker thread ends, so the
+/// sampler is off before the JS runtime is destroyed.
 - (void)stop;
 
 @end

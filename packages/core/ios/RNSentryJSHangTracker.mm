@@ -13,7 +13,6 @@
 #endif
 
 static const int64_t kPollIntervalNs = 100 * NSEC_PER_MSEC;
-static const int64_t kStopTimeoutNs = NSEC_PER_SEC;
 static const std::chrono::milliseconds kStackSampleWindow(300);
 static NSString *const kBundleFileName = @"app:///main.jsbundle";
 
@@ -126,7 +125,8 @@ isDebuggerAttached()
         }
         [_thread cancel];
         dispatch_semaphore_signal(_wakeUp);
-        dispatch_semaphore_wait(_finished, dispatch_time(DISPATCH_TIME_NOW, kStopTimeoutNs));
+        // The tracker thread never waits for the main thread or for this lock, so it always ends.
+        dispatch_semaphore_wait(_finished, DISPATCH_TIME_FOREVER);
         _thread = nil;
         _wakeUp = nil;
         _finished = nil;
@@ -191,26 +191,28 @@ isDebuggerAttached()
                           bundleDebugId:(nullable NSString *)bundleDebugId
                                  wakeUp:(dispatch_semaphore_t)wakeUp
 {
-    @try {
-        NSArray<SentryFrame *> *frames = @[];
-        // `stop` signals `wakeUp`, so it ends a running sample and does not wait for the window.
-        std::optional<sentry::react::HermesTrace> trace
-            = sentry::react::sampleHermesTrace(kStackSampleWindow, wakeUp);
-        if (trace) {
-            frames = [RNSentryJSHangTracker
-                framesFromHermesTrace:[NSData dataWithBytes:trace->json.data()
-                                                     length:trace->json.size()]
-                          newestFirst:trace->fromProfile];
-        }
-        SentryEvent *event = [RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
+    // `stop` signals `wakeUp`, so it ends a running sample and does not wait for the window.
+    std::optional<sentry::react::HermesTrace> trace
+        = sentry::react::sampleHermesTrace(kStackSampleWindow, wakeUp);
+    NSData *traceData
+        = trace ? [NSData dataWithBytes:trace->json.data() length:trace->json.size()] : nil;
+    BOOL newestFirst = trace && trace->fromProfile;
+
+    // `stop` waits for this thread, so only the sample runs here. The capture also waits for the
+    // main thread to take the screenshot.
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+        @try {
+            NSArray<SentryFrame *> *frames = traceData != nil
+                ? [RNSentryJSHangTracker framesFromHermesTrace:traceData newestFirst:newestFirst]
+                : @[];
+            [SentrySDKWrapper
+                captureEvent:[RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
                                                                         frames:frames
-                                                                 bundleDebugId:bundleDebugId];
-        // The capture waits for the main thread to take the screenshot, so it must not block stop.
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0),
-            ^{ [SentrySDKWrapper captureEvent:event]; });
-    } @catch (NSException *exception) {
-        NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
-    }
+                                                                 bundleDebugId:bundleDebugId]];
+        } @catch (NSException *exception) {
+            NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
+        }
+    });
 }
 
 + (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace newestFirst:(BOOL)newestFirst
