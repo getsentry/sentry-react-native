@@ -19,9 +19,16 @@ void startHermesProfiling();
 /// fails.
 std::string stopHermesProfiling();
 
+struct HermesTrace {
+    std::string json;
+    /// The trace holds the samples of a running profile, so its newest samples show the hang.
+    bool fromProfile;
+};
+
 /// Samples the JS thread for `duration`, or until `stopSignal` is signaled, and returns the trace.
-/// Returns nothing when a profile is running, when Hermes is not available, or when Hermes fails.
-std::optional<std::string> sampleHermesTrace(
+/// When a profile is running, returns its samples at once and adds them to the profile when it
+/// stops. Returns nothing when Hermes is not available or fails.
+std::optional<HermesTrace> sampleHermesTrace(
     std::chrono::milliseconds duration, dispatch_semaphore_t stopSignal);
 
 } // namespace sentry::react

@@ -194,11 +194,13 @@ isDebuggerAttached()
     @try {
         NSArray<SentryFrame *> *frames = @[];
         // `stop` signals `wakeUp`, so it ends a running sample and does not wait for the window.
-        std::optional<std::string> trace
+        std::optional<sentry::react::HermesTrace> trace
             = sentry::react::sampleHermesTrace(kStackSampleWindow, wakeUp);
         if (trace) {
             frames = [RNSentryJSHangTracker
-                framesFromHermesTrace:[NSData dataWithBytes:trace->data() length:trace->size()]];
+                framesFromHermesTrace:[NSData dataWithBytes:trace->json.data()
+                                                     length:trace->json.size()]
+                          newestFirst:trace->fromProfile];
         }
         SentryEvent *event = [RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
                                                                         frames:frames
@@ -211,15 +213,19 @@ isDebuggerAttached()
     }
 }
 
-+ (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace
++ (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace newestFirst:(BOOL)newestFirst
 {
     // A trace with unexpected JSON types gives an event without a stack trace.
     @try {
         NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
         NSDictionary *stackFrames = profile[@"stackFrames"];
-        // The JS thread can recover during the sample window, so the first JS stack is the one
-        // closest to the hang.
-        for (NSDictionary *sample in profile[@"samples"]) {
+        // A profile trace starts before the hang, so its newest JS stack is the hang. A sample of
+        // our own starts at the hang, and the JS thread can recover during the window, so its
+        // oldest JS stack is the hang.
+        NSArray *samples = profile[@"samples"];
+        NSEnumerator *ordered
+            = newestFirst ? samples.reverseObjectEnumerator : samples.objectEnumerator;
+        for (NSDictionary *sample in ordered) {
             NSArray<SentryFrame *> *frames = [self framesFromFrameId:sample[@"sf"]
                                                          stackFrames:stackFrames];
             if (frames.count > 0) {
