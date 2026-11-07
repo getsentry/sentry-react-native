@@ -14,15 +14,6 @@ type = "pull_request"
 actions = ["opened", "synchronize", "reopened"]
 
 [[skills]]
-name = "find-bugs"
-incremental = true
-remote = "getsentry/skills"
-
-[[skills.triggers]]
-type = "pull_request"
-actions = ["opened", "synchronize", "reopened"]
-
-[[skills]]
 name = "security-review"
 remote = "getsentry/skills"
 
