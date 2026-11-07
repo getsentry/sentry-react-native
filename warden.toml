@@ -7,7 +7,6 @@ reportOn = "medium"
 [[skills]]
 name = "code-review"
 incremental = true
-remote = "getsentry/skills"
 
 [[skills.triggers]]
 type = "pull_request"
