@@ -100,6 +100,7 @@
     {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
   />
   ```
+  - See the [WebView docs](https://docs.sentry.io/platforms/react-native/configuration/webview/) for details.
 
 ### Fixes
 
