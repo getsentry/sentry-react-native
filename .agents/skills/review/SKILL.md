@@ -11,7 +11,7 @@ Review the diff between `HEAD` and a base, on three axes:
 
 Run the axes as **parallel sub-agents** so none pollutes another's context, then aggregate. Report them side by side, and **never rerank across axes** — keeping them separate is the whole point (see *Why separate axes*).
 
-Run this on demand before opening or merging a PR (Warden's automated PR review uses the remote `code-review` + `find-bugs` skills; this local pass is the RN-tailored, deeper review you invoke yourself). It complements `security-review` (deeper security audit), `gha-security-review` (workflow/CI), and `span-convention-review` (tracing-span conventions) — invoke those for depth. It is *not* a debugger: when a bug is already known and reproducing, use `diagnosing-bugs`.
+Run this on demand before opening or merging a PR (Warden's automated PR review uses its built-in `code-review` skill; this local pass is the RN-tailored, deeper review you invoke yourself). It complements `security-review` (deeper security audit), `gha-security-review` (workflow/CI), and `span-convention-review` (tracing-span conventions) — invoke those for depth. It is *not* a debugger: when a bug is already known and reproducing, use `diagnosing-bugs`.
 
 ## 1. Pin the base
 
