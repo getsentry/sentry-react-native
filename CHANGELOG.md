@@ -91,7 +91,6 @@
 ### Features
 
 - Connect React Native traces with embedded WebViews via `sentryWebViewProps` ([#6794](https://github.com/getsentry/sentry-react-native/pull/6794))
-  - See the [WebView docs](https://docs.sentry.io/platforms/react-native/configuration/webview/#connect-traces) for details.
 
   ```jsx
   import { sentryWebViewProps } from '@sentry/react-native';
@@ -101,6 +100,7 @@
     {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
   />
   ```
+  - See the [WebView docs](https://docs.sentry.io/platforms/react-native/configuration/webview/#connect-traces) for details.
 
 ### Fixes
 
