@@ -634,6 +634,16 @@ export interface BaseReactNativeOptions {
     enableUnhandledCPPExceptionsV2?: boolean;
 
     /**
+     * Experiment: Detects watchdog terminations (for example OOM kills) with a run loop observer instead of the frame-based ANR tracker.
+     *
+     * With the default tracker, a foreground app that does not render reads as an app hang, and the SDK does not report watchdog terminations that happen during that time.
+     *
+     * @default false
+     * @platform ios
+     */
+    enableWatchdogTerminationsV2?: boolean;
+
+    /**
      * Configuration options for UI profiling.
      * It supports two modes: `manual` and `trace`.
      * - In `trace` mode, the profiler runs based on active sampled spans.
