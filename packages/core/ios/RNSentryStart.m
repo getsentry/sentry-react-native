@@ -59,10 +59,8 @@
     [SentrySDK startWithOptions:options];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    if (options.sessionReplay.sessionSampleRate > 0
-        || options.sessionReplay.onErrorSampleRate > 0) {
-        [RNSentryReplay postInit];
-    }
+    // Replay can start manually with both sample rates at 0, so always register the RN classes.
+    [RNSentryReplay postInit];
 #endif
 
     [self postDidBecomeActiveNotification];
