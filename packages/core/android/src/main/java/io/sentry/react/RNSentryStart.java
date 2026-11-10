@@ -35,6 +35,11 @@ import org.jetbrains.annotations.Nullable;
 
 final class RNSentryStart {
 
+  // Renders <Text> by default since React Native 0.89. It is a ViewGroup that draws the text
+  // itself, so the android.widget.TextView match behind maskAllText does not cover it.
+  private static final String PREPARED_LAYOUT_TEXT_VIEW_CLASS =
+      "com.facebook.react.views.text.PreparedLayoutTextView";
+
   private RNSentryStart() {
     throw new AssertionError("Utility class should not be instantiated");
   }
@@ -407,6 +412,9 @@ final class RNSentryStart {
             || rnScreenshotOptions.getBoolean("maskAllImages");
     screenshot.setMaskAllText(maskAllText);
     screenshot.setMaskAllImages(maskAllImages);
+    if (maskAllText) {
+      screenshot.addMaskViewClass(PREPARED_LAYOUT_TEXT_VIEW_CLASS);
+    }
     if (maskAllImages) {
       screenshot.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
     }
@@ -464,6 +472,9 @@ final class RNSentryStart {
             ? rnOptions.getDouble("replaysOnErrorSampleRate")
             : null);
 
+    // Added before the early returns below, where text stays masked by the native default.
+    androidReplayOptions.addMaskViewClass(PREPARED_LAYOUT_TEXT_VIEW_CLASS);
+
     if (!rnOptions.hasKey("mobileReplayOptions")) {
       return androidReplayOptions;
     }
@@ -472,9 +483,13 @@ final class RNSentryStart {
       return androidReplayOptions;
     }
 
-    androidReplayOptions.setMaskAllText(
+    final boolean maskAllText =
         !rnMobileReplayOptions.hasKey("maskAllText")
-            || rnMobileReplayOptions.getBoolean("maskAllText"));
+            || rnMobileReplayOptions.getBoolean("maskAllText");
+    androidReplayOptions.setMaskAllText(maskAllText);
+    if (!maskAllText) {
+      androidReplayOptions.addUnmaskViewClass(PREPARED_LAYOUT_TEXT_VIEW_CLASS);
+    }
     androidReplayOptions.setMaskAllImages(
         !rnMobileReplayOptions.hasKey("maskAllImages")
             || rnMobileReplayOptions.getBoolean("maskAllImages"));

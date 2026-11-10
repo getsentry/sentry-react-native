@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Mask React Native's prepared text layout views in Android Session Replay and error screenshots ([#7010](https://github.com/getsentry/sentry-react-native/issues/7010))
+
 ### Dependencies
 
 - Bump Android SDK from v8.62.0 to v8.63.0 ([#6990](https://github.com/getsentry/sentry-react-native/pull/6990))
