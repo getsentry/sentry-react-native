@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   StatusBar,
   ScrollView,
   Button as NativeButton,
@@ -14,6 +15,7 @@ import * as Sentry from '@sentry/react-native';
 import { Text } from 'react-native';
 import { TimeToFullDisplay } from '../utils';
 import { preloadArticles } from './SpaceflightNewsScreen';
+import { captureProfiledHang } from '../profiledHang';
 
 interface Props {
   navigation: StackNavigationProp<any, 'PerformanceScreen'>;
@@ -84,6 +86,17 @@ const PerformanceScreen = (props: Props) => {
               // busy wait to produce a long task
             }
             console.log('Blocked JS thread for', Date.now() - start, 'ms');
+          }}
+        />
+        <Button
+          title="Profile JS hang (1 second)"
+          onPress={() => {
+            try {
+              const eventId = captureProfiledHang();
+              Alert.alert('Hang captured', `Event ID: ${eventId}`);
+            } catch (error) {
+              Alert.alert('Hang capture failed', String(error));
+            }
           }}
         />
         <Button
