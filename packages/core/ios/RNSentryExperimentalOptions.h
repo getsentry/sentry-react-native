@@ -22,6 +22,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)getEnableUnhandledCPPExceptionsV2:(SentryOptions *)sentryOptions;
 
 /**
+ * Sets the enableWatchdogTerminationsV2 experimental option on SentryOptions
+ * @param sentryOptions The SentryOptions instance to configure
+ * @param enabled Whether to enable watchdog terminations V2
+ */
++ (void)setEnableWatchdogTerminationsV2:(BOOL)enabled sentryOptions:(SentryOptions *)sentryOptions;
+
+/**
  * Sets the enableLogs experimental option on SentryOptions
  * @param sentryOptions The SentryOptions instance to configure
  * @param enabled Whether logs from sentry Cocoa should be enabled
