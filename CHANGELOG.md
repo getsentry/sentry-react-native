@@ -24,7 +24,7 @@
 
 ### Fixes
 
-- Apply `Sentry.Mask` and `Sentry.Unmask` on iOS when you start a replay manually with both replay sample rates at `0` ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+- Apply `Sentry.Mask` and `Sentry.Unmask` on iOS when you start a replay manually with both replay sample rates at `0` ([#7008](https://github.com/getsentry/sentry-react-native/pull/7008))
 
 ### Dependencies
 
