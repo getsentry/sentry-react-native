@@ -765,6 +765,60 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"enableUnhandledCPPExceptionsV2 should default to disabled");
 }
 
+- (void)testStartCreateOptionsWithDictionaryEnableWatchdogTerminationsV2Enabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"enableWatchdogTerminationsV2" : @YES,
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertTrue(actualOptions.experimental.enableWatchdogTerminationsV2,
+        @"enableWatchdogTerminationsV2 should be enabled");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEnableWatchdogTerminationsV2Disabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"enableWatchdogTerminationsV2" : @NO,
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.experimental.enableWatchdogTerminationsV2,
+        @"enableWatchdogTerminationsV2 should be disabled");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEnableWatchdogTerminationsV2Default
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.experimental.enableWatchdogTerminationsV2,
+        @"enableWatchdogTerminationsV2 should default to disabled");
+}
+
 - (void)testStartEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags
 {
     SentryEvent *testEvent = [[SentryEvent alloc] init];

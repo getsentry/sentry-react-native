@@ -200,6 +200,7 @@ export interface BaseReactNativeOptions {
         replaysSessionSampleRate?: number;
         replaysOnErrorSampleRate?: number;
         enableUnhandledCPPExceptionsV2?: boolean;
+        enableWatchdogTerminationsV2?: boolean;
         profilingOptions?: ProfilingOptions;
         androidProfilingOptions?: ProfilingOptions;
         enableStandaloneAppStartTracing?: boolean;
