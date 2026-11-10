@@ -18,9 +18,10 @@ jest.mock('../../src/js/utils/rnlibraries', () => {
 });
 
 describe('timetodisplaynative', () => {
-  test('requireNativeComponent to be undefined', () => {
+  test('native component getters to be undefined', () => {
     expect(ReactNativeLibraries).toBeDefined();
     expect(ReactNativeLibraries.ReactNative?.requireNativeComponent).not.toBeDefined();
+    expect(ReactNativeLibraries.ReactNative?.getNativeComponent).not.toBeDefined();
   });
 
   test('getRNSentryOnDrawReporter returns Noop', () => {

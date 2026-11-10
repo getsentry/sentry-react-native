@@ -63,6 +63,13 @@ const InternalReactNativeLibrariesInterface: Required<ReactNativeLibrariesInterf
       const { requireNativeComponent } = require('react-native');
       return requireNativeComponent(viewName);
     },
+    getNativeComponent: <T>(
+      componentName: string,
+      viewConfigProvider: () => Record<string, unknown>,
+    ): ReactNative.HostComponent<T> => {
+      const { get } = require('react-native/Libraries/NativeComponent/NativeComponentRegistry');
+      return get(componentName, viewConfigProvider);
+    },
   },
 };
 

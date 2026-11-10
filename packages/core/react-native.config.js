@@ -13,6 +13,9 @@ module.exports = {
       android: {
         packageInstance: 'new RNSentryPackage()',
         packageImportPath: 'import io.sentry.react.RNSentryPackage;',
+        // Listed explicitly so autolinking skips RNSentryOnDrawReporter, which stays on the
+        // legacy interop layer on Android.
+        componentDescriptors: ['RNSentryReplayMaskComponentDescriptor', 'RNSentryReplayUnmaskComponentDescriptor'],
       },
     },
   },

@@ -23,7 +23,8 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   };
   Promise: unknown;
   __turboModuleProxy: unknown;
-  RN$Bridgeless: unknown;
+  RN$Bridgeless?: unknown;
+  RN$LegacyInterop_UIManager_getConstants?: unknown;
   /** Old Architecture JSI host-object backing `NativeModules`; not enumerable. */
   nativeModuleProxy?: unknown;
   nativeFabricUIManager: unknown;

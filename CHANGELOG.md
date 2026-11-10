@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Keep manual time to display working on iOS when React Native's legacy component interop is removed ([#7014](https://github.com/getsentry/sentry-react-native/issues/7014))
+
 ### Dependencies
 
 - Bump Android SDK from v8.62.0 to v8.63.0 ([#6990](https://github.com/getsentry/sentry-react-native/pull/6990))

@@ -28,5 +28,9 @@ export interface ReactNativeLibrariesInterface {
   AppRegistry?: ReactNative.AppRegistry;
   ReactNative?: {
     requireNativeComponent?: <T>(viewName: string) => ReactNative.HostComponent<T>;
+    getNativeComponent?: <T>(
+      componentName: string,
+      viewConfigProvider: () => Record<string, unknown>,
+    ) => ReactNative.HostComponent<T>;
   };
 }
