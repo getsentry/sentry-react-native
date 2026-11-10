@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Restore touch breadcrumbs and rage tap detection on the New Architecture from React Native 0.88 ([#7009](https://github.com/getsentry/sentry-react-native/issues/7009))
+- Restore touch breadcrumbs and rage tap detection on the New Architecture from React Native 0.88 ([#7013](https://github.com/getsentry/sentry-react-native/pull/7013))
 
 ### Dependencies
 
