@@ -19,6 +19,7 @@
 
 # New Architecture Codegen
 !src/js/NativeRNSentry.ts
+!src/js/RNSentryOnDrawReporterNativeComponent.ts
 !src/js/RNSentryReplayMaskNativeComponent.ts
 !src/js/RNSentryReplayUnmaskNativeComponent.ts
 
