@@ -188,6 +188,11 @@
         [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
                                                          sentryOptions:sentryOptions];
 
+        BOOL enableWatchdogTerminationsV2 =
+            [experiments[@"enableWatchdogTerminationsV2"] boolValue];
+        [RNSentryExperimentalOptions setEnableWatchdogTerminationsV2:enableWatchdogTerminationsV2
+                                                       sentryOptions:sentryOptions];
+
         // Configure iOS UI Profiling
         NSDictionary *profilingOptions = experiments[@"profilingOptions"];
         if (profilingOptions != nil && [profilingOptions isKindOfClass:[NSDictionary class]]) {

@@ -8,6 +8,19 @@
 
 ## Unreleased
 
+### Features
+
+- Add the experimental `_experiments.enableWatchdogTerminationsV2` option on iOS ([#7012](https://github.com/getsentry/sentry-react-native/pull/7012))
+  - The default tracker reports a foreground app that does not render as an app hang, and the SDK does not report watchdog terminations (for example OOM kills) that happen during that time. The option uses a run loop observer instead.
+
+  ```js
+  Sentry.init({
+    dsn: '__DSN__',
+    _experiments: {
+      enableWatchdogTerminationsV2: true,
+    },
+  });
+  ```
 ### Fixes
 
 - Mask React Native's prepared text layout views in Android Session Replay and error screenshots ([#7011](https://github.com/getsentry/sentry-react-native/pull/7011))
