@@ -1721,6 +1721,16 @@ describe('TouchEventBoundary._onTouchStart', () => {
       expect(addBreadcrumb).not.toHaveBeenCalled();
     });
 
+    it('warns when the touched component cannot be found', () => {
+      const warn = jest.spyOn(core.debug, 'warn');
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart({ target: {} });
+
+      expect(warn).toHaveBeenCalledWith('[TouchEvents] Could not find the touched component on the event.');
+    });
+
     it('detects rage taps', () => {
       jest.spyOn(Date, 'now').mockReturnValue(1000);
       const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);

@@ -244,6 +244,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
   private _onTouchStart(e: PrivateGestureResponderEvent): void {
     const targetInst = getTargetInstance(e);
     if (!targetInst) {
+      debug.warn('[TouchEvents] Could not find the touched component on the event.');
       return;
     }
 
