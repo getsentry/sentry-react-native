@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Restore touch breadcrumbs and rage tap detection on the New Architecture from React Native 0.88 ([#7009](https://github.com/getsentry/sentry-react-native/issues/7009))
+
 ### Dependencies
 
 - Bump Android SDK from v8.62.0 to v8.63.0 ([#6990](https://github.com/getsentry/sentry-react-native/pull/6990))

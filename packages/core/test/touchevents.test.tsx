@@ -1673,4 +1673,134 @@ describe('TouchEventBoundary._onTouchStart', () => {
       );
     });
   });
+
+  describe('when the event has no _targetInst', () => {
+    const eventForFiber = (fiber: unknown): unknown => ({ target: { __internalInstanceHandle: fiber } });
+
+    it('logs the component path and label from the event target fiber', () => {
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+      const event = eventForFiber({
+        elementType: { displayName: 'Button' },
+        memoizedProps: { 'sentry-label': 'submit' },
+        return: { elementType: { displayName: 'Screen' }, memoizedProps: {} },
+      });
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: submit',
+          data: { path: [{ name: 'Button', label: 'submit' }, { name: 'Screen' }] },
+        }),
+      );
+    });
+
+    it('prefers _targetInst when both are present', () => {
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+      const event = {
+        _targetInst: { elementType: { displayName: 'Legacy' }, memoizedProps: {} },
+        target: { __internalInstanceHandle: { elementType: { displayName: 'Fallback' }, memoizedProps: {} } },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Touch event within element: Legacy' }),
+      );
+    });
+
+    it.each([[undefined], [null], [123], [{}]])('does not log when the target is %p', target => {
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart({ target });
+
+      expect(addBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('detects rage taps', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1000);
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+      const event = eventForFiber({
+        elementType: { displayName: 'Button' },
+        memoizedProps: { 'sentry-label': 'submit' },
+      });
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          category: 'ui.multiClick',
+          data: expect.objectContaining({ clickCount: 3 }),
+        }),
+      );
+    });
+
+    it('applies sentry-span-attributes to the user interaction span', () => {
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+      const mockSpan = { setAttribute: jest.fn(), setAttributes: jest.fn() };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+      const event = eventForFiber({
+        elementType: { displayName: 'Button' },
+        memoizedProps: { 'sentry-span-attributes': { 'cart.items': '3' } },
+      });
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).toHaveBeenCalledWith({ 'cart.items': '3' });
+    });
+
+    it('extracts text from child fibers', () => {
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+      const event = eventForFiber({
+        elementType: { displayName: 'TouchableOpacity' },
+        memoizedProps: {},
+        child: { elementType: { name: 'Text' }, memoizedProps: { children: 'Save workout' } },
+      });
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Save workout',
+          data: { path: [{ name: 'TouchableOpacity', label: 'Save workout' }] },
+        }),
+      );
+    });
+
+    it('skips sentry-label and text extraction inside a mask boundary', () => {
+      const boundary = new TouchEventBoundary(TouchEventBoundary.defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue({
+        name: 'MobileReplay',
+        options: { maskAllText: false },
+      } as any);
+      const event = eventForFiber({
+        elementType: { displayName: 'Button' },
+        memoizedProps: { 'sentry-label': 'secret-label' },
+        child: { elementType: { name: 'Text' }, memoizedProps: { children: 'secret text' } },
+        return: { elementType: { name: 'RNSentryReplayMask' } },
+      });
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Button',
+          data: { path: [{ name: 'Button' }] },
+        }),
+      );
+    });
+  });
 });

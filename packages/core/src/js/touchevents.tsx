@@ -124,6 +124,10 @@ interface PrivateGestureResponderEvent extends GestureResponderEvent {
   _targetInst?: ElementInstance;
 }
 
+interface PrivateEventTarget {
+  __internalInstanceHandle?: ElementInstance;
+}
+
 /**
  * Boundary to log breadcrumbs for interaction events.
  */
@@ -238,14 +242,15 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    * @param e
    */
   private _onTouchStart(e: PrivateGestureResponderEvent): void {
-    if (!e._targetInst) {
+    const targetInst = getTargetInstance(e);
+    if (!targetInst) {
       return;
     }
 
-    let currentInst: ElementInstance | undefined = e._targetInst;
+    let currentInst: ElementInstance | undefined = targetInst;
     const touchPath: TouchedComponentInfo[] = [];
     const maskAllText = this._isMaskAllTextEnabled();
-    const isInsideMask = !maskAllText && hasAncestorMask(e._targetInst);
+    const isInsideMask = !maskAllText && hasAncestorMask(targetInst);
     const shouldReadSentryLabel = !maskAllText && !isInsideMask;
     const shouldExtractText = this._shouldExtractText() && !isInsideMask;
 
@@ -283,7 +288,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
       // Apply custom attributes from sentry-span-attributes prop
       // Traverse the component tree to find custom attributes
-      let instForAttributes: ElementInstance | undefined = e._targetInst;
+      let instForAttributes: ElementInstance | undefined = targetInst;
       let customAttributes: Record<string, SpanAttributeValue> | undefined;
 
       while (instForAttributes) {
@@ -354,6 +359,14 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     touchPath.push(value);
     return true;
   }
+}
+
+/**
+ * Returns the touched fiber. Events dispatched through EventTarget have no `_targetInst`,
+ * so fall back to the private fiber handle on the event target.
+ */
+function getTargetInstance(e: PrivateGestureResponderEvent): ElementInstance | undefined {
+  return e._targetInst ?? (e.target as unknown as PrivateEventTarget | null | undefined)?.__internalInstanceHandle;
 }
 
 function getTouchedComponentInfo(
