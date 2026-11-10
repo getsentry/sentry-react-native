@@ -14,7 +14,8 @@ module.exports = {
         packageInstance: 'new RNSentryPackage()',
         packageImportPath: 'import io.sentry.react.RNSentryPackage;',
         // Listed explicitly so autolinking skips RNSentryOnDrawReporter, which stays on the
-        // legacy interop layer on Android.
+        // legacy interop layer on Android. Add any new Fabric component here, or Android
+        // autolinking skips it without an error.
         componentDescriptors: ['RNSentryReplayMaskComponentDescriptor', 'RNSentryReplayUnmaskComponentDescriptor'],
       },
     },
