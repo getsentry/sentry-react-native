@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Mask React Native's prepared text layout views in Android Session Replay and error screenshots ([#7010](https://github.com/getsentry/sentry-react-native/issues/7010))
+- Mask React Native's prepared text layout views in Android Session Replay and error screenshots ([#7011](https://github.com/getsentry/sentry-react-native/pull/7011))
 
 ### Dependencies
 
