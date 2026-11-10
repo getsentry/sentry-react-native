@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Keep manual time to display working on iOS when React Native's legacy component interop is removed ([#7014](https://github.com/getsentry/sentry-react-native/issues/7014))
+- Keep manual time to display working on iOS when React Native's legacy component interop is removed ([#7015](https://github.com/getsentry/sentry-react-native/pull/7015))
 
 ### Dependencies
 
