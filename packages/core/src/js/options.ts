@@ -351,6 +351,23 @@ export interface BaseReactNativeOptions {
   enableAppComponentBreadcrumbs?: boolean;
 
   /**
+   * When enabled, the native Android SDK records breadcrumbs for user interactions
+   * (taps, swipes and scrolls) by wrapping each activity's `Window.Callback`.
+   *
+   * When the app uses `Sentry.wrap`, which adds `TouchEventBoundary`, the JS SDK already
+   * records touch breadcrumbs, so the native breadcrumbs duplicate them. Without
+   * `Sentry.wrap`, the native breadcrumbs are the only user interaction breadcrumbs.
+   *
+   * Disable this to stop the native layer from wrapping the window callback and adding
+   * user interaction breadcrumbs. If native user interaction tracing is also disabled
+   * (the default), the native `UserInteractionIntegration` is not installed.
+   *
+   * @default true
+   * @platform android
+   */
+  enableUserInteractionBreadcrumbs?: boolean;
+
+  /**
    * Use this feature to enable the Sentry MetricKit integration.
    *
    * When enabled, the SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and

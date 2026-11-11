@@ -266,6 +266,7 @@ describe('Tests Native Wrapper', () => {
         enableAppLifecycleBreadcrumbs: false,
         enableSystemEventBreadcrumbs: false,
         enableAppComponentBreadcrumbs: false,
+        enableUserInteractionBreadcrumbs: false,
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
@@ -278,6 +279,7 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.enableAppLifecycleBreadcrumbs).toBe(false);
       expect(initParameter.enableSystemEventBreadcrumbs).toBe(false);
       expect(initParameter.enableAppComponentBreadcrumbs).toBe(false);
+      expect(initParameter.enableUserInteractionBreadcrumbs).toBe(false);
     });
 
     test('forwards reportAccessibilityIdentifier to the Native SDK', async () => {

@@ -93,4 +93,11 @@ public class RNSentryStartTest {
     assertBreadcrumbOffSwitchForwarded(
         "enableAppComponentBreadcrumbs", SentryAndroidOptions::isEnableAppComponentBreadcrumbs);
   }
+
+  @Test
+  public void enableUserInteractionBreadcrumbsForwarded() {
+    assertBreadcrumbOffSwitchForwarded(
+        "enableUserInteractionBreadcrumbs",
+        SentryAndroidOptions::isEnableUserInteractionBreadcrumbs);
+  }
 }

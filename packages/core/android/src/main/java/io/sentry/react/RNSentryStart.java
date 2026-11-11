@@ -212,6 +212,10 @@ final class RNSentryStart {
       options.setEnableAppComponentBreadcrumbs(
           rnOptions.getBoolean("enableAppComponentBreadcrumbs"));
     }
+    if (rnOptions.hasKey("enableUserInteractionBreadcrumbs")) {
+      options.setEnableUserInteractionBreadcrumbs(
+          rnOptions.getBoolean("enableUserInteractionBreadcrumbs"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
