@@ -290,6 +290,23 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 // Tracing is disabled by setting tracesSampleRate and tracesSampler to nil
 }
 
+- (void)testStartRunsReplayPostInitWhenSampleRatesAreZero
+{
+    id replayMock = OCMClassMock([RNSentryReplay class]);
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysSessionSampleRate" : @0,
+        @"replaysOnErrorSampleRate" : @0,
+    };
+    [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNil(error);
+    OCMVerify(ClassMethod([replayMock postInit]));
+    [replayMock stopMocking];
+}
+
 - (void)testStartCaptureFailedRequestsIsDisabled
 {
     NSError *error = nil;
