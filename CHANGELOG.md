@@ -25,6 +25,7 @@
 
 ### Fixes
 
+- Restore touch breadcrumbs and rage tap detection on the New Architecture from React Native 0.88 ([#7013](https://github.com/getsentry/sentry-react-native/pull/7013))
 - Mask React Native's prepared text layout views in Android Session Replay and error screenshots ([#7011](https://github.com/getsentry/sentry-react-native/pull/7011))
 - Apply `Sentry.Mask` and `Sentry.Unmask` on iOS when you start a replay manually with both replay sample rates at `0` ([#7008](https://github.com/getsentry/sentry-react-native/pull/7008))
 
