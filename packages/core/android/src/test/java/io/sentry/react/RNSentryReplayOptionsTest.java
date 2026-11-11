@@ -20,6 +20,9 @@ public class RNSentryReplayOptionsTest {
 
   private static final String MASKED_CLASS = "com.example.MaskedView";
   private static final String UNMASKED_CLASS = "com.example.UnmaskedView";
+  // Pinned as a literal on purpose: it has to match React Native's class name.
+  private static final String PREPARED_LAYOUT_TEXT_VIEW =
+      "com.facebook.react.views.text.PreparedLayoutTextView";
 
   private static ReadableArray singletonArray(String value) {
     final ReadableArray array = mock(ReadableArray.class);
@@ -61,6 +64,39 @@ public class RNSentryReplayOptionsTest {
         RNSentryStart.getReplayOptions(rnOptionsWith(mobileReplayOptions));
 
     assertTrue(replayOptions.getUnmaskViewClasses().contains(UNMASKED_CLASS));
+  }
+
+  @Test
+  public void masksPreparedTextLayoutViewsByDefault() {
+    final ReadableMap mobileReplayOptions = mock(ReadableMap.class);
+
+    final SentryReplayOptions replayOptions =
+        RNSentryStart.getReplayOptions(rnOptionsWith(mobileReplayOptions));
+
+    assertTrue(replayOptions.getMaskViewClasses().contains(PREPARED_LAYOUT_TEXT_VIEW));
+  }
+
+  @Test
+  public void masksPreparedTextLayoutViewsWhenMobileReplayOptionsAreMissing() {
+    final ReadableMap rnOptions = mock(ReadableMap.class);
+    when(rnOptions.hasKey("replaysOnErrorSampleRate")).thenReturn(true);
+    when(rnOptions.getDouble("replaysOnErrorSampleRate")).thenReturn(0.75);
+
+    final SentryReplayOptions replayOptions = RNSentryStart.getReplayOptions(rnOptions);
+
+    assertTrue(replayOptions.getMaskViewClasses().contains(PREPARED_LAYOUT_TEXT_VIEW));
+  }
+
+  @Test
+  public void doesNotMaskPreparedTextLayoutViewsWhenTextMaskingIsDisabled() {
+    final ReadableMap mobileReplayOptions = mock(ReadableMap.class);
+    when(mobileReplayOptions.hasKey("maskAllText")).thenReturn(true);
+    when(mobileReplayOptions.getBoolean("maskAllText")).thenReturn(false);
+
+    final SentryReplayOptions replayOptions =
+        RNSentryStart.getReplayOptions(rnOptionsWith(mobileReplayOptions));
+
+    assertFalse(replayOptions.getMaskViewClasses().contains(PREPARED_LAYOUT_TEXT_VIEW));
   }
 
   @Test
