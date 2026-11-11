@@ -39,6 +39,28 @@ class RNSentryScreenshotOptionsTest {
     }
 
     @Test
+    fun `masks prepared text layout views by default`() {
+        val screenshot = SentryScreenshotOptions()
+
+        RNSentryStart.configureScreenshotMasking(screenshot, null, true)
+
+        assertTrue(screenshot.maskViewClasses.contains(PREPARED_LAYOUT_TEXT_VIEW))
+    }
+
+    @Test
+    fun `does not mask prepared text layout views when text masking is disabled`() {
+        val screenshot = SentryScreenshotOptions()
+
+        RNSentryStart.configureScreenshotMasking(
+            screenshot,
+            JavaOnlyMap.of("maskAllText", false),
+            true,
+        )
+
+        assertFalse(screenshot.maskViewClasses.contains(PREPARED_LAYOUT_TEXT_VIEW))
+    }
+
+    @Test
     fun `masks only Sentry Mask content when masking is disabled`() {
         val screenshot = SentryScreenshotOptions()
 
@@ -108,5 +130,10 @@ class RNSentryScreenshotOptionsTest {
 
         assertEquals(RNSentryReplayMask::class.java.name, screenshot.maskViewContainerClass)
         assertEquals(RNSentryReplayUnmask::class.java.name, screenshot.unmaskViewContainerClass)
+    }
+
+    private companion object {
+        // Pinned as a literal on purpose: it has to match React Native's class name.
+        const val PREPARED_LAYOUT_TEXT_VIEW = "com.facebook.react.views.text.PreparedLayoutTextView"
     }
 }
