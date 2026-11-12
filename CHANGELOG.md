@@ -31,9 +31,9 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.62.0 to v8.63.0 ([#6990](https://github.com/getsentry/sentry-react-native/pull/6990))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8630)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.62.0...8.63.0)
+- Bump Android SDK from v8.62.0 to v8.64.0 ([#6990](https://github.com/getsentry/sentry-react-native/pull/6990), [#7019](https://github.com/getsentry/sentry-react-native/pull/7019))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8640)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.62.0...8.64.0)
 
 ## 8.34.0
 
