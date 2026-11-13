@@ -969,7 +969,9 @@ export interface Replay extends Integration {
     getRecordingMode?(): ReplayRecordingMode | undefined;
     getReplayId(): string | undefined | null;
     pause(): void;
+    pauseTouchTracking(): void;
     resume(): void;
+    resumeTouchTracking(): void;
     start(): void;
     startBuffering(): void;
     stop(): Promise<void>;

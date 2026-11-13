@@ -754,6 +754,8 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     stop: () => settleAndInvalidateReplayId(NATIVE.stopReplay()),
     pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
     resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
+    pauseTouchTracking: () => fireReplayControl(NATIVE.pauseReplayTouchTracking(), 'pauseTouchTracking'),
+    resumeTouchTracking: () => fireReplayControl(NATIVE.resumeReplayTouchTracking(), 'resumeTouchTracking'),
     flush: (options?: { continueRecording?: boolean }) => {
       // The native `flushReplay()` always keeps recording after the flush (a
       // buffered replay is converted to a session and continues), which matches
@@ -768,8 +770,8 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
 /**
  * Runs a fire-and-forget replay control (`start`/`startBuffering`/`pause`/
- * `resume`) whose public signature is synchronous (`void`) to match the web
- * Replay API. The underlying native call is async, so we swallow and log any
+ * `resume`/`pauseTouchTracking`/`resumeTouchTracking`) whose public signature
+ * is synchronous (`void`) to match the web Replay API. The underlying native call is async, so we swallow and log any
  * rejection here to avoid an unhandled promise rejection.
  */
 function fireReplayControl(promise: Promise<void>, method: string): void {
@@ -788,6 +790,8 @@ const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
     stop: () => Promise.resolve(),
     pause: () => {},
     resume: () => {},
+    pauseTouchTracking: () => {},
+    resumeTouchTracking: () => {},
     flush: () => Promise.resolve(),
   };
 };

@@ -63,6 +63,8 @@ export interface Spec extends TurboModule {
   stopReplay(): Promise<void>;
   pauseReplay(): Promise<void>;
   resumeReplay(): Promise<void>;
+  pauseReplayTouchTracking(): Promise<void>;
+  resumeReplayTouchTracking(): Promise<void>;
   flushReplay(): Promise<void>;
   registerReplayTraceId(traceId: string): void;
   crashedLastRun(): Promise<boolean | undefined | null>;
