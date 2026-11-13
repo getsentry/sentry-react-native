@@ -565,6 +565,26 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void pauseReplayTouchTracking(Promise promise) {
+    try {
+      Sentry.replay().pauseTouchTracking();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to pause replay touch tracking", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void resumeReplayTouchTracking(Promise promise) {
+    try {
+      Sentry.replay().resumeTouchTracking();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to resume replay touch tracking", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
   public void flushReplay(Promise promise) {
     try {
       Sentry.replay().flush();

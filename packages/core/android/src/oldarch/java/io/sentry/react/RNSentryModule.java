@@ -231,6 +231,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void pauseReplayTouchTracking(Promise promise) {
+    this.impl.pauseReplayTouchTracking(promise);
+  }
+
+  @ReactMethod
+  public void resumeReplayTouchTracking(Promise promise) {
+    this.impl.resumeReplayTouchTracking(promise);
+  }
+
+  @ReactMethod
   public void flushReplay(Promise promise) {
     this.impl.flushReplay(promise);
   }

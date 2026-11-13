@@ -82,6 +82,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)resumeReplay;
 
++ (void)pauseReplayTouchTracking;
+
++ (void)resumeReplayTouchTracking;
+
 + (void)flushReplay;
 
 + (void)registerReplayTraceId:(NSString *)traceId;

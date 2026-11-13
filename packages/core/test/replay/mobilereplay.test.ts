@@ -717,6 +717,8 @@ describe('Mobile Replay Integration', () => {
       (NATIVE.stopReplay as jest.Mock).mockResolvedValue(undefined as never);
       (NATIVE.pauseReplay as jest.Mock).mockResolvedValue(undefined as never);
       (NATIVE.resumeReplay as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.pauseReplayTouchTracking as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.resumeReplayTouchTracking as jest.Mock).mockResolvedValue(undefined as never);
       (NATIVE.flushReplay as jest.Mock).mockResolvedValue(undefined as never);
     });
 
@@ -748,6 +750,32 @@ describe('Mobile Replay Integration', () => {
       const integration = mobileReplayIntegration();
       integration.resume();
       expect(NATIVE.resumeReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('pauseTouchTracking() calls the native pauseReplayTouchTracking control', () => {
+      const integration = mobileReplayIntegration();
+      integration.pauseTouchTracking();
+      expect(NATIVE.pauseReplayTouchTracking).toHaveBeenCalledTimes(1);
+      expect(NATIVE.pauseReplay).not.toHaveBeenCalled();
+    });
+
+    it('resumeTouchTracking() calls the native resumeReplayTouchTracking control', () => {
+      const integration = mobileReplayIntegration();
+      integration.resumeTouchTracking();
+      expect(NATIVE.resumeReplayTouchTracking).toHaveBeenCalledTimes(1);
+      expect(NATIVE.resumeReplay).not.toHaveBeenCalled();
+    });
+
+    it('swallows and logs a rejected pauseTouchTracking()', async () => {
+      const error = new Error('native boom');
+      (NATIVE.pauseReplayTouchTracking as jest.Mock).mockRejectedValue(error as never);
+      const debugError = jest.spyOn(debug, 'error').mockImplementation(() => {});
+
+      const integration = mobileReplayIntegration();
+      expect(() => integration.pauseTouchTracking()).not.toThrow();
+
+      await new Promise(resolve => setImmediate(resolve));
+      expect(debugError).toHaveBeenCalledWith(expect.stringContaining('Failed to pauseTouchTracking replay'), error);
     });
 
     it('flush() calls the native flushReplay control and resolves', async () => {

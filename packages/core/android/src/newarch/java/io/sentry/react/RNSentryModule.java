@@ -231,6 +231,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void pauseReplayTouchTracking(Promise promise) {
+    this.impl.pauseReplayTouchTracking(promise);
+  }
+
+  @Override
+  public void resumeReplayTouchTracking(Promise promise) {
+    this.impl.resumeReplayTouchTracking(promise);
+  }
+
+  @Override
   public void flushReplay(Promise promise) {
     this.impl.flushReplay(promise);
   }

@@ -70,6 +70,8 @@ jest.mock('react-native', () => {
     stopReplay: jest.fn(() => Promise.resolve()),
     pauseReplay: jest.fn(() => Promise.resolve()),
     resumeReplay: jest.fn(() => Promise.resolve()),
+    pauseReplayTouchTracking: jest.fn(() => Promise.resolve()),
+    resumeReplayTouchTracking: jest.fn(() => Promise.resolve()),
     flushReplay: jest.fn(() => Promise.resolve()),
     registerReplayTraceId: jest.fn(),
     startProfiler: jest.fn(() => Promise.resolve('profiler-id')),
@@ -1712,7 +1714,15 @@ describe('Tests Native Wrapper', () => {
 
   describe('replay controls', () => {
     const controls: {
-      name: 'start' | 'startBuffering' | 'stop' | 'pause' | 'resume' | 'flush';
+      name:
+        | 'start'
+        | 'startBuffering'
+        | 'stop'
+        | 'pause'
+        | 'resume'
+        | 'pauseTouchTracking'
+        | 'resumeTouchTracking'
+        | 'flush';
       call: () => Promise<void>;
       native: jest.Mock;
     }[] = [
@@ -1725,6 +1735,16 @@ describe('Tests Native Wrapper', () => {
       { name: 'stop', call: () => NATIVE.stopReplay(), native: RNSentry.stopReplay as jest.Mock },
       { name: 'pause', call: () => NATIVE.pauseReplay(), native: RNSentry.pauseReplay as jest.Mock },
       { name: 'resume', call: () => NATIVE.resumeReplay(), native: RNSentry.resumeReplay as jest.Mock },
+      {
+        name: 'pauseTouchTracking',
+        call: () => NATIVE.pauseReplayTouchTracking(),
+        native: RNSentry.pauseReplayTouchTracking as jest.Mock,
+      },
+      {
+        name: 'resumeTouchTracking',
+        call: () => NATIVE.resumeReplayTouchTracking(),
+        native: RNSentry.resumeReplayTouchTracking as jest.Mock,
+      },
       { name: 'flush', call: () => NATIVE.flushReplay(), native: RNSentry.flushReplay as jest.Mock },
     ];
 
@@ -1769,6 +1789,8 @@ describe('Tests Native Wrapper', () => {
             stop: 'stopReplay',
             pause: 'pauseReplay',
             resume: 'resumeReplay',
+            pauseTouchTracking: 'pauseReplayTouchTracking',
+            resumeTouchTracking: 'resumeReplayTouchTracking',
             flush: 'flushReplay',
           } as const
         )[name];

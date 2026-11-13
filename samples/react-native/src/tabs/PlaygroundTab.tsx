@@ -158,6 +158,22 @@ export default function getPlaygroundTab() {
                   />
                   <Separator />
                   <Button
+                    title="Replay: pauseTouchTracking"
+                    onPress={() => {
+                      Sentry.getReplay()?.pauseTouchTracking();
+                      console.log('Replay pauseTouchTracking()');
+                    }}
+                  />
+                  <Separator />
+                  <Button
+                    title="Replay: resumeTouchTracking"
+                    onPress={() => {
+                      Sentry.getReplay()?.resumeTouchTracking();
+                      console.log('Replay resumeTouchTracking()');
+                    }}
+                  />
+                  <Separator />
+                  <Button
                     title="Replay: flush"
                     onPress={async () => {
                       await Sentry.getReplay()?.flush();

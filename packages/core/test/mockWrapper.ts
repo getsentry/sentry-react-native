@@ -75,6 +75,8 @@ const NATIVE: MockInterface<NativeType> = {
   stopReplay: jest.fn(),
   pauseReplay: jest.fn(),
   resumeReplay: jest.fn(),
+  pauseReplayTouchTracking: jest.fn(),
+  resumeReplayTouchTracking: jest.fn(),
   flushReplay: jest.fn(),
   registerReplayTraceId: jest.fn(),
 
@@ -118,6 +120,8 @@ NATIVE.startReplayBuffering.mockResolvedValue(undefined);
 NATIVE.stopReplay.mockResolvedValue(undefined);
 NATIVE.pauseReplay.mockResolvedValue(undefined);
 NATIVE.resumeReplay.mockResolvedValue(undefined);
+NATIVE.pauseReplayTouchTracking.mockResolvedValue(undefined);
+NATIVE.resumeReplayTouchTracking.mockResolvedValue(undefined);
 NATIVE.flushReplay.mockResolvedValue(undefined);
 NATIVE.crashedLastRun.mockResolvedValue(false);
 NATIVE.popTimeToDisplayFor.mockResolvedValue(null);

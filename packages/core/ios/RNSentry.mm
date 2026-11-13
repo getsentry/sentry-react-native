@@ -1020,6 +1020,38 @@ RCT_EXPORT_METHOD(
 #endif
 }
 
+RCT_EXPORT_METHOD(pauseReplayTouchTracking : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    @try {
+        [RNSentryInternalWrapper pauseReplayTouchTracking];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call pauseReplayTouchTracking: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
+    resolve(nil);
+#endif
+}
+
+RCT_EXPORT_METHOD(resumeReplayTouchTracking : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    @try {
+        [RNSentryInternalWrapper resumeReplayTouchTracking];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call resumeReplayTouchTracking: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
+    resolve(nil);
+#endif
+}
+
 RCT_EXPORT_METHOD(
     flushReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
