@@ -10,7 +10,7 @@
 
 ### Internal
 
-- Fall back to the Sentry Metro middleware (`/__sentry/symbolicate`) for local debug symbolication when React Native's internal `symbolicateStackTrace` is not available ([#4877](https://github.com/getsentry/sentry-react-native/issues/4877))
+- Fall back to the Sentry Metro middleware (`/__sentry/symbolicate`) for local debug symbolication when React Native's internal `symbolicateStackTrace` is not available ([#7031](https://github.com/getsentry/sentry-react-native/pull/7031))
 
 ## 8.35.0
 
