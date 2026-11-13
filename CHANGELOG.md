@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Internal
+
+- Fall back to the Sentry Metro middleware (`/__sentry/symbolicate`) for local debug symbolication when React Native's internal `symbolicateStackTrace` is not available ([#7031](https://github.com/getsentry/sentry-react-native/pull/7031))
+
 ## 8.35.0
 
 ### Features

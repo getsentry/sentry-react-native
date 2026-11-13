@@ -110,6 +110,30 @@ describe('metroMiddleware', () => {
       spiedOpenURLMiddleware.mockRestore();
     });
 
+    it('should forward sentry symbolicate requests to metro symbolicate', () => {
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
+
+      const symbolicateRequest = {
+        url: '/__sentry/symbolicate',
+      } as any;
+      testedMiddleware(symbolicateRequest, response, next);
+      expect(symbolicateRequest.url).toBe('/symbolicate');
+      expect(defaultMiddleware).toHaveBeenCalledWith(symbolicateRequest, response, next);
+      expect(defaultMiddleware).toHaveBeenCalledTimes(1);
+      expect(mockedStackFramesContextMiddleware).not.toHaveBeenCalled();
+    });
+
+    it('should preserve query when forwarding sentry symbolicate requests', () => {
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
+
+      const symbolicateRequest = {
+        url: '/__sentry/symbolicate?foo=bar',
+      } as any;
+      testedMiddleware(symbolicateRequest, response, next);
+      expect(symbolicateRequest.url).toBe('/symbolicate?foo=bar');
+      expect(defaultMiddleware).toHaveBeenCalledWith(symbolicateRequest, response, next);
+    });
+
     it('should call default middleware for non-sentry requests', () => {
       const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
