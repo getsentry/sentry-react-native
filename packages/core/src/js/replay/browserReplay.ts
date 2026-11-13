@@ -33,18 +33,21 @@ const browserReplayIntegration = (options: ReplayConfiguration = {}): Replay => 
   // `stop`, `flush`, …) and lifecycle hooks (`afterAllSetup`, `processSpan`)
   // live on the prototype. It must NOT be spread — a spread would drop every
   // prototype method and break the integration. We attach `pause`/`resume`
-  // directly on the instance instead.
+  // (and the touch tracking controls) directly on the instance instead.
   const integration = replayIntegration({
     ...options,
     mask: ['.sentry-react-native-mask', ...(options.mask || [])],
     unmask: ['.sentry-react-native-unmask:not(.sentry-react-native-mask *) > *', ...(options.unmask || [])],
   }) as unknown as Replay;
 
-  // `pause`/`resume` are part of the shared `Replay` interface (native-backed on
-  // mobile) but the browser Session Replay SDK does not expose them, so they are
-  // no-ops that log on Web to keep the cross-platform API interchangeable.
+  // `pause`/`resume` and `pauseTouchTracking`/`resumeTouchTracking` are part of
+  // the shared `Replay` interface (native-backed on mobile) but the browser
+  // Session Replay SDK does not expose them, so they are no-ops that log on Web
+  // to keep the cross-platform API interchangeable.
   integration.pause = pauseNoop;
   integration.resume = resumeNoop;
+  integration.pauseTouchTracking = pauseTouchTrackingNoop;
+  integration.resumeTouchTracking = resumeTouchTrackingNoop;
   return integration;
 };
 
@@ -56,6 +59,14 @@ const resumeNoop = (): void => {
   debug.log(`[${INTEGRATION_NAME}] \`resume()\` is not supported on Web. No-op.`);
 };
 
+const pauseTouchTrackingNoop = (): void => {
+  debug.log(`[${INTEGRATION_NAME}] \`pauseTouchTracking()\` is not supported on Web. No-op.`);
+};
+
+const resumeTouchTrackingNoop = (): void => {
+  debug.log(`[${INTEGRATION_NAME}] \`resumeTouchTracking()\` is not supported on Web. No-op.`);
+};
+
 const browserReplayIntegrationNoop = (): Replay => {
   return {
     name: INTEGRATION_NAME,
@@ -64,6 +75,8 @@ const browserReplayIntegrationNoop = (): Replay => {
     stop: () => Promise.resolve(),
     pause: () => {},
     resume: () => {},
+    pauseTouchTracking: () => {},
+    resumeTouchTracking: () => {},
     flush: () => Promise.resolve(),
     getReplayId: () => undefined,
   };

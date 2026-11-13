@@ -4,7 +4,8 @@
 /**
  * Coverage for the Session Replay runtime controls bridged through
  * `RNSentryInternal` (`startReplay`, `startReplayBuffering`, `stopReplay`,
- * `pauseReplay`, `resumeReplay`, `flushReplay`).
+ * `pauseReplay`, `resumeReplay`, `pauseReplayTouchTracking`,
+ * `resumeReplayTouchTracking`, `flushReplay`).
  *
  * These forward to `SentrySDK.internal.replay.*`. Without a started SDK there is
  * no active replay, so every control must be a safe no-op that does not crash,
@@ -44,6 +45,18 @@
 - (void)testResumeReplayDoesNotCrashWhenNotRunning
 {
     [RNSentryInternal resumeReplay];
+    XCTAssertNil(RNSentryInternal.replayId);
+}
+
+- (void)testPauseReplayTouchTrackingDoesNotCrashWhenNotRunning
+{
+    [RNSentryInternal pauseReplayTouchTracking];
+    XCTAssertNil(RNSentryInternal.replayId);
+}
+
+- (void)testResumeReplayTouchTrackingDoesNotCrashWhenNotRunning
+{
+    [RNSentryInternal resumeReplayTouchTracking];
     XCTAssertNil(RNSentryInternal.replayId);
 }
 

@@ -83,7 +83,15 @@ interface SentryNativeWrapper {
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(module: Spec | undefined): module is Spec;
   _callReplayControl(
-    method: 'startReplay' | 'startReplayBuffering' | 'stopReplay' | 'pauseReplay' | 'resumeReplay' | 'flushReplay',
+    method:
+      | 'startReplay'
+      | 'startReplayBuffering'
+      | 'stopReplay'
+      | 'pauseReplay'
+      | 'resumeReplay'
+      | 'pauseReplayTouchTracking'
+      | 'resumeReplayTouchTracking'
+      | 'flushReplay',
   ): Promise<void>;
 
   isNativeAvailable(): boolean;
@@ -159,6 +167,8 @@ interface SentryNativeWrapper {
   stopReplay(): Promise<void>;
   pauseReplay(): Promise<void>;
   resumeReplay(): Promise<void>;
+  pauseReplayTouchTracking(): Promise<void>;
+  resumeReplayTouchTracking(): Promise<void>;
   flushReplay(): Promise<void>;
   registerReplayTraceId(traceId: string): void;
 
@@ -1025,6 +1035,14 @@ export const NATIVE: SentryNativeWrapper = {
     return this._callReplayControl('resumeReplay');
   },
 
+  pauseReplayTouchTracking(): Promise<void> {
+    return this._callReplayControl('pauseReplayTouchTracking');
+  },
+
+  resumeReplayTouchTracking(): Promise<void> {
+    return this._callReplayControl('resumeReplayTouchTracking');
+  },
+
   flushReplay(): Promise<void> {
     return this._callReplayControl('flushReplay');
   },
@@ -1035,7 +1053,15 @@ export const NATIVE: SentryNativeWrapper = {
    * cached, older) native binary predates the method - it never throws.
    */
   _callReplayControl(
-    method: 'startReplay' | 'startReplayBuffering' | 'stopReplay' | 'pauseReplay' | 'resumeReplay' | 'flushReplay',
+    method:
+      | 'startReplay'
+      | 'startReplayBuffering'
+      | 'stopReplay'
+      | 'pauseReplay'
+      | 'resumeReplay'
+      | 'pauseReplayTouchTracking'
+      | 'resumeReplayTouchTracking'
+      | 'flushReplay',
   ): Promise<void> {
     if (!this.enableNative) {
       debug.warn(`[NATIVE] \`${method}\` is not available when native is disabled.`);

@@ -172,6 +172,14 @@ import Foundation
         SentrySDK.internal.replay.resume()
     }
 
+    @_spi(Private) @objc public static func pauseReplayTouchTracking() {
+        SentrySDK.internal.replay.pauseTouchTracking()
+    }
+
+    @_spi(Private) @objc public static func resumeReplayTouchTracking() {
+        SentrySDK.internal.replay.resumeTouchTracking()
+    }
+
     @_spi(Private) @objc public static func flushReplay() {
         SentrySDK.internal.replay.flush()
     }
@@ -207,6 +215,8 @@ import Foundation
     @_spi(Private) @objc public static func stopReplay() {}
     @_spi(Private) @objc public static func pauseReplay() {}
     @_spi(Private) @objc public static func resumeReplay() {}
+    @_spi(Private) @objc public static func pauseReplayTouchTracking() {}
+    @_spi(Private) @objc public static func resumeReplayTouchTracking() {}
     @_spi(Private) @objc public static func flushReplay() {}
     @_spi(Private) @objc public static var replayId: String? { nil }
     @_spi(Private) @objc public static func setReplayRedactContainerClass(_ containerClass: AnyClass) {}
