@@ -107,7 +107,7 @@ Workflows in `.github/workflows/`:
 |----------|---------|
 | `buildandtest.yml` | TS compilation, Jest tests, linting, circular dep check, API report, TS 3.8 compat |
 | `native-tests.yml` | iOS/Android native tests across RN versions |
-| `e2e-v2.yml` | E2E tests with Maestro on Sauce Labs |
+| `e2e-v2.yml` | E2E tests with Maestro on Android emulators and iOS simulators |
 | `sample-application.yml` | Sample RN app builds (iOS, Android, old/new arch) |
 | `sample-application-expo.yml` | Sample Expo app builds |
 
