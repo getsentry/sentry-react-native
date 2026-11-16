@@ -198,6 +198,7 @@ isDebuggerAttached()
     NSData *traceData
         = trace ? [NSData dataWithBytes:trace->json.data() length:trace->json.size()] : nil;
     BOOL newestFirst = trace && trace->fromProfile;
+    BOOL attachFlamegraph = self.attachFlamegraph;
 
     // `stop` waits for this thread, so only the sample runs here. The capture also waits for the
     // main thread to take the screenshot.
@@ -206,10 +207,24 @@ isDebuggerAttached()
             NSArray<SentryFrame *> *frames = traceData != nil
                 ? [RNSentryJSHangTracker framesFromHermesTrace:traceData newestFirst:newestFirst]
                 : @[];
-            [SentrySDKWrapper
-                captureEvent:[RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
-                                                                        frames:frames
-                                                                 bundleDebugId:bundleDebugId]];
+            SentryEvent *event = [RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
+                                                                            frames:frames
+                                                                     bundleDebugId:bundleDebugId];
+            NSData *flamegraph = attachFlamegraph && traceData != nil
+                ? [RNSentryJSHangTracker flamegraphFromHermesTrace:traceData
+                                                       newestFirst:newestFirst
+                                                     bundleDebugId:bundleDebugId]
+                : nil;
+            if (flamegraph != nil) {
+                SentryAttachment *attachment =
+                    [[SentryAttachment alloc] initWithData:flamegraph
+                                                  filename:@"flamegraph.json"
+                                               contentType:@"application/json"
+                                            attachmentType:kSentryAttachmentTypeFlamegraph];
+                [SentrySDKWrapper captureEvent:event attachment:attachment];
+            } else {
+                [SentrySDKWrapper captureEvent:event];
+            }
         } @catch (NSException *exception) {
             NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
         }
