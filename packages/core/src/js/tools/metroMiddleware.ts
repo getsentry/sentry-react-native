@@ -7,7 +7,12 @@ import { readFile, realpath, realpathSync } from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 
-import { SENTRY_CONTEXT_REQUEST_PATH, SENTRY_OPEN_URL_REQUEST_PATH } from '../metro/constants';
+import {
+  METRO_SYMBOLICATE_REQUEST_PATH,
+  SENTRY_CONTEXT_REQUEST_PATH,
+  SENTRY_OPEN_URL_REQUEST_PATH,
+  SENTRY_SYMBOLICATE_REQUEST_PATH,
+} from '../metro/constants';
 import { getRawBody } from '../metro/getRawBody';
 import { openURLMiddleware } from '../metro/openUrlMiddleware';
 
@@ -113,6 +118,13 @@ function badRequest(response: ServerResponse, message: string): void {
 }
 
 /**
+ * Rewrites `/__sentry/symbolicate[?query]` to Metro's `/symbolicate[?query]`.
+ */
+function rewriteSymbolicateUrl(url: string): string {
+  return `/${METRO_SYMBOLICATE_REQUEST_PATH}${url.slice(SENTRY_SYMBOLICATE_REQUEST_PATH.length + 1)}`;
+}
+
+/**
  * Creates a middleware that adds source context to the Sentry formatted stack frames.
  */
 export const createSentryMetroMiddleware = (middleware: Middleware, allowedRoots: string[]): Middleware => {
@@ -126,6 +138,11 @@ export const createSentryMetroMiddleware = (middleware: Middleware, allowedRoots
       return stackFramesContextMiddleware(request, response, next);
     } else if (request.url?.startsWith(`/${SENTRY_OPEN_URL_REQUEST_PATH}`)) {
       return openURLMiddleware(request, response);
+    } else if (request.url?.startsWith(`/${SENTRY_SYMBOLICATE_REQUEST_PATH}`)) {
+      // Forward to Metro's own `/symbolicate` handler, so the SDK doesn't depend on
+      // RN's internal `symbolicateStackTrace` (scheduled for removal from RN's deep imports).
+      // The request body is not consumed here, Metro reads it as usual.
+      request.url = rewriteSymbolicateUrl(request.url);
     }
     return (middleware as (req: IncomingMessage, res: ServerResponse, next: () => void) => void)(
       request,

@@ -5,6 +5,7 @@ import { defaultStackParser } from '@sentry/react';
 
 import type * as ReactNative from '../vendor/react-native';
 
+import { SENTRY_CONTEXT_REQUEST_PATH, SENTRY_SYMBOLICATE_REQUEST_PATH } from '../metro/constants';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
@@ -69,7 +70,7 @@ function getSentryMetroSourceContextUrl(): string | undefined {
     return undefined;
   }
 
-  return `${devServer.url}__sentry/context`;
+  return `${devServer.url}${SENTRY_CONTEXT_REQUEST_PATH}`;
 }
 
 /**
@@ -135,16 +136,76 @@ export function parseErrorStack(errorStack: string): Array<ReactNative.StackFram
 }
 
 /**
- * Loads and calls RN Core Devtools symbolicateStackTrace function.
+ * Symbolicates the stack using the local dev server.
+ *
+ * Uses RN Devtools symbolicateStackTrace by default for compatibility.
+ * Falls back to the Sentry Metro middleware (/__sentry/symbolicate) if Devtools
+ * is not available or fails, so we don't depend on RN internals that are
+ * scheduled for removal from the RN public API.
  */
-export function symbolicateStackTrace(
+export async function symbolicateStackTrace(
   stack: Array<ReactNative.StackFrame>,
   extraData?: Record<string, unknown>,
 ): Promise<ReactNative.SymbolicatedStackTrace> {
-  if (!ReactNativeLibraries.Devtools) {
-    throw new Error('React Native Devtools not available.');
+  if (ReactNativeLibraries.Devtools?.symbolicateStackTrace) {
+    try {
+      return await ReactNativeLibraries.Devtools.symbolicateStackTrace(stack, extraData);
+    } catch (error) {
+      debug.warn('RN Devtools symbolicateStackTrace failed, falling back to Sentry Metro middleware.');
+    }
   }
-  return ReactNativeLibraries.Devtools.symbolicateStackTrace(stack, extraData);
+
+  return symbolicateStackTraceWithSentryMiddleware(stack, extraData);
+}
+
+/**
+ * Symbolicates the stack using the Sentry Metro middleware (/__sentry/symbolicate),
+ * which forwards the request to Metro's own `/symbolicate` endpoint.
+ *
+ * Rejects if the dev server is not available or the request fails.
+ */
+function symbolicateStackTraceWithSentryMiddleware(
+  stack: Array<ReactNative.StackFrame>,
+  extraData?: Record<string, unknown>,
+): Promise<ReactNative.SymbolicatedStackTrace> {
+  return new Promise((resolve, reject) => {
+    try {
+      const devServer = getDevServer();
+      if (!devServer?.bundleLoadedFromServer) {
+        reject(new Error('Bundle was not loaded from Metro.'));
+        return;
+      }
+
+      const xhr = createStealthXhr();
+      if (!xhr) {
+        reject(new Error('XMLHttpRequest is not available.'));
+        return;
+      }
+
+      xhr.open('POST', `${devServer.url}${SENTRY_SYMBOLICATE_REQUEST_PATH}`, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = (): void => {
+        if (xhr.readyState !== XHR_READYSTATE_DONE) {
+          return;
+        }
+        if (xhr.status !== 200) {
+          reject(new Error(`Symbolication request failed with status ${xhr.status}.`));
+          return;
+        }
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (error) {
+          reject(new Error('Could not parse symbolication response.'));
+        }
+      };
+      xhr.onerror = (): void => {
+        reject(new Error('Symbolication request failed.'));
+      };
+      xhr.send(JSON.stringify({ stack, extraData }));
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 /**
