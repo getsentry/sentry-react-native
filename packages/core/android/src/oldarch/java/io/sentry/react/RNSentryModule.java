@@ -320,6 +320,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.stopJsHangTracking();
   }
 
+  @ReactMethod
+  public void setAttachJsHangFlamegraph(boolean enabled) {
+    this.impl.setAttachJsHangFlamegraph(enabled);
+  }
+
   @Override
   public void invalidate() {
     this.impl.invalidate();

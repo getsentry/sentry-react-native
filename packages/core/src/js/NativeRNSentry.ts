@@ -77,6 +77,7 @@ export interface Spec extends TurboModule {
   resumeAppHangTracking(): void;
   startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void;
   stopJsHangTracking(): void;
+  setAttachJsHangFlamegraph(enabled: boolean): void;
 }
 
 export type NativeStackFrame = {
