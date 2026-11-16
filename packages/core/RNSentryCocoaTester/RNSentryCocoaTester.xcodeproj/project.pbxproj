@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03B26FDC6BB58ACBB2529D8E /* RNSentryJSHangTrackerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0ABE44D72B4F98081D9C182F /* RNSentryJSHangTrackerTests.m */; };
 		00C7702ED388EA0682DBCC48 /* RNSentryStartInvalidOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C9B2501FF3EBD8B91BA6C1 /* RNSentryStartInvalidOptionsTests.swift */; };
 		2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */; };
 		332D33472CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */; };
@@ -33,6 +34,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0ABE44D72B4F98081D9C182F /* RNSentryJSHangTrackerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryJSHangTrackerTests.m; sourceTree = "<group>"; };
 		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
 		26C9B2501FF3EBD8B91BA6C1 /* RNSentryStartInvalidOptionsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RNSentryStartInvalidOptionsTests.swift; sourceTree = "<group>"; };
 		330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryBreadcrumb.h; path = ../ios/RNSentryBreadcrumb.h; sourceTree = "<group>"; };
@@ -67,6 +69,8 @@
 		33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryTimeToDisplayTests.swift; sourceTree = "<group>"; };
 		33F58ACE2977037D008F60EB /* RNSentryScreenshotSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryScreenshotSourceTests.swift; sourceTree = "<group>"; };
 		33F58ACF2977037D008F60EA /* RNSentryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryTests.m; sourceTree = "<group>"; };
+		6C460E16960E3309F7396CCF /* RNSentryJSHangTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryJSHangTracker.h; path = ../ios/RNSentryJSHangTracker.h; sourceTree = SOURCE_ROOT; };
+		CCD339BBC5ECC684CED30588 /* RNSentryJSHangTracker+Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentryJSHangTracker+Test.h"; sourceTree = "<group>"; };
 		3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryUriValidationTests.m; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		864F5BFD9CFDA4502ADAE72E /* RNSentrySDKStartInvalidOptionsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RNSentrySDKStartInvalidOptionsTests.swift; sourceTree = "<group>"; };
@@ -134,6 +138,8 @@
 				3339C4802D6625570088EB3A /* RNSentryUserTests.m */,
 				3339C4822D6625570088EB3A /* RNSentryReplayControlTests.m */,
 				3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */,
+				CCD339BBC5ECC684CED30588 /* RNSentryJSHangTracker+Test.h */,
+				0ABE44D72B4F98081D9C182F /* RNSentryJSHangTrackerTests.m */,
 				E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */,
 				33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */,
 				33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */,
@@ -176,6 +182,7 @@
 				3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */,
 				330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */,
 				33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */,
+				6C460E16960E3309F7396CCF /* RNSentryJSHangTracker.h */,
 				FADF868E2EBD053E00D6652D /* SentrySDKWrapper.h */,
 				33AFE0132B8F31AF00AAB120 /* RNSentryDependencyContainer.h */,
 				338739072A7D7D2800950DDD /* RNSentryReplay.h */,
@@ -320,6 +327,7 @@
 				3339C4812D6625570088EB3A /* RNSentryUserTests.m in Sources */,
 				3339C4832D6625570088EB3A /* RNSentryReplayControlTests.m in Sources */,
 				B4DEB41739F14AA38202D4D4 /* RNSentryUriValidationTests.m in Sources */,
+				03B26FDC6BB58ACBB2529D8E /* RNSentryJSHangTrackerTests.m in Sources */,
 				2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */,
 				33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */,
 				3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */,
