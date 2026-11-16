@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Start the native Android SDK when `sentry-android-replay` is excluded and a replay sample rate is set ([#7035](https://github.com/getsentry/sentry-react-native/pull/7035))
+
 ## 8.35.0
 
 ### Features

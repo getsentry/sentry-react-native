@@ -6,9 +6,11 @@ import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.common.JavascriptException
 import io.sentry.Breadcrumb
 import io.sentry.ILogger
+import io.sentry.ReplayController
 import io.sentry.SentryEvent
 import io.sentry.android.core.CurrentActivityHolder
 import io.sentry.android.core.SentryAndroidOptions
+import io.sentry.android.core.internal.util.ScreenshotMasking
 import io.sentry.protocol.SdkVersion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,7 +22,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockStatic
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 
 @RunWith(JUnit4::class)
 class RNSentryStartTest {
@@ -462,6 +468,29 @@ class RNSentryStartTest {
         RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         assertNull("ANR profiling sample rate should remain null", options.anrProfilingSampleRate)
+    }
+
+    @Test
+    fun `when the replay module is not available, the replay breadcrumb converter is not set`() {
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "replaysSessionSampleRate",
+                0.0,
+                "replaysOnErrorSampleRate",
+                0.0,
+            )
+        val options = SentryAndroidOptions()
+        val replayController = mock(ReplayController::class.java)
+        options.setReplayController(replayController)
+
+        mockStatic(ScreenshotMasking::class.java).use {
+            it.`when`<Boolean> { ScreenshotMasking.isAvailable(any()) }.thenReturn(false)
+            RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+        }
+
+        verify(replayController, never()).setBreadcrumbConverter(any())
     }
 
     @Test
