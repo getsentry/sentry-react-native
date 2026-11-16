@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Start the native Android SDK when `sentry-android-replay` is excluded and a replay sample rate is set ([#7035](https://github.com/getsentry/sentry-react-native/pull/7035))
+
 ### Internal
 
 - Fall back to the Sentry Metro middleware (`/__sentry/symbolicate`) for local debug symbolication when React Native's internal `symbolicateStackTrace` is not available ([#7031](https://github.com/getsentry/sentry-react-native/pull/7031))

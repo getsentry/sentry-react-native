@@ -235,7 +235,7 @@ final class RNSentryStart {
 
     SentryReplayOptions replayOptions = getReplayOptions(rnOptions);
     options.setSessionReplay(replayOptions);
-    if (isReplayEnabled(replayOptions)) {
+    if (isReplayEnabled(replayOptions) && ScreenshotMasking.isAvailable(logger)) {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
 

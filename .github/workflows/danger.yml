@@ -8,7 +8,7 @@ jobs:
   danger:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/danger@36c729264d2edc29ebae61950c50e1e9f043ad7e
+      - uses: getsentry/github-workflows/danger@6bf4a27612e388f9c113d64f75e25190e814b414
         with:
           extra-dangerfile: scripts/check-additional-danger.js
           extra-install-packages: "curl unzip openjdk-17-jre-headless"
