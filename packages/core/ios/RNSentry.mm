@@ -901,6 +901,11 @@ RCT_EXPORT_METHOD(startJsHangTracking : (double)timeoutIntervalMs bundleDebugId 
 
 RCT_EXPORT_METHOD(stopJsHangTracking) { [[RNSentryJSHangTracker sharedInstance] stop]; }
 
+RCT_EXPORT_METHOD(setAttachJsHangFlamegraph : (BOOL)enabled)
+{
+    [RNSentryJSHangTracker sharedInstance].attachFlamegraph = enabled;
+}
+
 - (void)invalidate
 {
     [[RNSentryJSHangTracker sharedInstance] stop];

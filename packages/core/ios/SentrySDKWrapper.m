@@ -10,6 +10,12 @@
     [SentrySDK captureEvent:event];
 }
 
++ (void)captureEvent:(SentryEvent *)event attachment:(SentryAttachment *)attachment
+{
+    [SentrySDK captureEvent:event
+             withScopeBlock:^(SentryScope *scope) { [scope addAttachment:attachment]; }];
+}
+
 + (void)crash
 {
     [SentrySDK crash];
