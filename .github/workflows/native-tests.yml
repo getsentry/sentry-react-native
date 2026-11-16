@@ -33,7 +33,7 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: ["bitrise_pool_name:tahoe"]
+    runs-on: macos-26-xlarge
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
     steps:
@@ -48,24 +48,12 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Setup asdf Node.js (Bitrise)
-        run: |
-          asdf global nodejs system
-          corepack enable
-
       - name: Install SDK JS Dependencies
         run: yarn install
 
-      - uses: actions/cache@v6
-        name: Cache Ruby (Bitrise)
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
         with:
-          path: ~/.asdf/installs/ruby
-          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - name: Install Ruby (Bitrise)
-        run: |
-          asdf install ruby 3.3.0
-          asdf local ruby 3.3.0
+          ruby-version: "3.3.0"
 
       - name: Install CocoaPods
         run: gem install cocoapods
