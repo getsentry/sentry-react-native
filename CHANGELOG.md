@@ -21,7 +21,7 @@
     metricKitHangReportingMode: 'flamegraphAttachment',
   });
   ```
-- Attach a flame graph of the sampled JS stacks to JS hang events on iOS with the experimental `attachJsHangFlamegraph` option ([#NNNN](https://github.com/getsentry/sentry-react-native/pull/NNNN))
+- Attach a flame graph of the sampled JS stacks to JS hang events on iOS with the experimental `attachJsHangFlamegraph` option ([#7042](https://github.com/getsentry/sentry-react-native/pull/7042))
   - The flame graph shows where the JS thread spent its time during the hang. It requires `enableJsHangTracking` and Hermes.
   - The frames in the flame graph are not yet symbolicated with source maps.
 
