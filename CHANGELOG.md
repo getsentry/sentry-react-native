@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.28.1
 
 > [!IMPORTANT]
 > This is a re-release of the Stable version [8.28.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.28.0) with the new signing certificate.
