@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+> [!IMPORTANT]
+> This is a re-release of the Stable version [8.28.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.28.0) with the new signing certificate.
+> See https://github.com/getsentry/sentry-cocoa/issues/9645 for more information
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.29.0 to v9.29.3 ([#7046](https://github.com/getsentry/sentry-react-native/pull/7046))
