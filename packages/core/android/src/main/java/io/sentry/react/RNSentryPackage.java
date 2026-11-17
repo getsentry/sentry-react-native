@@ -3,6 +3,7 @@ package io.sentry.react;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.facebook.react.TurboReactPackage;
+import com.facebook.react.ViewManagerOnDemandReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RNSentryPackage extends TurboReactPackage {
+public class RNSentryPackage extends TurboReactPackage implements ViewManagerOnDemandReactPackage {
 
   private static final boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
 
@@ -98,5 +99,30 @@ public class RNSentryPackage extends TurboReactPackage {
         new RNSentryOnDrawReporterManager(reactContext),
         new RNSentryReplayMaskManager(),
         new RNSentryReplayUnmaskManager());
+  }
+
+  @NonNull
+  @Override
+  public List<String> getViewManagerNames(@NonNull ReactApplicationContext reactContext) {
+    return List.of(
+        RNSentryOnDrawReporterManager.REACT_CLASS,
+        RNSentryReplayMaskManagerImpl.REACT_CLASS,
+        RNSentryReplayUnmaskManagerImpl.REACT_CLASS);
+  }
+
+  @Nullable
+  @Override
+  public ViewManager createViewManager(
+      @NonNull ReactApplicationContext reactContext, @NonNull String viewManagerName) {
+    switch (viewManagerName) {
+      case RNSentryOnDrawReporterManager.REACT_CLASS:
+        return new RNSentryOnDrawReporterManager(reactContext);
+      case RNSentryReplayMaskManagerImpl.REACT_CLASS:
+        return new RNSentryReplayMaskManager();
+      case RNSentryReplayUnmaskManagerImpl.REACT_CLASS:
+        return new RNSentryReplayUnmaskManager();
+      default:
+        return null;
+    }
   }
 }

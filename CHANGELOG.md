@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+
 ### Fixes
 
 - Fix the TypeScript error `Cannot find module 'react-native/Libraries/Types/CodegenTypes'` with React Native 0.88 and `skipLibCheck: false` ([#7061](https://github.com/getsentry/sentry-react-native/pull/7061))
