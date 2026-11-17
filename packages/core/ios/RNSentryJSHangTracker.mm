@@ -269,7 +269,10 @@ isDebuggerAttached()
         NSEnumerator *ordered
             = newestFirst ? samples.reverseObjectEnumerator : samples.objectEnumerator;
         for (NSDictionary *sample in ordered) {
-            if ([self jsFrameIdsFromFrameId:sample[@"sf"] stackFrames:stackFrames].count > 0) {
+            NSArray<NSString *> *jsFrameIds = [self frameIdsFromFrameId:sample[@"sf"]
+                                                            stackFrames:stackFrames
+                                                          includeNative:NO];
+            if (jsFrameIds.count > 0) {
                 attributedThreadId = [sample[@"tid"] description] ?: @"";
                 break;
             }
@@ -295,8 +298,9 @@ isDebuggerAttached()
             if (newestFirst && newestTs - [sample[@"ts"] doubleValue] > windowUs) {
                 continue;
             }
-            NSArray<NSString *> *frameIds = [self jsFrameIdsFromFrameId:sample[@"sf"]
-                                                            stackFrames:stackFrames];
+            NSArray<NSString *> *frameIds = [self frameIdsFromFrameId:sample[@"sf"]
+                                                          stackFrames:stackFrames
+                                                        includeNative:YES];
             if (frameIds.count == 0) {
                 continue;
             }
@@ -325,7 +329,8 @@ isDebuggerAttached()
                 NSNumber *frameIndex = frameIndexes[frameId];
                 if (frameIndex == nil) {
                     frameIndex = @(frames.count);
-                    [frames addObject:[self profileFrameFromHermesFrame:stackFrames[frameId]]];
+                    [frames addObject:[self profileFrameFromHermesFrame:stackFrames[frameId]
+                                                          includeNative:YES]];
                     frameIndexes[frameId] = frameIndex;
                 }
 
@@ -381,15 +386,18 @@ isDebuggerAttached()
                                   stackFrames:(NSDictionary *)stackFrames
 {
     NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
-    for (NSString *jsFrameId in [self jsFrameIdsFromFrameId:frameId stackFrames:stackFrames]) {
+    for (NSString *jsFrameId in [self frameIdsFromFrameId:frameId
+                                              stackFrames:stackFrames
+                                            includeNative:NO]) {
         [frames addObject:[self frameFromHermesFrame:stackFrames[jsFrameId]]];
     }
     return frames;
 }
 
-/// Returns the ids of the JS frames in the stack, from the caller to the callee.
-+ (NSArray<NSString *> *)jsFrameIdsFromFrameId:(nullable id)frameId
-                                   stackFrames:(NSDictionary *)stackFrames
+/// Returns the ids of the mapped frames in the stack, from the caller to the callee.
++ (NSArray<NSString *> *)frameIdsFromFrameId:(nullable id)frameId
+                                 stackFrames:(NSDictionary *)stackFrames
+                               includeNative:(BOOL)includeNative
 {
     // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
     NSMutableArray<NSString *> *frameIds = [NSMutableArray array];
@@ -399,7 +407,7 @@ isDebuggerAttached()
         if (hermesFrame == nil) {
             break;
         }
-        if ([self profileFrameFromHermesFrame:hermesFrame] != nil) {
+        if ([self profileFrameFromHermesFrame:hermesFrame includeNative:includeNative] != nil) {
             [frameIds insertObject:key atIndex:0];
         }
         frameId = hermesFrame[@"parent"];
@@ -409,7 +417,7 @@ isDebuggerAttached()
 
 + (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame
 {
-    NSDictionary *profileFrame = [self profileFrameFromHermesFrame:hermesFrame];
+    NSDictionary *profileFrame = [self profileFrameFromHermesFrame:hermesFrame includeNative:NO];
     if (profileFrame == nil) {
         return nil;
     }
@@ -424,12 +432,17 @@ isDebuggerAttached()
 }
 
 /// Maps a Hermes frame to a profile frame, which the event stack and the flame graph share.
+/// Native frames, such as built-in and host functions, have only a name, so the event stack
+/// leaves them out.
 + (nullable NSDictionary *)profileFrameFromHermesFrame:(NSDictionary *)hermesFrame
+                                         includeNative:(BOOL)includeNative
 {
     NSString *name = hermesFrame[@"name"];
-    if (![hermesFrame[@"category"] isEqual:@"JavaScript"] || name == nil ||
-        [name isEqualToString:@"[root]"]) {
+    if (name == nil || [name isEqualToString:@"[root]"]) {
         return nil;
+    }
+    if (![hermesFrame[@"category"] isEqual:@"JavaScript"]) {
+        return includeNative ? @{ @"function" : name } : nil;
     }
 
     NSMutableDictionary *frame = [NSMutableDictionary dictionary];
