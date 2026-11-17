@@ -143,18 +143,59 @@ branchingStackFrames(void)
     XCTAssertEqual(nodes.count, 3);
 }
 
-- (void)testFlamegraphFiltersOutNativeAndRootFrames
+- (void)testFlamegraphKeepsNativeFramesAndFiltersOutTheRootFrame
 {
     NSData *trace = hermesTrace(branchingStackFrames(), @[ sample(@"1000", @"7", @5) ]);
 
     NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
 
     NSArray *functions = [flamegraph[@"frames"] valueForKey:@"function"];
-    XCTAssertEqualObjects(functions, (@[ @"main", @"a" ]));
-    XCTAssertEqual([flamegraph[@"nodes"] count], 2);
+    XCTAssertEqualObjects(functions, (@[ @"main", @"a", @"nativeCall" ]));
+    XCTAssertEqualObjects(flamegraph[@"frames"][2], (@{ @"function" : @"nativeCall" }));
+    XCTAssertEqual([flamegraph[@"nodes"] count], 3);
 }
 
-- (void)testFlamegraphSkipsSamplesWithoutJsFrames
+- (void)testFlamegraphKeepsNativeFramesBetweenJsFrames
+{
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : jsFrame(@"main(app:///main.jsbundle:1:1)", @1),
+        @"3" : @ { @"name" : @"[Native] sort", @"category" : @"Native", @"parent" : @2 },
+        @"4" : jsFrame(@"compare(app:///main.jsbundle:2:1)", @3),
+    };
+    NSData *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @4) ]);
+
+    NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
+
+    NSArray *functions = [flamegraph[@"frames"] valueForKey:@"function"];
+    XCTAssertEqualObjects(functions, (@[ @"main", @"[Native] sort", @"compare" ]));
+}
+
+- (void)testFlamegraphKeepsSamplesWithOnlyNativeFrames
+{
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : @ { @"name" : @"[HostFunction] syncCall", @"category" : @"Native", @"parent" : @1 },
+    };
+    NSData *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @2) ]);
+
+    NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
+
+    XCTAssertEqualObjects(
+        [flamegraph[@"frames"] valueForKey:@"function"], (@[ @"[HostFunction] syncCall" ]));
+    XCTAssertEqualObjects(flamegraph[@"nodes"][0][@"sample_count"], @1);
+}
+
+- (void)testEventStackLeavesOutNativeFrames
+{
+    NSDictionary *native = @{ @"name" : @"[Native] sort", @"category" : @"Native" };
+    NSDictionary *root = @{ @"name" : @"[root]", @"category" : @"root" };
+
+    XCTAssertNil([RNSentryJSHangTracker frameFromHermesFrame:native]);
+    XCTAssertNil([RNSentryJSHangTracker frameFromHermesFrame:root]);
+}
+
+- (void)testFlamegraphSkipsSamplesWithOnlyTheRootFrame
 {
     NSData *trace = hermesTrace(branchingStackFrames(),
         @[ sample(@"1000", @"7", @1), sample(@"2000", @"7", @4), sample(@"3000", @"7", @1) ]);
@@ -165,14 +206,13 @@ branchingStackFrames(void)
     XCTAssertEqualObjects(flamegraph[@"nodes"][roots[0].unsignedIntegerValue][@"sample_count"], @1);
 }
 
-- (void)testFlamegraphIsNilWithoutJsSamples
+- (void)testFlamegraphIsNilWithOnlyRootSamples
 {
     NSDictionary *stackFrames = @{
         @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
-        @"2" : @ { @"name" : @"nativeCall", @"category" : @"Native", @"parent" : @1 },
     };
     NSData *trace
-        = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @1), sample(@"2000", @"7", @2) ]);
+        = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @1), sample(@"2000", @"7", @1) ]);
 
     XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesTrace:trace
                                                       newestFirst:NO
