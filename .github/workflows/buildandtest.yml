@@ -58,7 +58,8 @@ jobs:
 
   job_lint:
     name: Lint
-    runs-on: ubuntu-latest
+    # SwiftLint's Linux binary needs libxml2.so.2, which Ubuntu 26.04 no longer ships
+    runs-on: ubuntu-24.04
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -70,6 +71,10 @@ jobs:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install Dependencies
         run: yarn install
 
@@ -161,6 +166,10 @@ jobs:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install Dependencies
         run: yarn install
       - name: Build
@@ -378,6 +387,10 @@ jobs:
           node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install Dependencies
         run: yarn install
       - name: Build
