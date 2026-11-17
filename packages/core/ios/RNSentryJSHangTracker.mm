@@ -433,7 +433,8 @@ isDebuggerAttached()
 
 /// Maps a Hermes frame to a profile frame, which the event stack and the flame graph share.
 /// Native frames, such as built-in and host functions, have only a name, so the event stack
-/// leaves them out.
+/// leaves them out. The device cannot tell app code from library code in the bundle, so every JS
+/// frame is in_app; the event stack does not copy it.
 + (nullable NSDictionary *)profileFrameFromHermesFrame:(NSDictionary *)hermesFrame
                                          includeNative:(BOOL)includeNative
 {
@@ -442,13 +443,14 @@ isDebuggerAttached()
         return nil;
     }
     if (![hermesFrame[@"category"] isEqual:@"JavaScript"]) {
-        return includeNative ? @{ @"function" : name } : nil;
+        return includeNative ? @{ @"function" : name, @"in_app" : @NO } : nil;
     }
 
     NSMutableDictionary *frame = [NSMutableDictionary dictionary];
     frame[@"platform"] = @"javascript";
     frame[@"filename"] = kBundleFileName;
     frame[@"abs_path"] = kBundleFileName;
+    frame[@"in_app"] = @YES;
     NSRange paren = [name rangeOfString:@"("];
     NSString *function
         = paren.location == NSNotFound ? name : [name substringToIndex:paren.location];
