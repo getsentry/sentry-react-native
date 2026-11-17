@@ -16,6 +16,12 @@
 
 - Fall back to the Sentry Metro middleware (`/__sentry/symbolicate`) for local debug symbolication when React Native's internal `symbolicateStackTrace` is not available ([#7031](https://github.com/getsentry/sentry-react-native/pull/7031))
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.34.0 to v9.35.0 ([#7045](https://github.com/getsentry/sentry-react-native/pull/7045))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9350)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.34.0...9.35.0)
+
 ## 8.35.0
 
 ### Features
