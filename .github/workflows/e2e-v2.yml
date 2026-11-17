@@ -215,7 +215,7 @@ jobs:
         engine: ["hermes"]
         include:
           - platform: ios
-            runs-on: macos-26-xlarge
+            runs-on: ["bitrise_pool_name:tahoe"]
           - platform: android
             runs-on: ubuntu-24.04
 
@@ -267,6 +267,12 @@ jobs:
           node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
+
+      - name: Setup asdf Node.js (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        run: |
+          asdf global nodejs system
+          corepack enable
 
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
