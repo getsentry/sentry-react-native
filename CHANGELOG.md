@@ -10,7 +10,7 @@
 
 ### Features
 
-- Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+- Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#7049](https://github.com/getsentry/sentry-react-native/pull/7049))
 
 ### Fixes
 
