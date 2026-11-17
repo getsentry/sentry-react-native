@@ -151,7 +151,8 @@ branchingStackFrames(void)
 
     NSArray *functions = [flamegraph[@"frames"] valueForKey:@"function"];
     XCTAssertEqualObjects(functions, (@[ @"main", @"a", @"nativeCall" ]));
-    XCTAssertEqualObjects(flamegraph[@"frames"][2], (@{ @"function" : @"nativeCall" }));
+    XCTAssertEqualObjects(
+        flamegraph[@"frames"][2], (@{ @"function" : @"nativeCall", @"in_app" : @NO }));
     XCTAssertEqual([flamegraph[@"nodes"] count], 3);
 }
 
@@ -355,6 +356,7 @@ branchingStackFrames(void)
         @"lineno" : @1,
         @"colno" : @106,
         @"platform" : @"javascript",
+        @"in_app" : @YES,
     }));
     XCTAssertEqualObjects(frames[1], (@{
         @"filename" : @"app:///main.jsbundle",
@@ -362,6 +364,7 @@ branchingStackFrames(void)
         @"lineno" : @10,
         @"colno" : @20,
         @"platform" : @"javascript",
+        @"in_app" : @YES,
     }));
 
     NSArray<NSDictionary *> *hermesFrames = @[ bytecode, anonymous ];
@@ -372,6 +375,7 @@ branchingStackFrames(void)
         XCTAssertEqualObjects(frames[i][@"lineno"], eventFrame.lineNumber);
         XCTAssertEqualObjects(frames[i][@"colno"], eventFrame.columnNumber);
         XCTAssertEqualObjects(frames[i][@"platform"], eventFrame.platform);
+        XCTAssertNil(eventFrame.inApp);
     }
 }
 
