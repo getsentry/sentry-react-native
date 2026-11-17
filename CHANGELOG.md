@@ -11,7 +11,7 @@
 ### Features
 
 - Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#7049](https://github.com/getsentry/sentry-react-native/pull/7049))
-- Report MetricKit hangs on iOS as flame graph attachments with the experimental `metricKitHangReportingMode` option ([#NNNN](https://github.com/getsentry/sentry-react-native/pull/NNNN))
+- Report MetricKit hangs on iOS as flame graph attachments with the experimental `metricKitHangReportingMode` option ([#7059](https://github.com/getsentry/sentry-react-native/pull/7059))
   - With `flamegraphAttachment`, the native SDK attaches the aggregated call trees of a MetricKit hang diagnostic as a flame graph, which the backend symbolicates. The default `legacy` mode reports the flattened call stack tree.
 
   ```js
