@@ -3,6 +3,8 @@ changelogPolicy: auto
 preReleaseCommand: bash scripts/craft-pre-release.sh
 targets:
   - name: npm
+    # Older than the current npm `latest`; publish under the `old` tag.
+    checkPackageName: '@sentry/react-native'
   - name: github
   - name: registry
     sdks:
