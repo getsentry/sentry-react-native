@@ -397,6 +397,24 @@ export interface BaseReactNativeOptions {
   enableMetricKitRawPayload?: boolean;
 
   /**
+   * How the native iOS SDK reports MetricKit hang diagnostics.
+   *
+   * - `legacy` reports the flattened call stack tree in the event.
+   * - `flamegraphAttachment` attaches the aggregated call trees as a flame graph, which the
+   *   backend symbolicates. When the SDK cannot create the flame graph, it reports the flattened
+   *   call stack tree.
+   *
+   * Only has an effect when `enableMetricKit` is `true`. Other MetricKit diagnostics do not change.
+   *
+   * iOS only
+   *
+   * @default 'legacy'
+   * @experimental
+   * @platform ios
+   */
+  metricKitHangReportingMode?: 'legacy' | 'flamegraphAttachment';
+
+  /**
    * When enabled, `SentryCrash` reads memory near the crash site while capturing a native crash
    * (e.g. `EXC_BAD_ACCESS`) and embeds string-based stack contents in the event. This can help
    * with debugging, but may also expose sensitive information (such as user IDs or personal data),
