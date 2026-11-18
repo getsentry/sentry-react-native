@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix the TypeScript error `Cannot find module 'react-native/Libraries/Types/CodegenTypes'` with React Native 0.88 and `skipLibCheck: false` ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+
 ### Dependencies
 
 - Bump Android SDK from v8.64.0 to v8.65.0 ([#7058](https://github.com/getsentry/sentry-react-native/pull/7058))
