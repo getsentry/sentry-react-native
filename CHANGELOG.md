@@ -262,6 +262,19 @@
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9300)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.30.0)
 
+## 8.28.1
+
+> [!IMPORTANT]
+> This is a re-release of the Stable version [8.28.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.28.0) with the new signing certificate.
+> See https://github.com/getsentry/sentry-cocoa/issues/9645 for more information
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.29.0 to v9.29.3 ([#7046](https://github.com/getsentry/sentry-react-native/pull/7046))
+  - 9.29.3 is a re-release of 9.29.2 with the new signing certificate ([sentry-cocoa#9645](https://github.com/getsentry/sentry-cocoa/issues/9645))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9293)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.29.3)
+
 ## 8.28.0
 
 ### Features
