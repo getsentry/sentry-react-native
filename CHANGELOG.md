@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Remove the web Session Replay and User Feedback packages from Android and iOS bundles by default, as announced in 5.32.0 ([#TBD](https://github.com/getsentry/sentry-react-native/pull/TBD))
+- Remove the web Session Replay and User Feedback packages from Android and iOS bundles by default, as announced in 5.32.0 ([#7062](https://github.com/getsentry/sentry-react-native/pull/7062))
   - Before this fix, `includeWebReplay` and `includeWebFeedback` defaulted to `true`, so these packages stayed in native bundles even though they never run there.
   - Web bundles keep both packages. Set the option to `true` to keep a package on all platforms, or to `false` to remove it on all platforms, including web.
 
