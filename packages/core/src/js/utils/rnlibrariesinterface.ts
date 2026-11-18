@@ -7,8 +7,10 @@
 
 import type * as ReactNative from '../vendor/react-native';
 
-export type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 export type { EmitterSubscription } from 'react-native';
+
+// Codegen matches this type by name, so it does not need the React Native deep import.
+export type UnsafeObject = object;
 
 export interface ReactNativeLibrariesInterface {
   Devtools?: {
