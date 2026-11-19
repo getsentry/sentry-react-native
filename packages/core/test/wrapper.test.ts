@@ -1701,7 +1701,11 @@ describe('Tests Native Wrapper', () => {
         throw new Error('native error');
       });
 
+      const error = jest.spyOn(debug, 'error');
+
       expect(() => NATIVE.setAttachJsHangFlamegraph(true)).not.toThrow();
+      expect(error).toHaveBeenCalledWith('[NATIVE] Set Attach JS Hang Flamegraph Failed', expect.any(Error));
+      error.mockRestore();
     });
 
     test('does not call native when enableNative is false', async () => {
