@@ -246,7 +246,8 @@ export interface BaseReactNativeOptions {
   /**
    * When enabled, the SDK attaches a flame graph of the sampled JavaScript stacks to the events
    * of `enableJsHangTracking`. The flame graph shows where the JavaScript thread spent its time
-   * during the hang. It requires `enableJsHangTracking` and Hermes.
+   * in the sample window of about 300 ms when the SDK detected the hang. It requires
+   * `enableJsHangTracking` and Hermes.
    *
    * The frames in the flame graph are not yet symbolicated with source maps.
    *
