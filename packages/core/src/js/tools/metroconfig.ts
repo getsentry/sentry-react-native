@@ -56,13 +56,20 @@ export interface SentryMetroConfigOptions {
         textComponentNames?: string[];
       };
   /**
-   * Adds the Sentry replay package for web.
-   * @default true
+   * Adds the Sentry web replay package (`@sentry-internal/replay`) to the bundle.
+   *
+   * - `undefined` (default): removed from Android and iOS bundles, where it is never used, and kept on web.
+   * - `true`: kept on all platforms.
+   * - `false`: removed on all platforms, including web.
    */
   includeWebReplay?: boolean;
   /**
-   * Adds the Sentry user feedback widget package.
-   * @default true
+   * Adds the Sentry web user feedback widget package (`@sentry-internal/feedback`) to the bundle.
+   * It does not affect the React Native feedback widget (`feedbackIntegration`).
+   *
+   * - `undefined` (default): removed from Android and iOS bundles, where it is never used, and kept on web.
+   * - `true`: kept on all platforms.
+   * - `false`: removed on all platforms, including web.
    */
   includeWebFeedback?: boolean;
   /**
@@ -134,8 +141,8 @@ export function withSentryConfig(
   config: MetroConfig,
   {
     annotateReactComponents = false,
-    includeWebReplay = true,
-    includeWebFeedback = true,
+    includeWebReplay,
+    includeWebFeedback,
     enableSourceContextInDevelopment = true,
     optionsFile = true,
     autoWrapExpoRouterErrorBoundary = false,
@@ -152,10 +159,10 @@ export function withSentryConfig(
   if (annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
     newConfig = withSentryBabelTransformer(newConfig, annotateReactComponents, autoWrapExpoRouterErrorBoundary);
   }
-  if (includeWebReplay === false) {
+  if (includeWebReplay !== true) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
-  if (includeWebFeedback === false) {
+  if (includeWebFeedback !== true) {
     newConfig = withSentryFeedbackResolver(newConfig, includeWebFeedback);
   }
   newConfig = withSentryExcludeServerOnlyResolver(newConfig);
@@ -202,10 +209,10 @@ export function getSentryExpoConfig(
     );
   }
 
-  if (options.includeWebReplay === false) {
+  if (options.includeWebReplay !== true) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
-  if (options.includeWebFeedback === false) {
+  if (options.includeWebFeedback !== true) {
     newConfig = withSentryFeedbackResolver(newConfig, options.includeWebFeedback);
   }
   newConfig = withSentryExcludeServerOnlyResolver(newConfig);

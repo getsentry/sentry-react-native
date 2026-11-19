@@ -122,6 +122,83 @@ describe('metroconfig', () => {
     });
   });
 
+  describe('web replay and feedback exclusion', () => {
+    const SENTRY_BROWSER_BARREL = '/project/node_modules/@sentry/browser/build/npm/esm/prod/index.js';
+    const WEB_ONLY_PACKAGES = ['@sentry-internal/replay', '@sentry-internal/feedback'];
+
+    type ExclusionOptions = Pick<SentryExpoConfigOptions, 'includeWebReplay' | 'includeWebFeedback'>;
+
+    let originalResolverMock: jest.Mock;
+
+    beforeEach(() => {
+      originalResolverMock = jest.fn();
+    });
+
+    describe.each([
+      [
+        'withSentryConfig',
+        (options: ExclusionOptions) =>
+          withSentryConfig(
+            { resolver: { resolveRequest: originalResolverMock } },
+            { ...options, enableSourceContextInDevelopment: false, optionsFile: false },
+          ),
+      ],
+      [
+        'getSentryExpoConfig',
+        (options: ExclusionOptions) =>
+          getSentryExpoConfig('/project/root', {
+            ...options,
+            injectReleaseForWeb: false,
+            enableSourceContextInDevelopment: false,
+            optionsFile: false,
+            getDefaultConfig: jest.fn().mockReturnValue({ resolver: { resolveRequest: originalResolverMock } }),
+          }),
+      ],
+    ])('%s', (_name, buildConfig) => {
+      const resolve = (options: ExclusionOptions, moduleName: string, platform: string) => {
+        const context = { resolveRequest: jest.fn(), originModulePath: SENTRY_BROWSER_BARREL };
+        return buildConfig(options).resolver?.resolveRequest?.(context as never, moduleName, platform);
+      };
+
+      describe.each(WEB_ONLY_PACKAGES)('with %s', moduleName => {
+        test.each(['android', 'ios'])('removes it on %s by default', platform => {
+          expect(resolve({}, moduleName, platform)).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('keeps it on web by default', () => {
+          resolve({}, moduleName, 'web');
+          expect(originalResolverMock).toHaveBeenCalledWith(expect.anything(), moduleName, 'web');
+        });
+
+        test('keeps it on android when the option is true', () => {
+          resolve({ includeWebReplay: true, includeWebFeedback: true }, moduleName, 'android');
+          expect(originalResolverMock).toHaveBeenCalledWith(expect.anything(), moduleName, 'android');
+        });
+
+        test('removes it on web when the option is false', () => {
+          expect(resolve({ includeWebReplay: false, includeWebFeedback: false }, moduleName, 'web')).toEqual({
+            type: 'empty',
+          });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+      });
+
+      test.each(['./feedbackSync.js', './feedbackAsync.js'])(
+        'removes the @sentry/browser %s wrapper on android by default',
+        moduleName => {
+          expect(resolve({}, moduleName, 'android')).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        },
+      );
+
+      test('keeps other @sentry/browser modules on android by default', () => {
+        resolve({}, './sdk.js', 'android');
+        expect(originalResolverMock).toHaveBeenCalledWith(expect.anything(), './sdk.js', 'android');
+      });
+    });
+  });
+
   describe('withSentryFramesCollapsed', () => {
     test('adds customizeFrames if undefined ', () => {
       const config = withSentryFramesCollapsed({});
