@@ -913,7 +913,11 @@ RCT_EXPORT_METHOD(stopJsHangTracking) { [[RNSentryJSHangTracker sharedInstance] 
 
 RCT_EXPORT_METHOD(setAttachJsHangFlamegraph : (BOOL)enabled)
 {
-    [RNSentryJSHangTracker sharedInstance].attachFlamegraph = enabled;
+    @try {
+        [RNSentryJSHangTracker sharedInstance].attachFlamegraph = enabled;
+    } @catch (NSException *exception) {
+        NSLog(@"[Sentry] Failed to set attachJsHangFlamegraph: %@", exception.reason);
+    }
 }
 
 - (void)invalidate

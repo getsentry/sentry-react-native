@@ -7,9 +7,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface RNSentryJSHangTracker (Testing)
 
-+ (nullable NSData *)flamegraphFromHermesTrace:(NSData *)trace
-                                   newestFirst:(BOOL)newestFirst
-                                 bundleDebugId:(nullable NSString *)bundleDebugId;
++ (nullable NSData *)flamegraphFromHermesProfile:(nullable NSDictionary *)profile
+                                     newestFirst:(BOOL)newestFirst
+                                   bundleDebugId:(nullable NSString *)bundleDebugId;
 
 + (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame;
 
