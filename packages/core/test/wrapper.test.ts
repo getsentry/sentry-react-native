@@ -316,6 +316,23 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.enableMetricKitRawPayload).toBe(true);
     });
 
+    test('forwards metricKitHangReportingMode to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        metricKitHangReportingMode: 'flamegraphAttachment',
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.metricKitHangReportingMode).toBe('flamegraphAttachment');
+    });
+
     test('forwards enablePreWarmedAppStartTracing to the Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,

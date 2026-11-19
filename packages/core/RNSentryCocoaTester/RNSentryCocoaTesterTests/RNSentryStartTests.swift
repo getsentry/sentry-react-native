@@ -24,6 +24,23 @@ final class RNSentryStartTests: XCTestCase {
         assertReactDefaults(actualOptions)
     }
 
+    func testCreateOptionsSetsMetricKitHangReportingMode() throws {
+        let options = try RNSentryStart.createOptions(with: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "metricKitHangReportingMode": "flamegraphAttachment"
+        ])
+
+        XCTAssertEqual(options.experimental.metrickit.hangReportingMode, SentryMetricKitHangReportingMode.flamegraphAttachment)
+    }
+
+    func testCreateOptionsUsesLegacyMetricKitHangReportingModeByDefault() throws {
+        let options = try RNSentryStart.createOptions(with: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456"
+        ])
+
+        XCTAssertEqual(options.experimental.metrickit.hangReportingMode, SentryMetricKitHangReportingMode.legacy)
+    }
+
     func testAutoStartSetsReactDefaults() throws {
         try startFromRN(options: [
             "dsn": "https://abcd@efgh.ingest.sentry.io/123456"
