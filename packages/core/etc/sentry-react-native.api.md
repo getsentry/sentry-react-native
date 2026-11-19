@@ -156,6 +156,7 @@ export interface BaseReactNativeOptions {
     anrProfilingSampleRate?: number;
     appHangTimeoutInterval?: number;
     attachAllThreads?: boolean;
+    attachJsHangFlamegraph?: boolean;
     attachScreenshot?: boolean;
     attachThreads?: boolean;
     attachViewHierarchy?: boolean;

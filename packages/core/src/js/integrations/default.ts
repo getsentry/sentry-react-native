@@ -120,7 +120,12 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
       integrations.push(uiProfilingIntegration());
     }
     if (options.enableJsHangTracking) {
-      integrations.push(jsHangTrackingIntegration({ timeoutIntervalSeconds: options.jsHangTimeoutInterval }));
+      integrations.push(
+        jsHangTrackingIntegration({
+          timeoutIntervalSeconds: options.jsHangTimeoutInterval,
+          attachFlamegraph: options.attachJsHangFlamegraph,
+        }),
+      );
     }
   }
 

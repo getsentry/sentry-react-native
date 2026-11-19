@@ -353,6 +353,10 @@ public class RNSentryModuleImpl {
     // No-op: JS hang tracking is iOS-only
   }
 
+  public void setAttachJsHangFlamegraph(boolean enabled) {
+    // No-op: JS hang tracking is iOS-only
+  }
+
   public void fetchModules(Promise promise) {
     final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
     try (InputStream stream = new BufferedInputStream(assets.open(modulesPath))) {

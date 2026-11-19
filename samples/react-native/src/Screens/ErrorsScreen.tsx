@@ -28,6 +28,32 @@ interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
 }
 
+function hashRecords(count: number): number {
+  let hash = 0;
+  for (let i = 0; i < count; i++) {
+    hash = (hash * 31 + JSON.stringify({ id: i, name: `item-${i}` }).length) | 0;
+  }
+  return hash;
+}
+
+function sortRandomNumbers(count: number): number {
+  const numbers = Array.from({ length: count }, () => Math.random());
+  return numbers.sort((a, b) => a - b)[0];
+}
+
+function processBatch(): number {
+  return hashRecords(2_000) + sortRandomNumbers(1_000);
+}
+
+function blockJsThreadWithNestedWork(durationMs: number): number {
+  const end = Date.now() + durationMs;
+  let result = 0;
+  while (Date.now() < end) {
+    result += processBatch();
+  }
+  return result;
+}
+
 const ErrorsScreen = (_props: Props) => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
@@ -56,6 +82,12 @@ const ErrorsScreen = (_props: Props) => {
           onPress={function blockJsThreadForFiveSeconds() {
             const end = Date.now() + 5_000;
             while (Date.now() < end) {}
+          }}
+        />
+        <Button
+          title="Block JS thread with nested work for 5s"
+          onPress={() => {
+            console.log('Nested work result:', blockJsThreadWithNestedWork(5_000));
           }}
         />
         <Button

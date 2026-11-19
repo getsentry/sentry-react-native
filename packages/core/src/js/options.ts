@@ -244,6 +244,22 @@ export interface BaseReactNativeOptions {
   jsHangTimeoutInterval?: number;
 
   /**
+   * When enabled, the SDK attaches a flame graph of the sampled JavaScript stacks to the events
+   * of `enableJsHangTracking`. The flame graph shows where the JavaScript thread spent its time
+   * in the sample window of about 300 ms when the SDK detected the hang. It requires
+   * `enableJsHangTracking` and Hermes.
+   *
+   * The frames in the flame graph are not yet symbolicated with source maps.
+   *
+   * iOS only
+   *
+   * @default false
+   * @experimental
+   * @platform ios
+   */
+  attachJsHangFlamegraph?: boolean;
+
+  /**
    * When enabled, the SDK uses sentry-native's heartbeat-based app-hang detection
    * to track when the application stops responding for a specific amount of time
    * defined by the `ndkAppHangTimeoutIntervalMillis` option.
