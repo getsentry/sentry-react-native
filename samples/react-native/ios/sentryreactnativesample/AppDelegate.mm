@@ -42,12 +42,7 @@
     self.reactNativeFactory = [[RCTReactNativeFactory alloc] initWithDelegate:self];
     self.dependencyProvider = [RCTAppDependencyProvider new];
 
-    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-
-    [self.reactNativeFactory startReactNativeWithModuleName:@"sentry-react-native-sample"
-                                                   inWindow:self.window
-                                          initialProperties:@{ }
-                                              launchOptions:launchOptions];
+    // React Native starts in SceneDelegate once the window scene connects.
 
     [[UNUserNotificationCenter currentNotificationCenter] setDelegate:self];
 
@@ -93,6 +88,28 @@
 {
     NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
     return [arguments containsObject:@"sentryCrashOnStart"];
+}
+
+@end
+
+@implementation SceneDelegate
+
+- (void)scene:(UIScene *)scene
+    willConnectToSession:(UISceneSession *)session
+                 options:(UISceneConnectionOptions *)connectionOptions
+{
+    if (![scene isKindOfClass:[UIWindowScene class]]) {
+        return;
+    }
+
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *)scene];
+    appDelegate.window = self.window;
+
+    [appDelegate.reactNativeFactory startReactNativeWithModuleName:@"sentry-react-native-sample"
+                                                          inWindow:self.window
+                                                 initialProperties:@{ }
+                                                 connectionOptions:connectionOptions];
 }
 
 @end
