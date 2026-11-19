@@ -9,9 +9,3 @@
 
 # Add any project specific keep options here:
 
-# Detox Release tests were failing on missing kotlin.Result
-# It should be covered by node_modules/detox/android/detox/proguard-rules-app.pro but it seems missing
--keep class kotlin.** { *; }
-
-# Detox references bridge classes removed in RN 0.84
--dontwarn com.facebook.react.bridge.NotThreadSafeBridgeIdleDebugListener

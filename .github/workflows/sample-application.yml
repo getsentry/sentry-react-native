@@ -221,8 +221,7 @@ jobs:
         run: |
           zip -j \
             ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
-            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk \
-            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk
 
       - name: Upload Android APK
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
@@ -694,7 +693,6 @@ jobs:
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
-          rm app-androidTest.apk
 
       - name: Enable Corepack (NPM)
         run: npm i -g corepack
