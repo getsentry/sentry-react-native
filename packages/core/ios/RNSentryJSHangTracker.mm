@@ -204,16 +204,19 @@ isDebuggerAttached()
     // main thread to take the screenshot.
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
         @try {
-            NSArray<SentryFrame *> *frames = traceData != nil
-                ? [RNSentryJSHangTracker framesFromHermesTrace:traceData newestFirst:newestFirst]
-                : @[];
+            id json = traceData != nil
+                ? [NSJSONSerialization JSONObjectWithData:traceData options:0 error:nil]
+                : nil;
+            NSDictionary *profile = [json isKindOfClass:[NSDictionary class]] ? json : nil;
+            NSArray<SentryFrame *> *frames =
+                [RNSentryJSHangTracker framesFromHermesProfile:profile newestFirst:newestFirst];
             SentryEvent *event = [RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
                                                                             frames:frames
                                                                      bundleDebugId:bundleDebugId];
-            NSData *flamegraph = attachFlamegraph && traceData != nil
-                ? [RNSentryJSHangTracker flamegraphFromHermesTrace:traceData
-                                                       newestFirst:newestFirst
-                                                     bundleDebugId:bundleDebugId]
+            NSData *flamegraph = attachFlamegraph
+                ? [RNSentryJSHangTracker flamegraphFromHermesProfile:profile
+                                                         newestFirst:newestFirst
+                                                       bundleDebugId:bundleDebugId]
                 : nil;
             if (flamegraph != nil) {
                 SentryAttachment *attachment =
@@ -231,11 +234,11 @@ isDebuggerAttached()
     });
 }
 
-+ (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace newestFirst:(BOOL)newestFirst
++ (NSArray<SentryFrame *> *)framesFromHermesProfile:(nullable NSDictionary *)profile
+                                        newestFirst:(BOOL)newestFirst
 {
     // A trace with unexpected JSON types gives an event without a stack trace.
     @try {
-        NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
         NSDictionary *stackFrames = profile[@"stackFrames"];
         // A profile trace starts before the hang, so its newest JS stack is the hang. A sample of
         // our own starts at the hang, and the JS thread can recover during the window, so its
@@ -256,12 +259,11 @@ isDebuggerAttached()
     }
 }
 
-+ (nullable NSData *)flamegraphFromHermesTrace:(NSData *)trace
-                                   newestFirst:(BOOL)newestFirst
-                                 bundleDebugId:(nullable NSString *)bundleDebugId
++ (nullable NSData *)flamegraphFromHermesProfile:(nullable NSDictionary *)profile
+                                     newestFirst:(BOOL)newestFirst
+                                   bundleDebugId:(nullable NSString *)bundleDebugId
 {
     @try {
-        NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
         NSDictionary *stackFrames = profile[@"stackFrames"];
         NSArray<NSDictionary *> *samples = profile[@"samples"];
 
@@ -283,7 +285,11 @@ isDebuggerAttached()
             = std::chrono::duration_cast<std::chrono::microseconds>(kStackSampleWindow).count();
 
         NSMutableArray<NSDictionary *> *frames = [NSMutableArray array];
-        NSMutableDictionary<NSString *, NSNumber *> *frameIndexes =
+        NSMutableDictionary<NSString *, NSNumber *> *frameIndexesByHermesId =
+            [NSMutableDictionary dictionary];
+        // Hermes gives each call tree position its own frame id, so the same function reached from
+        // different callers has several ids.
+        NSMutableDictionary<NSString *, NSNumber *> *frameIndexesByContent =
             [NSMutableDictionary dictionary];
         NSMutableArray<NSMutableDictionary *> *nodes = [NSMutableArray array];
         NSMutableArray<NSMutableDictionary<NSNumber *, NSNumber *> *> *nodeIndexesByFrame =
@@ -326,12 +332,20 @@ isDebuggerAttached()
             NSMutableDictionary<NSNumber *, NSNumber *> *siblingIndexesByFrame
                 = rootIndexesByThread[threadId];
             for (NSString *frameId in frameIds) {
-                NSNumber *frameIndex = frameIndexes[frameId];
+                NSNumber *frameIndex = frameIndexesByHermesId[frameId];
                 if (frameIndex == nil) {
-                    frameIndex = @(frames.count);
-                    [frames addObject:[self profileFrameFromHermesFrame:stackFrames[frameId]
-                                                          includeNative:YES]];
-                    frameIndexes[frameId] = frameIndex;
+                    NSDictionary *frame = [self profileFrameFromHermesFrame:stackFrames[frameId]
+                                                              includeNative:YES];
+                    NSString *contentKey = [NSString stringWithFormat:@"%@|%@|%@|%@",
+                        frame[@"filename"] ?: @"", frame[@"function"] ?: @"",
+                        frame[@"lineno"] ?: @"", frame[@"colno"] ?: @""];
+                    frameIndex = frameIndexesByContent[contentKey];
+                    if (frameIndex == nil) {
+                        frameIndex = @(frames.count);
+                        [frames addObject:frame];
+                        frameIndexesByContent[contentKey] = frameIndex;
+                    }
+                    frameIndexesByHermesId[frameId] = frameIndex;
                 }
 
                 NSNumber *nodeIndex = siblingIndexesByFrame[frameIndex];
@@ -376,8 +390,15 @@ isDebuggerAttached()
         }
 
         NSData *data = [NSJSONSerialization dataWithJSONObject:flamegraph options:0 error:nil];
-        return data.length <= kMaxFlamegraphBytes ? data : nil;
+        if (data.length > kMaxFlamegraphBytes) {
+            NSLog(
+                @"[Sentry] Not attaching the JS hang flame graph, its %lu bytes exceed %lu bytes.",
+                (unsigned long)data.length, (unsigned long)kMaxFlamegraphBytes);
+            return nil;
+        }
+        return data;
     } @catch (NSException *exception) {
+        NSLog(@"[Sentry] Failed to build the JS hang flame graph: %@", exception.reason);
         return nil;
     }
 }

@@ -29,16 +29,14 @@ sample(NSString *ts, NSString *tid, NSNumber *sf)
     };
 }
 
-static NSData *
+static NSDictionary *
 hermesTrace(NSDictionary *stackFrames, NSArray *samples)
 {
-    return [NSJSONSerialization dataWithJSONObject:@{
+    return @{
         @"traceEvents" : @[],
         @"stackFrames" : stackFrames,
         @"samples" : samples,
-    }
-                                           options:0
-                                             error:nil];
+    };
 }
 
 // [root] -> main -> (a -> native, b)
@@ -59,13 +57,13 @@ branchingStackFrames(void)
 
 @implementation RNSentryJSHangTrackerTests
 
-- (NSDictionary *)flamegraphFromTrace:(NSData *)trace
+- (NSDictionary *)flamegraphFromTrace:(NSDictionary *)trace
                           newestFirst:(BOOL)newestFirst
                         bundleDebugId:(nullable NSString *)bundleDebugId
 {
-    NSData *data = [RNSentryJSHangTracker flamegraphFromHermesTrace:trace
-                                                        newestFirst:newestFirst
-                                                      bundleDebugId:bundleDebugId];
+    NSData *data = [RNSentryJSHangTracker flamegraphFromHermesProfile:trace
+                                                          newestFirst:newestFirst
+                                                        bundleDebugId:bundleDebugId];
     XCTAssertNotNil(data);
     if (data == nil) {
         return @{ };
@@ -120,7 +118,7 @@ branchingStackFrames(void)
 
 - (void)testFlamegraphHasInclusiveCountsFromCallerToCallee
 {
-    NSData *trace = hermesTrace(branchingStackFrames(), @[
+    NSDictionary *trace = hermesTrace(branchingStackFrames(), @[
         sample(@"1000", @"7", @3), sample(@"2000", @"7", @3), sample(@"3000", @"7", @4),
         sample(@"4000", @"7", @2)
     ]);
@@ -145,7 +143,7 @@ branchingStackFrames(void)
 
 - (void)testFlamegraphKeepsNativeFramesAndFiltersOutTheRootFrame
 {
-    NSData *trace = hermesTrace(branchingStackFrames(), @[ sample(@"1000", @"7", @5) ]);
+    NSDictionary *trace = hermesTrace(branchingStackFrames(), @[ sample(@"1000", @"7", @5) ]);
 
     NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
 
@@ -164,7 +162,7 @@ branchingStackFrames(void)
         @"3" : @ { @"name" : @"[Native] sort", @"category" : @"Native", @"parent" : @2 },
         @"4" : jsFrame(@"compare(app:///main.jsbundle:2:1)", @3),
     };
-    NSData *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @4) ]);
+    NSDictionary *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @4) ]);
 
     NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
 
@@ -178,7 +176,7 @@ branchingStackFrames(void)
         @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
         @"2" : @ { @"name" : @"[HostFunction] syncCall", @"category" : @"Native", @"parent" : @1 },
     };
-    NSData *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @2) ]);
+    NSDictionary *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @2) ]);
 
     NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
 
@@ -198,7 +196,7 @@ branchingStackFrames(void)
 
 - (void)testFlamegraphSkipsSamplesWithOnlyTheRootFrame
 {
-    NSData *trace = hermesTrace(branchingStackFrames(),
+    NSDictionary *trace = hermesTrace(branchingStackFrames(),
         @[ sample(@"1000", @"7", @1), sample(@"2000", @"7", @4), sample(@"3000", @"7", @1) ]);
 
     NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
@@ -212,36 +210,33 @@ branchingStackFrames(void)
     NSDictionary *stackFrames = @{
         @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
     };
-    NSData *trace
+    NSDictionary *trace
         = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @1), sample(@"2000", @"7", @1) ]);
 
-    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesTrace:trace
-                                                      newestFirst:NO
-                                                    bundleDebugId:nil]);
-    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesTrace:hermesTrace(stackFrames, @[])
-                                                      newestFirst:YES
-                                                    bundleDebugId:nil]);
+    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesProfile:trace
+                                                        newestFirst:NO
+                                                      bundleDebugId:nil]);
+    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesProfile:hermesTrace(stackFrames, @[])
+                                                        newestFirst:YES
+                                                      bundleDebugId:nil]);
 }
 
-- (void)testFlamegraphIsNilForInvalidTrace
+- (void)testFlamegraphIsNilForInvalidProfile
 {
-    NSData *trace = [@"not json" dataUsingEncoding:NSUTF8StringEncoding];
-    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesTrace:trace
-                                                      newestFirst:NO
-                                                    bundleDebugId:nil]);
+    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesProfile:nil
+                                                        newestFirst:NO
+                                                      bundleDebugId:nil]);
 
-    NSData *wrongTypes = [NSJSONSerialization dataWithJSONObject:@{ @"samples" : @"x" }
-                                                         options:0
-                                                           error:nil];
-    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesTrace:wrongTypes
-                                                      newestFirst:NO
-                                                    bundleDebugId:nil]);
+    NSDictionary *wrongTypes = @{ @"samples" : @"x" };
+    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesProfile:wrongTypes
+                                                        newestFirst:NO
+                                                      bundleDebugId:nil]);
 }
 
 - (void)testFlamegraphIsNilWhenLargerThan10MiB
 {
     NSString *longName = [@"" stringByPaddingToLength:6000 withString:@"f" startingAtIndex:0];
-    NSData * (^traceWithLongFrames)(NSInteger) = ^(NSInteger count) {
+    NSDictionary * (^traceWithLongFrames)(NSInteger) = ^(NSInteger count) {
         NSMutableDictionary *stackFrames = [@{ @"1" : jsFrame(@"main", nil) } mutableCopy];
         NSMutableArray *samples = [NSMutableArray array];
         for (NSInteger i = 2; i < count + 2; i++) {
@@ -252,17 +247,17 @@ branchingStackFrames(void)
         return hermesTrace(stackFrames, samples);
     };
 
-    XCTAssertNotNil([RNSentryJSHangTracker flamegraphFromHermesTrace:traceWithLongFrames(1000)
-                                                         newestFirst:NO
-                                                       bundleDebugId:nil]);
-    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesTrace:traceWithLongFrames(2000)
-                                                      newestFirst:NO
-                                                    bundleDebugId:nil]);
+    XCTAssertNotNil([RNSentryJSHangTracker flamegraphFromHermesProfile:traceWithLongFrames(1000)
+                                                           newestFirst:NO
+                                                         bundleDebugId:nil]);
+    XCTAssertNil([RNSentryJSHangTracker flamegraphFromHermesProfile:traceWithLongFrames(2000)
+                                                        newestFirst:NO
+                                                      bundleDebugId:nil]);
 }
 
 - (void)testFlamegraphFromProfileKeepsOnlyTheLastWindow
 {
-    NSData *trace = hermesTrace(branchingStackFrames(), @[
+    NSDictionary *trace = hermesTrace(branchingStackFrames(), @[
         sample(@"1000000", @"7", @3), sample(@"1199999", @"7", @3), sample(@"1200000", @"7", @4),
         sample(@"1500000", @"7", @4)
     ]);
@@ -282,7 +277,7 @@ branchingStackFrames(void)
 
 - (void)testFlamegraphAttributesTheThreadOfTheEventStack
 {
-    NSData *trace = hermesTrace(branchingStackFrames(), @[
+    NSDictionary *trace = hermesTrace(branchingStackFrames(), @[
         sample(@"1000", @"1", @1), sample(@"2000", @"1", @3), sample(@"3000", @"2", @4),
         sample(@"4000", @"2", @1)
     ]);
@@ -308,7 +303,7 @@ branchingStackFrames(void)
 
 - (void)testFlamegraphHasDebugMetaWhenBundleDebugIdIsSet
 {
-    NSData *trace = hermesTrace(branchingStackFrames(), @[ sample(@"1000", @"7", @3) ]);
+    NSDictionary *trace = hermesTrace(branchingStackFrames(), @[ sample(@"1000", @"7", @3) ]);
 
     NSDictionary *withDebugId = [self flamegraphFromTrace:trace
                                               newestFirst:NO
@@ -343,7 +338,7 @@ branchingStackFrames(void)
         @"parent" : @1,
     };
     NSDictionary *stackFrames = @{ @"1" : bytecode, @"2" : anonymous };
-    NSData *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @2) ]);
+    NSDictionary *trace = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @2) ]);
 
     NSArray<NSDictionary *> *frames = [self flamegraphFromTrace:trace
                                                     newestFirst:NO
@@ -379,9 +374,49 @@ branchingStackFrames(void)
     }
 }
 
+- (void)testFlamegraphDeduplicatesFramesByContent
+{
+    // Hermes gives `work` its own frame id under each caller.
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : jsFrame(@"main(app:///main.jsbundle:1:1)", @1),
+        @"3" : jsFrame(@"a(app:///main.jsbundle:2:1)", @2),
+        @"4" : jsFrame(@"b(app:///main.jsbundle:3:1)", @2),
+        @"5" : jsFrame(@"work(app:///main.jsbundle:4:1)", @3),
+        @"6" : jsFrame(@"work(app:///main.jsbundle:4:1)", @4),
+    };
+    NSDictionary *trace
+        = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @5), sample(@"2000", @"7", @6) ]);
+
+    NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
+
+    NSArray *functions = [flamegraph[@"frames"] valueForKey:@"function"];
+    XCTAssertEqualObjects(functions, (@[ @"main", @"a", @"work", @"b" ]));
+    XCTAssertEqual([flamegraph[@"nodes"] count], 5);
+}
+
+- (void)testFlamegraphMergesSiblingNodesWithTheSameFrameContent
+{
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : jsFrame(@"main(app:///main.jsbundle:1:1)", @1),
+        @"3" : jsFrame(@"work(app:///main.jsbundle:4:1)", @2),
+        @"4" : jsFrame(@"work(app:///main.jsbundle:4:1)", @2),
+    };
+    NSDictionary *trace
+        = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @3), sample(@"2000", @"7", @4) ]);
+
+    NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
+
+    NSArray<NSDictionary *> *nodes = flamegraph[@"nodes"];
+    XCTAssertEqual(nodes.count, 2);
+    XCTAssertEqualObjects(nodes[0][@"children"], (@[ @1 ]));
+    XCTAssertEqualObjects(nodes[1][@"sample_count"], @2);
+}
+
 - (void)testFlamegraphReusesFramesAcrossThreads
 {
-    NSData *trace = hermesTrace(branchingStackFrames(),
+    NSDictionary *trace = hermesTrace(branchingStackFrames(),
         @[ sample(@"1000", @"1", @3), sample(@"2000", @"2", @3), sample(@"3000", @"1", @3) ]);
 
     NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
