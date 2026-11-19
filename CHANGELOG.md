@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#7049](https://github.com/getsentry/sentry-react-native/pull/7049))
+
 ### Fixes
 
 - Remove the web Session Replay and User Feedback packages from Android and iOS bundles by default, as announced in 5.32.0 ([#7062](https://github.com/getsentry/sentry-react-native/pull/7062))
