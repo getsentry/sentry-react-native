@@ -24,6 +24,7 @@ export interface ReactNativeLibrariesInterface {
   Utilities?: {
     polyfillGlobal: <T>(name: string, getValue: () => T) => void;
   };
+  ExceptionsManager?: ReactNative.ExceptionsManager;
   Promise?: typeof Promise;
   ReactNativeVersion?: ReactNative.ReactNativeVersion;
   TurboModuleRegistry?: ReactNative.TurboModuleRegistry;
