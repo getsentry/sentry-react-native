@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 #import <Sentry/SentryDefines.h>
-#import <Sentry/SentryScope.h>
 
 @class SentryBreadcrumb;
 
