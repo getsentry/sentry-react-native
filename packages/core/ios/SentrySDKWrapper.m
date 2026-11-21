@@ -54,6 +54,64 @@
     [SentrySDK configureScope:callback];
 }
 
++ (void)setUser:(SentryUser *)user
+{
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope setUser:user]; }];
+}
+
++ (void)addBreadcrumb:(SentryBreadcrumb *)breadcrumb
+{
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope addBreadcrumb:breadcrumb]; }];
+}
+
++ (void)clearBreadcrumbs
+{
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
+}
+
++ (void)setExtraValue:(id)value forKey:(NSString *)key
+{
+    [SentrySDK
+        configureScope:^(SentryScope *_Nonnull scope) { [scope setExtraValue:value forKey:key]; }];
+}
+
++ (void)setContextValue:(NSDictionary<NSString *, id> *)value forKey:(NSString *)key
+{
+    [SentrySDK configureScope:^(
+        SentryScope *_Nonnull scope) { [scope setContextValue:value forKey:key]; }];
+}
+
++ (void)removeContextForKey:(NSString *)key
+{
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope removeContextForKey:key]; }];
+}
+
++ (void)setTagValue:(NSString *)value forKey:(NSString *)key
+{
+    [SentrySDK
+        configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
+}
+
++ (void)setAttributeValue:(id)value forKey:(NSString *)key
+{
+    [SentrySDK configureScope:^(
+        SentryScope *_Nonnull scope) { [scope setAttributeValue:value forKey:key]; }];
+}
+
++ (void)setAttributes:(NSDictionary<NSString *, id> *)attributes
+{
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+        [attributes enumerateKeysAndObjectsUsingBlock:^(
+            NSString *key, id value, BOOL *stop) { [scope setAttributeValue:value forKey:key]; }];
+    }];
+}
+
++ (void)removeAttributeForKey:(NSString *)key
+{
+    [SentrySDK
+        configureScope:^(SentryScope *_Nonnull scope) { [scope removeAttributeForKey:key]; }];
+}
+
 + (BOOL)debug
 {
     return RNSentryInternal.options.debug;

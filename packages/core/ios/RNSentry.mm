@@ -718,9 +718,7 @@ RCT_EXPORT_METHOD(
 
 RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictionary *)userDataKeys)
 {
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        [scope setUser:[RNSentry userFrom:userKeys otherUserKeys:userDataKeys]];
-    }];
+    [SentrySDKWrapper setUser:[RNSentry userFrom:userKeys otherUserKeys:userDataKeys]];
 }
 
 + (SentryUser *_Nullable)userFrom:(NSDictionary *)userKeys
@@ -746,9 +744,7 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
 
 RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 {
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
-    }];
+    [SentrySDKWrapper addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
 
 #if SENTRY_HAS_UIKIT
     NSString *_Nullable screen = [RNSentryBreadcrumb getCurrentScreenFrom:breadcrumb];
@@ -758,15 +754,11 @@ RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 #endif // SENTRY_HAS_UIKIT
 }
 
-RCT_EXPORT_METHOD(clearBreadcrumbs)
-{
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
-}
+RCT_EXPORT_METHOD(clearBreadcrumbs) { [SentrySDKWrapper clearBreadcrumbs]; }
 
 RCT_EXPORT_METHOD(setExtra : (NSString *)key extra : (NSString *)extra)
 {
-    [SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope setExtraValue:extra forKey:key]; }];
+    [SentrySDKWrapper setExtraValue:extra forKey:key];
 }
 
 RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context)
@@ -775,13 +767,11 @@ RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context
         return;
     }
 
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        if (context == nil) {
-            [scope removeContextForKey:key];
-        } else {
-            [scope setContextValue:context forKey:key];
-        }
-    }];
+    if (context == nil) {
+        [SentrySDKWrapper removeContextForKey:key];
+    } else {
+        [SentrySDKWrapper setContextValue:context forKey:key];
+    }
 }
 
 RCT_EXPORT_METHOD(removeContext : (NSString *)key)
@@ -790,14 +780,12 @@ RCT_EXPORT_METHOD(removeContext : (NSString *)key)
         return;
     }
 
-    [SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope removeContextForKey:key]; }];
+    [SentrySDKWrapper removeContextForKey:key];
 }
 
 RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
+    [SentrySDKWrapper setTagValue:value forKey:key];
 }
 
 RCT_EXPORT_METHOD(addFeatureFlag : (NSString *)name value : (BOOL)value)
@@ -807,22 +795,17 @@ RCT_EXPORT_METHOD(addFeatureFlag : (NSString *)name value : (BOOL)value)
 
 RCT_EXPORT_METHOD(setAttribute : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDKWrapper configureScope:^(
-        SentryScope *_Nonnull scope) { [scope setAttributeValue:value forKey:key]; }];
+    [SentrySDKWrapper setAttributeValue:value forKey:key];
 }
 
 RCT_EXPORT_METHOD(setAttributes : (NSDictionary *)attributes)
 {
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        [attributes enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSString *value,
-            BOOL *stop) { [scope setAttributeValue:value forKey:key]; }];
-    }];
+    [SentrySDKWrapper setAttributes:attributes];
 }
 
 RCT_EXPORT_METHOD(removeAttribute : (NSString *)key)
 {
-    [SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope removeAttributeForKey:key]; }];
+    [SentrySDKWrapper removeAttributeForKey:key];
 }
 
 RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
