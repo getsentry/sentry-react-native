@@ -1755,6 +1755,19 @@ describe('Tests Native Wrapper', () => {
       RNSentry.stopJsHangTracking = stopJsHangTracking;
       RNSentry.setAttachJsHangFlamegraph = setAttachJsHangFlamegraph;
     });
+
+    test('starts JS hang tracking when only setAttachJsHangFlamegraph is missing', async () => {
+      await initNative(true);
+      const { setAttachJsHangFlamegraph } = RNSentry;
+      // @ts-expect-error simulates a native binary from before the flame graph option
+      RNSentry.setAttachJsHangFlamegraph = undefined;
+
+      expect(() => NATIVE.setAttachJsHangFlamegraph(true)).not.toThrow();
+      NATIVE.startJsHangTracking(2000, 'debug-id');
+
+      expect(RNSentry.startJsHangTracking).toHaveBeenCalledWith(2000, 'debug-id');
+      RNSentry.setAttachJsHangFlamegraph = setAttachJsHangFlamegraph;
+    });
   });
 
   describe('replay controls', () => {
