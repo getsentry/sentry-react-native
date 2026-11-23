@@ -15,6 +15,7 @@
 static const int64_t kPollIntervalNs = 100 * NSEC_PER_MSEC;
 static const std::chrono::milliseconds kStackSampleWindow(300);
 static NSString *const kBundleFileName = @"app:///main.jsbundle";
+// https://develop.sentry.dev/sdk/telemetry/attachments/#flame-graph-validation-and-limits
 static const NSUInteger kMaxFlamegraphBytes = 10 * 1024 * 1024;
 
 namespace {
@@ -208,30 +209,44 @@ isDebuggerAttached()
                 ? [NSJSONSerialization JSONObjectWithData:traceData options:0 error:nil]
                 : nil;
             NSDictionary *profile = [json isKindOfClass:[NSDictionary class]] ? json : nil;
-            NSArray<SentryFrame *> *frames =
-                [RNSentryJSHangTracker framesFromHermesProfile:profile newestFirst:newestFirst];
-            SentryEvent *event = [RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
-                                                                            frames:frames
-                                                                     bundleDebugId:bundleDebugId];
-            NSData *flamegraph = attachFlamegraph
-                ? [RNSentryJSHangTracker flamegraphFromHermesProfile:profile
-                                                         newestFirst:newestFirst
-                                                       bundleDebugId:bundleDebugId]
-                : nil;
-            if (flamegraph != nil) {
-                SentryAttachment *attachment =
-                    [[SentryAttachment alloc] initWithData:flamegraph
-                                                  filename:@"flamegraph.json"
-                                               contentType:@"application/json"
-                                            attachmentType:kSentryAttachmentTypeFlamegraph];
-                [SentrySDKWrapper captureEvent:event attachment:attachment];
-            } else {
-                [SentrySDKWrapper captureEvent:event];
-            }
+            [RNSentryJSHangTracker captureHangWithProfile:profile
+                                              newestFirst:newestFirst
+                                        timeoutIntervalMs:timeoutIntervalMs
+                                            bundleDebugId:bundleDebugId
+                                         attachFlamegraph:attachFlamegraph];
         } @catch (NSException *exception) {
             NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
         }
     });
+}
+
++ (void)captureHangWithProfile:(nullable NSDictionary *)profile
+                   newestFirst:(BOOL)newestFirst
+             timeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                 bundleDebugId:(nullable NSString *)bundleDebugId
+              attachFlamegraph:(BOOL)attachFlamegraph
+{
+    NSArray<SentryFrame *> *frames = [self framesFromHermesProfile:profile newestFirst:newestFirst];
+    SentryEvent *event = [self eventWithTimeoutIntervalMs:timeoutIntervalMs
+                                                   frames:frames
+                                            bundleDebugId:bundleDebugId];
+    // Relay fills a missing exception stack from the flame graph, which would split events
+    // without JS frames into issues per native function.
+    NSData *flamegraph = attachFlamegraph && frames.count > 0
+        ? [self flamegraphFromHermesProfile:profile
+                                newestFirst:newestFirst
+                              bundleDebugId:bundleDebugId]
+        : nil;
+    if (flamegraph == nil) {
+        [SentrySDKWrapper captureEvent:event];
+        return;
+    }
+    SentryAttachment *attachment =
+        [[SentryAttachment alloc] initWithData:flamegraph
+                                      filename:@"flamegraph.json"
+                                   contentType:@"application/json"
+                                attachmentType:kSentryAttachmentTypeFlamegraph];
+    [SentrySDKWrapper captureEvent:event attachment:attachment];
 }
 
 + (NSArray<SentryFrame *> *)framesFromHermesProfile:(nullable NSDictionary *)profile

@@ -1,4 +1,6 @@
 #import "RNSentryJSHangTracker+Test.h"
+#import "SentrySDKWrapper.h"
+#import <OCMock/OCMock.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
 
@@ -101,13 +103,31 @@ branchingStackFrames(void)
         }
         XCTAssertLessThanOrEqual(childrenCount, sampleCount);
     }
+    NSMutableSet<NSNumber *> *visited = [NSMutableSet set];
     for (NSDictionary *tree in trees) {
         NSArray<NSNumber *> *roots = tree[@"roots"];
         XCTAssertGreaterThan(roots.count, 0);
+        NSMutableArray<NSNumber *> *pending = [NSMutableArray array];
         for (NSNumber *root in roots) {
             XCTAssertTrue(root.integerValue >= 0 && root.integerValue < (NSInteger)nodes.count);
+            [pending addObject:root];
+        }
+        while (pending.count > 0) {
+            NSNumber *nodeIndex = pending.lastObject;
+            [pending removeLastObject];
+            if ([visited containsObject:nodeIndex]) {
+                XCTFail(@"Node %@ is shared or part of a cycle", nodeIndex);
+                continue;
+            }
+            [visited addObject:nodeIndex];
+            for (NSNumber *child in nodes[nodeIndex.unsignedIntegerValue][@"children"]) {
+                if (child.integerValue >= 0 && child.integerValue < (NSInteger)nodes.count) {
+                    [pending addObject:child];
+                }
+            }
         }
     }
+    XCTAssertEqual(visited.count, nodes.count, @"Every node must belong to exactly one tree");
 }
 
 - (NSString *)functionOfNode:(NSNumber *)nodeIndex inFlamegraph:(NSDictionary *)flamegraph
@@ -414,6 +434,55 @@ branchingStackFrames(void)
     XCTAssertEqualObjects(nodes[1][@"sample_count"], @2);
 }
 
+- (void)testFlamegraphKeepsRecursiveCallsAsSeparateNodesWithOneFrame
+{
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : jsFrame(@"main(app:///main.jsbundle:1:1)", @1),
+        @"3" : jsFrame(@"recurse(app:///main.jsbundle:2:1)", @2),
+        @"4" : jsFrame(@"recurse(app:///main.jsbundle:2:1)", @3),
+    };
+    NSDictionary *trace = hermesTrace(stackFrames,
+        @[ sample(@"1000", @"7", @4), sample(@"2000", @"7", @4), sample(@"3000", @"7", @3) ]);
+
+    NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
+
+    XCTAssertEqualObjects(
+        [flamegraph[@"frames"] valueForKey:@"function"], (@[ @"main", @"recurse" ]));
+    NSArray<NSDictionary *> *nodes = flamegraph[@"nodes"];
+    XCTAssertEqual(nodes.count, 3);
+    NSDictionary *outer = nodes [[nodes[0][@"children"][0] unsignedIntegerValue]];
+    NSDictionary *inner = nodes [[outer[@"children"][0] unsignedIntegerValue]];
+    XCTAssertEqualObjects(outer[@"frame_id"], inner[@"frame_id"]);
+    XCTAssertEqualObjects(nodes[0][@"sample_count"], @3);
+    XCTAssertEqualObjects(outer[@"sample_count"], @3);
+    XCTAssertEqualObjects(inner[@"sample_count"], @2);
+}
+
+- (void)testFlamegraphKeepsFramesWithTheSameFunctionAndDifferentColumnsApart
+{
+    NSMutableDictionary *firstWork = [jsFrame(@"work(app:///main.jsbundle:4:1)", @2) mutableCopy];
+    NSMutableDictionary *secondWork = [jsFrame(@"work(app:///main.jsbundle:4:1)", @2) mutableCopy];
+    secondWork[@"column"] = @"30";
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : jsFrame(@"main(app:///main.jsbundle:1:1)", @1),
+        @"3" : firstWork,
+        @"4" : secondWork,
+    };
+    NSDictionary *trace
+        = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @3), sample(@"2000", @"7", @4) ]);
+
+    NSDictionary *flamegraph = [self flamegraphFromTrace:trace newestFirst:NO bundleDebugId:nil];
+
+    NSArray<NSDictionary *> *frames = flamegraph[@"frames"];
+    XCTAssertEqualObjects([frames valueForKey:@"function"], (@[ @"main", @"work", @"work" ]));
+    XCTAssertEqualObjects([frames valueForKey:@"colno"], (@[ @20, @20, @30 ]));
+    NSArray<NSDictionary *> *nodes = flamegraph[@"nodes"];
+    XCTAssertEqual([nodes[0][@"children"] count], 2);
+    XCTAssertEqual(nodes.count, 3);
+}
+
 - (void)testFlamegraphReusesFramesAcrossThreads
 {
     NSDictionary *trace = hermesTrace(branchingStackFrames(),
@@ -424,6 +493,164 @@ branchingStackFrames(void)
     XCTAssertEqual([flamegraph[@"frames"] count], 2);
     XCTAssertEqual([flamegraph[@"nodes"] count], 4);
     XCTAssertEqual([flamegraph[@"trees"] count], 2);
+}
+
+@end
+
+static NSDictionary *
+jsHangTrace(void)
+{
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : jsFrame(@"main(app:///main.jsbundle:1:1)", @1),
+        @"3" : jsFrame(@"work(app:///main.jsbundle:2:1)", @2),
+    };
+    return hermesTrace(stackFrames, @[ sample(@"1000", @"7", @3), sample(@"2000", @"7", @3) ]);
+}
+
+@interface RNSentryJSHangTrackerCaptureTests : XCTestCase
+@property (nonatomic, strong) id sdkWrapperMock;
+@end
+
+@implementation RNSentryJSHangTrackerCaptureTests
+
+- (void)setUp
+{
+    [super setUp];
+    self.sdkWrapperMock = OCMClassMock([SentrySDKWrapper class]);
+}
+
+- (void)tearDown
+{
+    [self.sdkWrapperMock stopMocking];
+    [super tearDown];
+}
+
+- (void)captureHangWithProfile:(nullable NSDictionary *)profile attachFlamegraph:(BOOL)attach
+{
+    [RNSentryJSHangTracker captureHangWithProfile:profile
+                                      newestFirst:NO
+                                timeoutIntervalMs:2000
+                                    bundleDebugId:nil
+                                 attachFlamegraph:attach];
+}
+
+- (void)expectCaptureWithoutAttachment
+{
+    OCMExpect(ClassMethod([self.sdkWrapperMock captureEvent:[OCMArg any]]));
+    OCMReject(ClassMethod([self.sdkWrapperMock captureEvent:[OCMArg any] attachment:[OCMArg any]]));
+}
+
+- (void)testCaptureAttachesTheFlamegraphWhenEnabled
+{
+    __block SentryAttachment *attachment = nil;
+    OCMExpect(ClassMethod(
+        [self.sdkWrapperMock captureEvent:[OCMArg any]
+                               attachment:[OCMArg checkWithBlock:^BOOL(SentryAttachment *value) {
+                                   attachment = value;
+                                   return YES;
+                               }]]));
+    OCMReject(ClassMethod([self.sdkWrapperMock captureEvent:[OCMArg any]]));
+
+    [self captureHangWithProfile:jsHangTrace() attachFlamegraph:YES];
+
+    OCMVerifyAll(self.sdkWrapperMock);
+    XCTAssertEqualObjects(attachment.filename, @"flamegraph.json");
+    XCTAssertEqualObjects(attachment.contentType, @"application/json");
+    XCTAssertEqual(attachment.attachmentType, kSentryAttachmentTypeFlamegraph);
+    NSDictionary *flamegraph = [NSJSONSerialization JSONObjectWithData:attachment.data
+                                                               options:0
+                                                                 error:nil];
+    XCTAssertEqualObjects(flamegraph[@"platform"], @"javascript");
+}
+
+- (void)testCaptureHasNoAttachmentWhenDisabled
+{
+    [self expectCaptureWithoutAttachment];
+
+    [self captureHangWithProfile:jsHangTrace() attachFlamegraph:NO];
+
+    OCMVerifyAll(self.sdkWrapperMock);
+}
+
+- (void)testCaptureHasNoAttachmentForAnInvalidProfile
+{
+    [self expectCaptureWithoutAttachment];
+
+    [self captureHangWithProfile:@{ @"samples" : @"x" } attachFlamegraph:YES];
+
+    OCMVerifyAll(self.sdkWrapperMock);
+}
+
+- (void)testCaptureHasNoAttachmentWhenTheFlamegraphIsLargerThan10MiB
+{
+    NSString *longName = [@"" stringByPaddingToLength:6000 withString:@"f" startingAtIndex:0];
+    NSMutableDictionary *stackFrames = [@{ @"1" : jsFrame(@"main", nil) } mutableCopy];
+    NSMutableArray *samples = [NSMutableArray array];
+    for (NSInteger i = 2; i < 2002; i++) {
+        NSString *frameId = [@(i) stringValue];
+        stackFrames[frameId] = jsFrame([longName stringByAppendingString:frameId], @1);
+        [samples addObject:sample(frameId, @"7", @(i))];
+    }
+    [self expectCaptureWithoutAttachment];
+
+    [self captureHangWithProfile:hermesTrace(stackFrames, samples) attachFlamegraph:YES];
+
+    OCMVerifyAll(self.sdkWrapperMock);
+}
+
+- (void)testCaptureHasNoAttachmentWhenTheEventHasNoJsFrames
+{
+    NSDictionary *stackFrames = @{
+        @"1" : @ { @"name" : @"[root]", @"category" : @"root" },
+        @"2" : @ { @"name" : @"[Native] jsonStringify", @"category" : @"Native", @"parent" : @1 },
+    };
+    NSDictionary *profile = hermesTrace(stackFrames, @[ sample(@"1000", @"7", @2) ]);
+    XCTAssertNotNil([RNSentryJSHangTracker flamegraphFromHermesProfile:profile
+                                                           newestFirst:NO
+                                                         bundleDebugId:nil]);
+    __block SentryEvent *event = nil;
+    OCMExpect(ClassMethod([self.sdkWrapperMock captureEvent:[OCMArg checkWithBlock:^BOOL(id value) {
+        event = value;
+        return YES;
+    }]]));
+    OCMReject(ClassMethod([self.sdkWrapperMock captureEvent:[OCMArg any] attachment:[OCMArg any]]));
+
+    [self captureHangWithProfile:profile attachFlamegraph:YES];
+
+    OCMVerifyAll(self.sdkWrapperMock);
+    XCTAssertNil(event.exceptions.firstObject.stacktrace);
+}
+
+@end
+
+@interface RNSentryJSHangTrackerScopeTests : XCTestCase
+@end
+
+@implementation RNSentryJSHangTrackerScopeTests
+
+- (void)tearDown
+{
+    [SentrySDK close];
+    [super tearDown];
+}
+
+- (void)testCapturedFlamegraphDoesNotStayOnTheScope
+{
+    [SentrySDK startWithConfigureOptions:^(
+        SentryOptions *options) { options.dsn = @"https://abcd@efgh.ingest.sentry.io/123456"; }];
+
+    [RNSentryJSHangTracker captureHangWithProfile:jsHangTrace()
+                                      newestFirst:NO
+                                timeoutIntervalMs:2000
+                                    bundleDebugId:nil
+                                 attachFlamegraph:YES];
+
+    __block NSArray *attachments = nil;
+    [SentrySDKWrapper
+        configureScope:^(SentryScope *scope) { attachments = [scope valueForKey:@"attachments"]; }];
+    XCTAssertNotNil(attachments);
+    XCTAssertEqual(attachments.count, 0);
 }
 
 @end

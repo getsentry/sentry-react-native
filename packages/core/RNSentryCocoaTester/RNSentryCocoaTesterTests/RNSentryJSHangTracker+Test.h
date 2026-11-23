@@ -13,6 +13,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame;
 
++ (void)captureHangWithProfile:(nullable NSDictionary *)profile
+                   newestFirst:(BOOL)newestFirst
+             timeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                 bundleDebugId:(nullable NSString *)bundleDebugId
+              attachFlamegraph:(BOOL)attachFlamegraph;
+
 @end
 
 NS_ASSUME_NONNULL_END
