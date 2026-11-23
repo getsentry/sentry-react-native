@@ -337,6 +337,46 @@ describe('ReactNativeErrorHandlers', () => {
         expect(handleException.mock.calls).toEqual([[error, true]]);
       });
 
+      it('reports a fatal render error to React Native when the capture fails', async () => {
+        jest.spyOn(client, 'eventFromException').mockRejectedValueOnce(new Error('Capture failed'));
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+        await flushPromises(client);
+
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('reports a fatal render error to React Native when the flush fails', async () => {
+        jest.spyOn(client, 'flush').mockRejectedValueOnce(new Error('Flush failed'));
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+        await flushPromises(client);
+
+        expect(client.eventQueue).toHaveLength(1);
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('reports a fatal render error to React Native once when the original handler throws', async () => {
+        set__DEV__(true);
+        handleException.mockImplementation(() => {
+          throw new Error('Original handler failed');
+        });
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+        await flushPromises(client);
+
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
       it('passes an error caught by an error boundary through without capturing it', async () => {
         const integration = reactNativeErrorHandlersIntegration();
         integration.setupOnce!();

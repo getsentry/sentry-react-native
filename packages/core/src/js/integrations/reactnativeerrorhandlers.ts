@@ -13,6 +13,7 @@ import type { ReactNativeClientOptions } from '../options';
 
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
+import { fillTyped } from '../utils/fill';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { hasInterestedSubscribers, publishGlobalError } from './globalErrorBus';
@@ -271,6 +272,9 @@ function setupErrorUtilsGlobalHandler(): void {
       },
       (reason: unknown) => {
         debug.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
+        if (!hasInterestedSubscribers('onerror', !!isFatal)) {
+          forward(error, isFatal, report);
+        }
         if (shouldHandleFatal) {
           handlingFatal = false;
         }
@@ -285,20 +289,27 @@ function setupErrorUtilsGlobalHandler(): void {
 
   // Since React 19 (React Native 0.78), a render error that no error boundary catches skips ErrorUtils.
   // The root onUncaughtError callback reports it directly to ExceptionsManager.handleException as a fatal.
-  const exceptionsManager = ReactNativeLibraries.ExceptionsManager;
-  const handleException = exceptionsManager?.handleException;
-  if (exceptionsManager && handleException) {
-    exceptionsManager.handleException = (error: unknown, isFatal: boolean): void => {
-      const report = (): void => handleException.call(exceptionsManager, error, isFatal);
+  const { ExceptionsManager } = ReactNativeLibraries;
+  if (ExceptionsManager) {
+    fillTyped(ExceptionsManager, 'handleException', originalHandleException => (error, isFatal) => {
       const forwarded = forwarding || (typeof error === 'object' && error !== null && forwardedFatals.has(error));
       if (!isFatal || forwarded) {
-        report();
+        originalHandleException(error, isFatal);
         return;
       }
+      // React Native must get the fatal once, even when Sentry fails to capture it.
+      let reported = false;
+      const report = (): void => {
+        if (!reported) {
+          reported = true;
+          originalHandleException(error, isFatal);
+        }
+      };
       handleError(error, isFatal, report).catch((e: unknown) => {
         debug.error('[ReactNativeErrorHandlers] Failed to handle the fatal error.', e);
+        forward(error, isFatal, report);
       });
-    };
+    });
   }
 }
 
