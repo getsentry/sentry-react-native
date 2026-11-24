@@ -5,6 +5,8 @@
 + (SentryUser *_Nullable)userFrom:(NSDictionary *)userKeys
                     otherUserKeys:(NSDictionary *)userDataKeys;
 
++ (void)setTagOnScope:(SentryScope *)scope key:(NSString *)key value:(NSString *_Nullable)value;
+
 + (BOOL)captureReplayWithReturnValue;
 
 + (BOOL)turboModuleTrackingEnabledFromOptions:(NSDictionary *)options;

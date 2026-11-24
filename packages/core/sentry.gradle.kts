@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 import javax.inject.Inject
 
-val expectedSentryAndroidVersion = "8.65.0"
+val expectedSentryAndroidVersion = "8.65.1"
 
 val sentryVersionCheckWarned = AtomicBoolean(false)
 project.configurations.configureEach {

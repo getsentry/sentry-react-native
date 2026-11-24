@@ -2,20 +2,20 @@
 
 high_risk_code: &high_risk_code
   # React Native Interface
-  - 'src/js/vendor/react-native/index.ts'
-  - 'src/js/utils/rnlibraries.ts'
-  - 'src/js/utils/rnlibrariesinterface.ts'
+  - 'packages/core/src/js/vendor/react-native/index.ts'
+  - 'packages/core/src/js/utils/rnlibraries.ts'
+  - 'packages/core/src/js/utils/rnlibrariesinterface.ts'
 
   # Touch Integration
-  - 'src/js/touchevents.tsx'
+  - 'packages/core/src/js/touchevents.tsx'
   
   # Sentry Native Interface
-  - 'src/js/NativeRNSentry.ts'
+  - 'packages/core/src/js/NativeRNSentry.ts'
 
   # Source Maps and Native Debug Files Autoupload
-  - 'scripts/sentry-xcode.sh'
-  - 'scripts/sentry-xcode-debug-files.sh'
-  - 'sentry.gradle.kts'
+  - 'packages/core/scripts/sentry-xcode.sh'
+  - 'packages/core/scripts/sentry-xcode-debug-files.sh'
+  - 'packages/core/sentry.gradle.kts'
 
 # --- Platform-specific filters for CI optimization ---
 # Used by detect-changes.yml to skip platform-irrelevant CI jobs.

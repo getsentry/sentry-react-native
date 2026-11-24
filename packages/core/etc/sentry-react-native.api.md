@@ -212,6 +212,7 @@ export interface BaseReactNativeOptions {
     logsOrigin?: 'all' | 'js' | 'native';
     maxCacheItems?: number;
     maxQueueSize?: number;
+    metricKitHangReportingMode?: 'legacy' | 'flamegraphAttachment';
     ndkAppHangTimeoutIntervalMillis?: number;
     onNativeLog?: (log: NativeLogEntry) => void;
     onReady?: (response: {

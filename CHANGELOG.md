@@ -11,11 +11,22 @@
 ### Features
 
 - Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#7049](https://github.com/getsentry/sentry-react-native/pull/7049))
+- Report MetricKit hangs on iOS as flame graph attachments with the experimental `metricKitHangReportingMode` option ([#7059](https://github.com/getsentry/sentry-react-native/pull/7059))
+  - With `flamegraphAttachment`, the native SDK attaches the aggregated call trees of a MetricKit hang diagnostic as a flame graph, which the backend symbolicates. The default `legacy` mode reports the flattened call stack tree.
+
+  ```js
+  Sentry.init({
+    dsn: '__DSN__',
+    enableMetricKit: true,
+    metricKitHangReportingMode: 'flamegraphAttachment',
+  });
+  ```
 
 ### Fixes
 
 - Capture render errors that no error boundary catches as fatal crashes on React Native 0.78+ ([#7078](https://github.com/getsentry/sentry-react-native/pull/7078))
   - React 19 reports these errors directly to React Native's `ExceptionsManager` and skips `ErrorUtils`, so before this fix the SDK lost them on Android and iOS.
+- Remove empty `turbo_module.*` tags from natively captured events to avoid ingestion processing errors ([#7087](https://github.com/getsentry/sentry-react-native/pull/7087))
 - Remove the web Session Replay and User Feedback packages from Android and iOS bundles by default, as announced in 5.32.0 ([#7062](https://github.com/getsentry/sentry-react-native/pull/7062))
   - Before this fix, `includeWebReplay` and `includeWebFeedback` defaulted to `true`, so these packages stayed in native bundles even though they never run there.
   - Web bundles keep both packages. Set the option to `true` to keep a package on all platforms, or to `false` to remove it on all platforms, including web.
@@ -23,9 +34,9 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.64.0 to v8.65.0 ([#7058](https://github.com/getsentry/sentry-react-native/pull/7058))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8650)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.64.0...8.65.0)
+- Bump Android SDK from v8.64.0 to v8.65.1 ([#7058](https://github.com/getsentry/sentry-react-native/pull/7058), [#7089](https://github.com/getsentry/sentry-react-native/pull/7089))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8651)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.64.0...8.65.1)
 
 ## 8.36.0
 

@@ -796,8 +796,18 @@ RCT_EXPORT_METHOD(removeContext : (NSString *)key)
 
 RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
+    [SentrySDKWrapper configureScope:^(
+        SentryScope *_Nonnull scope) { [RNSentry setTagOnScope:scope key:key value:value]; }];
+}
+
+// Empty values are rejected by ingestion, so treat them as a removal.
++ (void)setTagOnScope:(SentryScope *)scope key:(NSString *)key value:(NSString *_Nullable)value
+{
+    if (value == nil || [value isKindOfClass:[NSNull class]] || value.length == 0) {
+        [scope removeTagForKey:key];
+        return;
+    }
+    [scope setTagValue:value forKey:key];
 }
 
 RCT_EXPORT_METHOD(addFeatureFlag : (NSString *)name value : (BOOL)value)
