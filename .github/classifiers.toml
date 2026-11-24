@@ -1,0 +1,64 @@
+# getsentry/sentry-react-native 59628292fe85b719a4d66dfe1359aa614e9bc1c8
+
+rubric = "sdk"
+
+[[area]]
+paths = ["packages/core/**"]
+families = ["hybrid"]
+
+[[area]]
+paths = [
+  "packages/expo-upload-sourcemaps/**", "packages/core/metro.*", "packages/core/expo.*",
+  "packages/core/app.plugin.js", "packages/core/sentry.gradle*", "packages/core/scripts/**",
+  "packages/core/plugin/**",
+]
+families = ["tooling", "hybrid"]
+
+# Workspace lockfile: the dependency versions the published packages are built from.
+[[area]]
+paths = ["yarn.lock"]
+families = ["hybrid", "tooling"]
+shared_core = true
+
+[[kind]]
+paths = ["packages/core/etc/**"]
+kind = "public-api-record"
+
+[[kind]]
+paths = [
+  "**/RNSentry.podspec", "packages/core/android/build.gradle", "packages/core/Package.swift",
+  "SDK-VERSIONS.md", ".yarn/**", "packages/core/android/libs/**",
+]
+kind = "dependencies"
+
+# Anchored to the real test roots, so a test-named directory planted inside
+# shipping source (packages/core/src, android/src/main, ios) is not read as a test.
+# packages/core/android/src/test is not here: .npmignore re-includes /android/**/*, so it is in
+# the npm tarball and a customer's ./gradlew test compiles it.
+[[kind]]
+paths = [
+  "packages/core/test/**", "packages/core/RNSentryAndroidTester/**",
+  "packages/core/RNSentryCocoaTester/**", "dev-packages/**",
+  "packages/core/jest.config*.js", "packages/core/typings/jest-*.d.ts",
+]
+kind = "tests"
+
+[[kind]]
+paths = ["samples/**"]
+kind = "samples"
+
+[[kind]]
+paths = [
+  "scripts/**", "packages/*/scripts/**", "packages/core/sentry.gradle*", "**/*.gradle",
+  "**/*.gradle.kts", "**/gradle/**", "**/gradlew", "**/gradlew.bat", "**/gradle.properties",
+  "**/*.xcodeproj/**", "**/tsconfig*.json", "packages/core/api-extractor.json",
+  "packages/core/babel.config.js", "packages/core/.npmignore", "lerna.json", ".yarnrc.yml",
+  ".ruby-version",
+]
+kind = "build-release"
+
+[[kind]]
+paths = [
+  ".oxfmtrc.json", "packages/*/.oxlintrc.json", ".clang-format", ".swiftlint.yml", "agents.toml",
+]
+kind = "dev-tooling"
