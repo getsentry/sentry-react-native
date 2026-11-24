@@ -24,6 +24,8 @@
 
 ### Fixes
 
+- Capture render errors that no error boundary catches as fatal crashes on React Native 0.78+ ([#7078](https://github.com/getsentry/sentry-react-native/pull/7078))
+  - React 19 reports these errors directly to React Native's `ExceptionsManager` and skips `ErrorUtils`, so before this fix the SDK lost them on Android and iOS.
 - Remove empty `turbo_module.*` tags from natively captured events to avoid ingestion processing errors ([#7087](https://github.com/getsentry/sentry-react-native/pull/7087))
 - Remove the web Session Replay and User Feedback packages from Android and iOS bundles by default, as announced in 5.32.0 ([#7062](https://github.com/getsentry/sentry-react-native/pull/7062))
   - Before this fix, `includeWebReplay` and `includeWebFeedback` defaulted to `true`, so these packages stayed in native bundles even though they never run there.

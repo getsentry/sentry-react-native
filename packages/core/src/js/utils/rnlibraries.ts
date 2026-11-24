@@ -46,6 +46,10 @@ const InternalReactNativeLibrariesInterface: Required<ReactNativeLibrariesInterf
       return getDevServer();
     },
   },
+  // Starting with react-native 0.79, the ExceptionsManager is a default export
+  ExceptionsManager:
+    require('react-native/Libraries/Core/ExceptionsManager').default ??
+    require('react-native/Libraries/Core/ExceptionsManager'),
   Promise: require('react-native/Libraries/Promise'),
   Utilities: {
     polyfillGlobal: <T>(name: string, getValue: () => T): void => {

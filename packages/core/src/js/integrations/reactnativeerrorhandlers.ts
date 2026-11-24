@@ -13,6 +13,8 @@ import type { ReactNativeClientOptions } from '../options';
 
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
+import { fillTyped } from '../utils/fill';
+import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { hasInterestedSubscribers, publishGlobalError } from './globalErrorBus';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
@@ -148,6 +150,8 @@ function attachUnhandledRejectionHandler(): void {
 
 function setupErrorUtilsGlobalHandler(): void {
   let handlingFatal = false;
+  let forwarding = false;
+  const forwardedFatals = new WeakSet<object>();
 
   const errorUtils = RN_GLOBAL_OBJ.ErrorUtils;
   if (!errorUtils) {
@@ -158,8 +162,21 @@ function setupErrorUtilsGlobalHandler(): void {
   // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
   const defaultHandler = errorUtils.getGlobalHandler?.();
 
-  // oxlint-disable-next-line typescript-eslint(no-explicit-any), typescript-eslint(no-unsafe-member-access)
-  errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
+  // The default handler reports the error through ExceptionsManager.handleException, which must not capture it again.
+  const forward = (error: unknown, isFatal: boolean | undefined, report: () => void): void => {
+    if (isFatal && typeof error === 'object' && error !== null) {
+      forwardedFatals.add(error);
+    }
+    forwarding = true;
+    try {
+      report();
+    } finally {
+      forwarding = false;
+    }
+  };
+
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
+  const handleError = async (error: any, isFatal: boolean | undefined, report: () => void): Promise<void> => {
     // We want to handle fatals, but only in production mode.
     const shouldHandleFatal = isFatal && !__DEV__;
     if (shouldHandleFatal) {
@@ -176,7 +193,7 @@ function setupErrorUtilsGlobalHandler(): void {
       debug.error('Sentry client is missing, the error event might be lost.', error);
 
       // If there is no client something is fishy, anyway we call the default handler
-      defaultHandler(error, isFatal);
+      forward(error, isFatal, report);
 
       return;
     }
@@ -228,7 +245,7 @@ function setupErrorUtilsGlobalHandler(): void {
       // If in dev, we call the default handler anyway and hope the error will be sent
       // Just for a better dev experience. If a fallback is mounted it will still
       // render alongside LogBox.
-      defaultHandler(error, isFatal);
+      forward(error, isFatal, report);
       return;
     }
 
@@ -240,7 +257,7 @@ function setupErrorUtilsGlobalHandler(): void {
         // If a fallback will render, we skip the default handler so it can own
         // the screen instead of being torn down.
         if (!hasInterestedSubscribers('onerror', !!isFatal)) {
-          defaultHandler(error, isFatal);
+          forward(error, isFatal, report);
         }
         // Release the latch so any subsequent fatal can still be captured.
         // Before GlobalErrorBoundary existed, the default handler always tore
@@ -255,12 +272,45 @@ function setupErrorUtilsGlobalHandler(): void {
       },
       (reason: unknown) => {
         debug.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
+        if (!hasInterestedSubscribers('onerror', !!isFatal)) {
+          forward(error, isFatal, report);
+        }
         if (shouldHandleFatal) {
           handlingFatal = false;
         }
       },
     );
-  });
+  };
+
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any), typescript-eslint(no-unsafe-member-access)
+  errorUtils.setGlobalHandler((error: any, isFatal?: boolean) =>
+    handleError(error, isFatal, () => defaultHandler(error, isFatal)),
+  );
+
+  // Since React 19 (React Native 0.78), a render error that no error boundary catches skips ErrorUtils.
+  // The root onUncaughtError callback reports it directly to ExceptionsManager.handleException as a fatal.
+  const { ExceptionsManager } = ReactNativeLibraries;
+  if (ExceptionsManager) {
+    fillTyped(ExceptionsManager, 'handleException', originalHandleException => (error, isFatal) => {
+      const forwarded = forwarding || (typeof error === 'object' && error !== null && forwardedFatals.has(error));
+      if (!isFatal || forwarded) {
+        originalHandleException(error, isFatal);
+        return;
+      }
+      // React Native must get the fatal once, even when Sentry fails to capture it.
+      let reported = false;
+      const report = (): void => {
+        if (!reported) {
+          reported = true;
+          originalHandleException(error, isFatal);
+        }
+      };
+      handleError(error, isFatal, report).catch((e: unknown) => {
+        debug.error('[ReactNativeErrorHandlers] Failed to handle the fatal error.', e);
+        forward(error, isFatal, report);
+      });
+    });
+  }
 }
 
 /**
