@@ -24,21 +24,26 @@ function buildDemoPage(dsn: string): string {
 <html>
   <head>
     <meta charset="utf-8" />
-    <script src="https://browser.sentry-cdn.com/${SDK_VERSION}/bundle.tracing.min.js" crossorigin="anonymous"></script>
     <script>
       // browserTracingIntegration reads the injected sentry-trace/baggage meta tags
       // on pageload and continues the trace. Guarded so a failed CDN load (offline)
-      // doesn't break the page's own trace readback below.
-      if (window.Sentry) {
-        Sentry.init({
-          dsn: ${JSON.stringify(dsn)},
-          integrations: [Sentry.browserTracingIntegration()],
-          tracesSampleRate: 1.0,
-          release: 'webview-demo',
-          environment: 'dev',
-        });
+      // doesn't break the page.
+      function initSentry() {
+        if (window.Sentry) {
+          Sentry.init({
+            dsn: ${JSON.stringify(dsn)},
+            integrations: [Sentry.browserTracingIntegration()],
+            tracesSampleRate: 1.0,
+            release: 'webview-demo',
+            environment: 'dev',
+          });
+        }
       }
     </script>
+    <!-- Loaded async: a blocking script would hold back the page's own trace readback
+         below until the CDN responds, so a slow or unreachable network (as on CI
+         emulators) left the page stuck instead of reporting the injected trace. -->
+    <script async src="https://browser.sentry-cdn.com/${SDK_VERSION}/bundle.tracing.min.js" crossorigin="anonymous" onload="initSentry()"></script>
   </head>
   <body style="font-family: -apple-system, system-ui, sans-serif; padding: 20px;">
     <h3>WebView page</h3>
