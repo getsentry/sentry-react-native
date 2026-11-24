@@ -42,7 +42,7 @@ if (env.SENTRY_DISABLE_AUTO_UPLOAD === undefined) {
 
 if (env.PRODUCTION === undefined && env.CI == undefined) {
   // When executed locally and PROD not specified most likely we wanted production build
-  env.PRODUCTION = 1;
+  env.PRODUCTION = '1';
 }
 
 if (!env.USE_FRAMEWORKS || env.USE_FRAMEWORKS === 'no') {
@@ -59,7 +59,7 @@ const expoUploadSourcemapsPackageDir = path.resolve(workspaceRootDir, 'packages/
 const corePackageJson = JSON.parse(fs.readFileSync(`${corePackageDir}/package.json`, 'utf8'));
 const RNVersion = env.RN_VERSION ? env.RN_VERSION : corePackageJson.devDependencies['react-native'];
 const RNEngine = env.RN_ENGINE ? env.RN_ENGINE : 'hermes';
-const buildType = env.PRODUCTION ? 'Release' : 'Debug';
+const buildType = env.PRODUCTION === '1' ? 'Release' : 'Debug';
 const appSourceRepo = 'https://github.com/react-native-community/rn-diff-purge.git';
 const appRepoDir = `${e2eDir}/react-native-versions/${RNVersion}`;
 const appName = 'RnDiffApp';
@@ -288,7 +288,7 @@ if (actions.includes('create')) {
       env: env,
     });
 
-    if (env.RCT_NEW_ARCH_ENABLED) {
+    if (env.RCT_NEW_ARCH_ENABLED === '1') {
       execSync(`perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' android/gradle.properties`, {
         stdio: 'inherit',
         cwd: appDir,

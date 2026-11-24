@@ -90,6 +90,10 @@ jobs:
           # exclude new rn architecture and dynamic frameworks
           - rn-architecture: "new"
             ios-use-frameworks: "dynamic"
+          # RN >= 0.82 is New Architecture only on Android, so "legacy" would duplicate "new"
+          - rn-version: "0.88.1"
+            rn-architecture: "legacy"
+            platform: "android"
 
     steps:
       - name: Check if platform is needed
@@ -218,6 +222,10 @@ jobs:
             runs-on: ["bitrise_pool_name:tahoe"]
           - platform: android
             runs-on: ubuntu-24.04
+        exclude:
+          # RN >= 0.82 is New Architecture only on Android, so "legacy" would duplicate "new"
+          - rn-architecture: "legacy"
+            platform: "android"
 
     steps:
       - name: Check if platform is needed
