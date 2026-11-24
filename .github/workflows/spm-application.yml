@@ -19,9 +19,6 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
-  # The first React Native version with the SwiftPM integration. Bump it
-  # together with the `Package.swift` platform requirement.
-  RN_VERSION: "0.87.1"
   APP_NAME: SpmTestApp
   APP_PATH: spm-app
 
@@ -45,13 +42,20 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   build-ios:
-    name: swiftpm ios ${{ matrix.build-type }}
+    name: swiftpm ios ${{ matrix.rn-version }} ${{ matrix.build-type }}
     runs-on: macos-26-xlarge
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
+    # A prerelease of React Native can break for reasons outside the SDK.
+    continue-on-error: ${{ contains(matrix.rn-version, '-') }}
+    env:
+      RN_VERSION: ${{ matrix.rn-version }}
     strategy:
       fail-fast: false
       matrix:
+        # 0.87 is the first React Native version with the SwiftPM integration.
+        # Bump it together with the `Package.swift` platform requirement.
+        rn-version: ["0.87.1", "0.88.1", "0.89.0-rc.3"]
         build-type: ["dev", "production"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -99,7 +103,10 @@ jobs:
           EXPO_TARBALL=$(find "$GITHUB_WORKSPACE/packages/expo-upload-sourcemaps" -name 'sentry-expo-upload-sourcemaps-*.tgz' -print -quit)
           [ -n "$CORE_TARBALL" ] || { echo "::error::core tarball not found"; exit 1; }
           [ -n "$EXPO_TARBALL" ] || { echo "::error::expo-upload-sourcemaps tarball not found"; exit 1; }
-          npm install "$EXPO_TARBALL" "$CORE_TARBALL"
+          # npm does not match a prerelease against the `>=0.65.0` peer range.
+          PEER_DEPS_FLAG=""
+          [[ "$RN_VERSION" == *-* ]] && PEER_DEPS_FLAG="--legacy-peer-deps"
+          npm install $PEER_DEPS_FLAG "$EXPO_TARBALL" "$CORE_TARBALL"
 
       - name: Set Up SwiftPM
         working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
