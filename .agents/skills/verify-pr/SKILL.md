@@ -48,17 +48,23 @@ If you can't state the evidence that would separate the two runs, stop and ask; 
 Build the "without" side from the current checkout with only the PR's SDK change reversed. This needs one clean build; the "with" side is then an incremental rebuild.
 
 ```bash
-# merged PR — reverse the merge commit's SDK changes, keep tests/changelog
+# merged PR — save the merge commit's SDK changes (no tests/changelog), then reverse them
 git show <merge-sha> -- packages/core \
   ':!packages/core/test' ':!packages/core/RNSentryAndroidTester' ':!packages/core/RNSentryCocoaTester' \
-  | git apply -R --check && <same command> | git apply -R
-# open PR — check out the head first, then reverse its diff against the base
-git diff <baseRefOid> <headRefOid> -- packages/core ':!packages/core/test' ... | git apply -R
+  > <out-dir>/pr<N>.patch
+# open PR — check out the head first, then save its diff against the base
+git diff <baseRefOid> <headRefOid> -- packages/core \
+  ':!packages/core/test' ':!packages/core/RNSentryAndroidTester' ':!packages/core/RNSentryCocoaTester' \
+  > <out-dir>/pr<N>.patch
+
+git apply -R --check <out-dir>/pr<N>.patch && git apply -R <out-dir>/pr<N>.patch
 ```
+
+Keep the patch in a file; a shell variable holding the command breaks under zsh ("No valid patches in input").
 
 - First check the files the PR touched haven't changed on your checkout since: `git diff <merge-sha> HEAD -- <files>` is empty, or the revert won't be the PR's exact before-state. Note it in the report either way.
 - When `git apply -R --check` fails, fall back to the parent commit: `git checkout <merge-sha>^` (detached), `yarn install && yarn build`, build there, then return. Slower; record that you did it.
-- The sample bundles `packages/core/dist/`. Before the first sample build, run `yarn build` in `packages/core` if `dist/` is older than `HEAD` — even for native-only PRs.
+- The sample bundles `packages/core/dist/`. Before the first sample build, run `yarn build` in `packages/core` if `dist/` is older than the last change to `packages/core/src` (`git log -1 --format=%cd -- packages/core/src`) — even for native-only PRs.
 - **JS changes** (`packages/core/src/`) need that `yarn build` on **both** sides.
 - `yarn build` in `packages/core` rewrites the tracked `packages/core/android/libs/replay-stubs.jar`; the restore at the end covers it.
 - iOS: a native-only change is a ~45 s incremental rebuild on the "with" side; CocoaPods doesn't need reinstalling, because `RNSentry` is a local `:path` pod.
@@ -83,7 +89,7 @@ The sample tags every event with these when they're passed as launch arguments (
 | Launch argument | Tag | Value |
 |---|---|---|
 | `verifyPr` | `verify.pr` | PR number |
-| `verifyCommit` | `verify.commit` | short sha of what the run built, with `^` for the "without" side (`<merge-sha>^`) |
+| `verifyCommit` | `verify.commit` | short sha of the checkout you built (`git rev-parse --short HEAD`); for the "without" side add the reversed PR: `<HEAD>-<merge-sha>` |
 | `verifyRunId` | `verify.run_id` | unique per run: `pr<N>-<without\|with>-<yyyymmdd-hhmm>` |
 
 Use a fresh run id for every attempt, so a retry never picks up a previous attempt's event. Tags set from JS sync to the native scope, so native crash events carry them too.
@@ -104,7 +110,12 @@ Compare against the expectation from step 1. Unexpected extra differences go in 
 
 Write the report with [references/report-template.md](references/report-template.md) to a local file (scratchpad, or `samples/react-native/verify-reports/` if the maintainer wants it in the tree). Include the verdict, the claim, the exact scenario, both event links, screenshots, the sample diff if any, timings, and every problem hit. Then show it and ask before posting anywhere.
 
-Finally, restore the SDK sources with `git checkout -- packages/core` (this also restores `replay-stubs.jar`), or return from the detached parent checkout. On iOS, also restore what `pod install` rewrote: `git checkout -- samples/react-native/ios/sentryreactnativesample.xcodeproj samples/react-native/ios/sentryreactnativesample/PrivacyInfo.xcprivacy`. Report `git status`.
+Finally:
+
+- Restore the SDK sources with `git checkout -- packages/core` (this also restores `replay-stubs.jar`), or return from the detached parent checkout.
+- iOS: restore what `pod install` rewrote: `git checkout -- samples/react-native/ios/sentryreactnativesample.xcodeproj samples/react-native/ios/sentryreactnativesample/PrivacyInfo.xcprivacy`. The ignored `Pods/` then no longer match the tracked project, which is why every iOS run reinstalls Pods first.
+- Shut down any simulator or emulator you booted (`xcrun simctl shutdown <udid>`, `adb emu kill`).
+- Report `git status`.
 
 ## Recording what you learn
 

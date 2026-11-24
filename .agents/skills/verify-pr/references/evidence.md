@@ -55,4 +55,5 @@ Org `sentry-sdks`, region `https://us.sentry.io`, project `sentry-react-native`.
 - **Discover can't tell missing from empty.** A `tags[x]` column shows `""` for both. In the event detail, a tag the SDK sent as `""` appears with `value: null` (ingestion dropped it); a tag never sent is absent.
 - **Processing errors aren't visible through the MCP.** The event's `errors` list (e.g. "Discarded invalid value") isn't returned. Use indirect evidence (a `null` tag value) and say so in the report. Reading it needs a token with `event:read`.
 - **Stale events.** The sample keeps unsent envelopes across launches. Use a fresh run id per attempt and launch with `clearState: true`.
-- **Grouping.** Both runs' events may land in the same, long-lived issue (e.g. `SENTRY-REACT-NATIVE-28E` for `Sentry.nativeCrash()`). Link the **events**, not the issue.
+- **Grouping.** Both runs' events may land in the same, long-lived issue, and the same scenario groups differently per platform (`Sentry.nativeCrash()` is a Java `RuntimeException` on Android and an `EXC_BAD_ACCESS` on iOS). Link the **events**, not the issue.
+- **Attachment download URLs carry a token** (`os_auth=`). Copy the image next to the report and never paste the URL into a report: the repos are public.

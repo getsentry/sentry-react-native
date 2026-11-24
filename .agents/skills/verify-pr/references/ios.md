@@ -14,7 +14,7 @@ Simulator only. Real devices are out of scope for now.
 
 ## Pods
 
-The installed Pods are whatever the last person built, and they must match the tracked Xcode project's linkage. A mismatch fails at link time: `ld: library 'Pods-sentryreactnativesample' not found`. Install them for the build before the first build:
+The installed Pods are whatever the last person built, and they must match the tracked Xcode project's linkage. A mismatch fails at link time: `ld: library 'Pods-sentryreactnativesample' not found`. Reinstall them before the first build of every run, even if a build worked last time:
 
 ```bash
 cd samples/react-native
@@ -59,6 +59,8 @@ maestro --device <udid> test \
 ```
 
 Differences from Android:
+
+- Maestro prints `${VAR}` unexpanded in launch arguments and `runFlow` env values, as on Android; the values are still applied. Confirm in the device log (`verify.run_id`).
 
 - **`back` does nothing on iOS.** To return to a tab's root screen, tap its tab icon: `tapOn: { id: 'errors-tab-icon' }` (also `performance-tab-icon`, `playground-tab-icon`). Tapping the active tab pops its stack (seen on iOS; the shared example flow uses it on both platforms).
 - **Tab labels can't be tapped by text.** Use the tab icon ids above.
