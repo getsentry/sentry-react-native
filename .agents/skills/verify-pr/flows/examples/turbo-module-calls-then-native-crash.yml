@@ -1,6 +1,9 @@
+# Worked example from the #7087 verification, and the skill's own regression
+# check (run it after changing `flows/steps/`). Not a scenario to look up:
+# write each run's scenario next to its report.
+#
 # Runs the sample TurboModule calls, which set and then clear the
-# `turbo_module.*` scope tags, then crashes natively. Checks what a native
-# event carries after a TurboModule call has finished (e.g. #7087).
+# `turbo_module.*` scope tags, then crashes natively.
 appId: io.sentry.reactnative.sample
 ---
 - runFlow: ../steps/launch.yml

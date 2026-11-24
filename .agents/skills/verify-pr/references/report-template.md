@@ -7,7 +7,7 @@ Keep it short. Fill every section; write "none" rather than dropping one.
 
 **Claim:** <one sentence: what was broken or missing, what should be true now>
 **Platform:** Android <version> emulator (<AVD>), <New | Old> Architecture, <release | debug> build
-**Scenario flow:** `.agents/skills/verify-pr/flows/scenarios/<file>.yml`
+**Scenario flow:** `<run-id>.yml` next to this report (or inline below), so the report stands alone
 
 ## Check made
 

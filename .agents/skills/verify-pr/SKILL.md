@@ -34,7 +34,7 @@ Write down, before touching anything:
 
 1. **Claim** — one sentence: what was broken (or missing) and what should be true now.
 2. **Platform** — confirm the claim affects Android. A change under `packages/core/ios/` only is out of scope.
-3. **Scenario** — the user actions in `samples/react-native` that produce the symptom. Search the sample's screens (`src/Screens/`, `src/tabs/`) and [flows/scenarios/](flows/scenarios/) for one that already does it. Add a sample button only if none exists. Leave it in the working tree next to its flow and list it in the report; the maintainer decides whether it's committed. A flow must never point at a button that isn't in the tree.
+3. **Scenario** — the user actions in `samples/react-native` that produce the symptom. Search the sample's screens (`src/Screens/`, `src/tabs/`) for a way to trigger the symptom, and write the scenario for this run. Add a sample button only if none exists. Leave it in the working tree next to its flow and list it in the report; the maintainer decides whether it's committed. A flow must never point at a button that isn't in the tree.
    - **How the sample starts the native SDK matters.** By default Android starts the native SDK from `samples/react-native/sentry.options.json` (`RNSentrySDK.init`), and JS `Sentry.init` runs with `autoInitializeNativeSdk: false`. Options set in `App.tsx` don't reach native Android. For native option claims, set the option in `sentry.options.json` (and say so in the report). Building with `SENTRY_DISABLE_NATIVE_START=true` to switch to JS init did **not** work in a release build (JS still saw it as off); don't rely on it.
 4. **Evidence** — what you'll read in Sentry (or on device) to tell the two runs apart, and what each run should show. See [references/evidence.md](references/evidence.md).
 5. **Build type** — release when the scenario needs a native crash (`Sentry.nativeCrash()` only crashes in release) or when the PR is about release behavior; otherwise debug is fine.
@@ -66,7 +66,8 @@ Setup, build, install, and drive commands are in [references/android.md](referen
 
 - Full emulator image (e.g. `Pixel_8`), not an ATD image — ATD returns black screenshots.
 - JDK 17, `SENTRY_DISABLE_AUTO_UPLOAD=true`, `yarn build-android-release` (or `-debug` + Metro).
-- Drive the UI with **Maestro**. Build the scenario from the shared steps in [flows/steps/](flows/steps/) (`launch.yml` with the run tags, `open-errors-screen-button.yml`, `native-crash-and-relaunch.yml`). Reuse a flow from [flows/scenarios/](flows/scenarios/) when one fits; otherwise add one, named after what it exercises, not the PR, so the next PR touching the same area can reuse it.
+- Drive the UI with **Maestro**. Compose the run's scenario from the shared steps in [flows/steps/](flows/steps/) (`launch.yml` with the run tags, `open-errors-screen-button.yml`, `native-crash-and-relaunch.yml`), using [flows/examples/](flows/examples/) as a pattern. Save the flow next to the report, not in the skill.
+- Don't add flows or steps to the skill during a verification run. Promote something to `flows/steps/` only when a second run needs it, in a separate change.
 - Pass the run tags as launch arguments (next step). Relaunch after a crash so the event is sent.
 - Logs and other batched data are sent later: keep the app running ~20 s after the flow before looking them up.
 - Capture a screenshot at the step that shows the scenario ran, and keep logcat: `adb logcat -d > <dir>/<run-id>.logcat`.

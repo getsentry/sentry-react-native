@@ -43,8 +43,11 @@ Use `adb uninstall io.sentry.reactnative.sample` before switching between debug 
 maestro test \
   -e VERIFY_PR=<N> -e VERIFY_COMMIT=<sha> -e VERIFY_RUN_ID=<id> \
   --test-output-dir <out-dir> \
-  .agents/skills/verify-pr/flows/scenarios/<scenario>.yml
+  <out-dir>/<run-id>.yml          # the run's own flow, saved next to the report
 ```
+
+- `runFlow` paths resolve relative to the flow file. A flow saved outside the skill must reach the shared steps by absolute path: `runFlow: <repo>/.agents/skills/verify-pr/flows/steps/launch.yml`.
+- With more than one device running (an emulator and a simulator), pass `--device <id>` (`adb devices` / `xcrun simctl list devices booted`).
 
 - Screenshots from `takeScreenshot: <name>` land in `<out-dir>/screenshots/<name>.png`.
 - Maestro matches text case-insensitively (Android upper-cases button labels) and scrolls with `scrollUntilVisible`.
