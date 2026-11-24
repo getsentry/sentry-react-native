@@ -31,6 +31,7 @@
   - Before this fix, `includeWebReplay` and `includeWebFeedback` defaulted to `true`, so these packages stayed in native bundles even though they never run there.
   - Web bundles keep both packages. Set the option to `true` to keep a package on all platforms, or to `false` to remove it on all platforms, including web.
 - Fix the TypeScript error `Cannot find module 'react-native/Libraries/Types/CodegenTypes'` with React Native 0.88 and `skipLibCheck: false` ([#7061](https://github.com/getsentry/sentry-react-native/pull/7061))
+- Sync the JavaScript trace to the native SDKs after they start, so native events and native HTTP spans share the app's trace before the first navigation, in the background and without tracing enabled ([#NNNN](https://github.com/getsentry/sentry-react-native/pull/NNNN))
 
 ### Dependencies
 
