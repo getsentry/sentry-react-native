@@ -1,0 +1,13 @@
+# Clean launch with the run tags (see samples/react-native/src/verifyRun.ts).
+# Pass VERIFY_PR, VERIFY_COMMIT and VERIFY_RUN_ID with `maestro test -e`.
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      verifyPr: ${VERIFY_PR}
+      verifyCommit: ${VERIFY_COMMIT}
+      verifyRunId: ${VERIFY_RUN_ID}
+- waitForAnimationToEnd:
+    timeout: 2000
