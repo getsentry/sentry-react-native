@@ -16,5 +16,7 @@ appId: io.sentry.reactnative.sample
     visible: 'Status: Done'
     timeout: 30000
 - takeScreenshot: turbo-module-done
-- back
+# Tapping the active tab pops its stack; `back` is Android-only.
+- tapOn:
+    id: 'errors-tab-icon'
 - runFlow: ../steps/native-crash-and-relaunch.yml
