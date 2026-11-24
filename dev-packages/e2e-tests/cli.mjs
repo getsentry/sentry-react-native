@@ -288,7 +288,7 @@ if (actions.includes('create')) {
       env: env,
     });
 
-    if (env.RCT_NEW_ARCH_ENABLED) {
+    if (env.RCT_NEW_ARCH_ENABLED === '1') {
       execSync(`perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' android/gradle.properties`, {
         stdio: 'inherit',
         cwd: appDir,
