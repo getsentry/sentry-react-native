@@ -2,6 +2,7 @@ import type { Client, Scope, Span, SpanJSON, StartSpanOptions } from '@sentry/co
 
 import {
   debug,
+  generateSpanId,
   generateTraceId,
   getActiveSpan,
   getClient,
@@ -210,21 +211,33 @@ export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
  * Pushes a root span's propagation context to the native scope so that
  * native HTTP instrumentation (OkHttp on Android, URLSession on iOS) attaches
  * the correct traceId and appears in the same trace as the JS transaction.
+ * Without a span, it pushes the active span's context, or the current scope's
+ * propagation context when no span is active.
  *
  * Called directly from `startIdleSpan`, right after the idle span (navigation
- * or user interaction) becomes the active span on the scope. Background roots
+ * or user interaction) becomes the active span on the scope, and from
+ * `ReactNativeClient` once native init finishes, because the native SDK start
+ * replaces the native scope. Background roots
  * like app-start or expo-updates, which are created with plain
  * `startInactiveSpan({ forceTransaction: true })` and never go through
  * `startIdleSpan`, are naturally excluded and so never clobber an in-flight
  * idle span's native context.
  */
-export function syncPropagationContextToNative(span: Span): void {
-  const ctx = span.spanContext();
-  const propagationCtx = getCurrentScope().getPropagationContext();
-  NATIVE.setCurrentScopePropagationContext({
-    traceId: ctx.traceId,
-    spanId: ctx.spanId,
-    sampled: spanIsSampled(span),
-    sampleRand: propagationCtx.sampleRand ?? Math.random(),
-  });
+export function syncPropagationContextToNative(span: Span | undefined = getActiveSpan()): void {
+  const { traceId, propagationSpanId, sampled, sampleRand } = getCurrentScope().getPropagationContext();
+  NATIVE.setCurrentScopePropagationContext(
+    span
+      ? {
+          traceId: span.spanContext().traceId,
+          spanId: span.spanContext().spanId,
+          sampled: spanIsSampled(span),
+          sampleRand,
+        }
+      : {
+          traceId,
+          spanId: propagationSpanId ?? generateSpanId(),
+          sampleRand,
+          ...(sampled !== undefined && { sampled }),
+        },
+  );
 }

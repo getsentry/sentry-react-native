@@ -46,7 +46,7 @@ Every call into native goes through the `NATIVE` wrapper (`src/js/wrapper.ts`) /
 
 ### Native Bridge (native side)
 
-- **Android** (`packages/core/android/`): resolve/reject the `Promise` on every path; never leak it. Release JNI local refs; don't let a native exception cross back into the bridge uncaught. Old vs new arch code lives in `src/oldarch/` and `src/newarch/`; shared code in `src/main/`.
+- **Android** (`packages/core/android/`): new classes live under `io.sentry.react.*`. Every `@ReactMethod` taking a `Promise` must call `resolve()` or `reject()` **exactly once** on every path — never leak it, never settle it twice. Release JNI local refs; don't let a native exception cross back into the bridge uncaught. Old vs new arch code lives in `src/oldarch/` and `src/newarch/`; shared code in `src/main/`.
 - **iOS** (`packages/core/ios/`): prefix classes `RNSentry`; use nullability annotations; watch for retain cycles in blocks (capture `weakSelf`). Route hybrid-SDK access through `RNSentryInternal` (see `packages/core/ios/AGENTS.md`), not deprecated `PrivateSentrySDKOnly`.
 - A native exception must **never crash the host app** — catch at the bridge boundary and reject/log instead.
 
@@ -88,6 +88,8 @@ When adding something you want measured, make sure it lands as a named, register
 ### Adding dependencies
 
 When adding or changing any third-party reference — an npm dependency, a `.vscode/extensions.json` recommendation, a GitHub Action (`uses:`), or a native dependency (Podfile / Gemfile / Gradle) — verify it is published by its legitimate owner **before** referencing it. The tool being real is not enough: the *namespace* must be one the project trusts. Prefer Sentry's own scope/org (`@sentry/*`, `getsentry/*`), then the artifact's documented official publisher, and pin to an exact version / full commit SHA rather than a floating tag. Treat an unscoped or unfamiliar-publisher name as a supply-chain risk until proven otherwise — a claimable namespace lets an attacker ship code to every contributor. Provenance is necessary but not sufficient: a legitimate owner's account or CI can be compromised and ship a malicious *version*, so pin to an immutable ref (lockfile integrity hash / full SHA) and check advisories for that specific version, not just the publisher. See [references/supply-chain.md](references/supply-chain.md) for the surface-by-surface checklist and verification commands.
+
+**Bumping a wrapped native SDK** (`chore(deps): bump sentry-cocoa / sentry-android …`): read the upstream changelog (usually in the PR body) and check each entry against this codebase — breaking or removed APIs, new requirements (min OS/AGP/Xcode/JDK), and behavior changes that affect existing integrations. Update the native bridge code (`ios/`, `android/`) in the same PR when the bump requires it.
 
 ## File Organization
 

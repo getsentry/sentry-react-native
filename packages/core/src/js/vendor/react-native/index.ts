@@ -83,6 +83,11 @@ export type ReactNativeVersion = {
   };
 };
 
+// Adapted from https://github.com/facebook/react-native/blob/bbfd391496baa6e0461262f76f1ae9a819a7ecd2/packages/react-native/Libraries/Core/ExceptionsManager.js#L151
+export type ExceptionsManager = {
+  handleException: (error: unknown, isFatal: boolean) => void;
+};
+
 export type AppRegistry = {
   // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   runApplication: (appKey: string, appParameters: any) => void;

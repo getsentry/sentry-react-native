@@ -90,6 +90,10 @@ jobs:
           # exclude new rn architecture and dynamic frameworks
           - rn-architecture: "new"
             ios-use-frameworks: "dynamic"
+          # RN >= 0.82 is New Architecture only on Android, so "legacy" would duplicate "new"
+          - rn-version: "0.88.1"
+            rn-architecture: "legacy"
+            platform: "android"
 
     steps:
       - name: Check if platform is needed
@@ -168,7 +172,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
-      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+      - uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: "3.3.0"
@@ -218,6 +222,10 @@ jobs:
             runs-on: ["bitrise_pool_name:tahoe"]
           - platform: android
             runs-on: ubuntu-24.04
+        exclude:
+          # RN >= 0.82 is New Architecture only on Android, so "legacy" would duplicate "new"
+          - rn-architecture: "legacy"
+            platform: "android"
 
     steps:
       - name: Check if platform is needed

@@ -973,10 +973,17 @@ public class RNSentryModuleImpl {
   }
 
   public void setTag(String key, String value) {
-    Sentry.configureScope(
-        scope -> {
-          scope.setTag(key, value);
-        });
+    Sentry.configureScope(scope -> setTagOnScope(scope, key, value));
+  }
+
+  // Empty values are rejected by ingestion, so treat them as a removal.
+  static void setTagOnScope(
+      final @NotNull IScope scope, final @NotNull String key, final @Nullable String value) {
+    if (value == null || value.isEmpty()) {
+      scope.removeTag(key);
+      return;
+    }
+    scope.setTag(key, value);
   }
 
   public void addFeatureFlag(String name, boolean value) {

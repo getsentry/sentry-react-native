@@ -37,6 +37,16 @@ jest.mock('../../src/js/utils/worldwide', () => {
   };
 });
 
+const mockExceptionsManager: { handleException?: (error: unknown, isFatal: boolean) => void } = {};
+
+jest.mock('../../src/js/utils/rnlibraries', () => ({
+  ReactNativeLibraries: {
+    get ExceptionsManager() {
+      return mockExceptionsManager;
+    },
+  },
+}));
+
 jest.mock('@sentry/core', () => {
   const actual = jest.requireActual('@sentry/core');
   return {
@@ -294,6 +304,121 @@ describe('ReactNativeErrorHandlers', () => {
         expect(defaultHandler).toHaveBeenCalledTimes(1);
       });
     });
+
+    describe('ExceptionsManager.handleException', () => {
+      let handleException: jest.Mock;
+
+      beforeEach(() => {
+        handleException = jest.fn();
+        mockExceptionsManager.handleException = handleException;
+        // React Native's default global handler reports through ExceptionsManager.
+        (RN_GLOBAL_OBJ.ErrorUtils!.getGlobalHandler as jest.Mock).mockReturnValue(
+          jest.fn((error: unknown, isFatal?: boolean) => mockExceptionsManager.handleException!(error, !!isFatal)),
+        );
+        set__DEV__(false);
+      });
+
+      afterEach(() => {
+        set__DEV__(true);
+      });
+
+      it('captures a fatal render error and reports it to React Native after the flush', async () => {
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+
+        expect(handleException).not.toHaveBeenCalled();
+        await flushPromises(client);
+        expect(client.eventQueue).toHaveLength(1);
+        expect(client.event?.level).toBe('fatal' as SeverityLevel);
+        expect(client.event?.exception?.values?.[0]?.mechanism).toEqual({ handled: false, type: 'onerror' });
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('reports a fatal render error to React Native when the capture fails', async () => {
+        jest.spyOn(client, 'eventFromException').mockRejectedValueOnce(new Error('Capture failed'));
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+        await flushPromises(client);
+
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('reports a fatal render error to React Native when the flush fails', async () => {
+        jest.spyOn(client, 'flush').mockRejectedValueOnce(new Error('Flush failed'));
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+        await flushPromises(client);
+
+        expect(client.eventQueue).toHaveLength(1);
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('reports a fatal render error to React Native once when the original handler throws', async () => {
+        set__DEV__(true);
+        handleException.mockImplementation(() => {
+          throw new Error('Original handler failed');
+        });
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Render error');
+
+        mockExceptionsManager.handleException!(error, true);
+        await flushPromises(client);
+
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('passes an error caught by an error boundary through without capturing it', async () => {
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Caught render error');
+
+        mockExceptionsManager.handleException!(error, false);
+        await flushPromises(client);
+
+        expect(client.eventQueue).toHaveLength(0);
+        expect(handleException.mock.calls).toEqual([[error, false]]);
+      });
+
+      it.each([
+        ['an error', new Error('Handler error')],
+        ['a string', 'Handler error'],
+      ])('captures %s once when the default handler reports it through ExceptionsManager', async (_, error) => {
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+
+        await errorHandlerCallback!(error as Error, true);
+        await flushPromises(client);
+
+        expect(client.eventQueue).toHaveLength(1);
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+
+      it('does not capture a fatal again when the previous handler reports it to React Native later', async () => {
+        const previousHandler = jest.fn();
+        (RN_GLOBAL_OBJ.ErrorUtils!.getGlobalHandler as jest.Mock).mockReturnValue(previousHandler);
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+        const error = new Error('Handler error');
+
+        await errorHandlerCallback!(error, true);
+        await flushPromises(client);
+        mockExceptionsManager.handleException!(error, true);
+
+        expect(previousHandler).toHaveBeenCalledTimes(1);
+        expect(client.eventQueue).toHaveLength(1);
+        expect(handleException.mock.calls).toEqual([[error, true]]);
+      });
+    });
   });
 
   describe('onUnhandledRejection', () => {
@@ -504,6 +629,12 @@ describe('ReactNativeErrorHandlers', () => {
     });
   });
 });
+
+async function flushPromises(client: TestClient): Promise<void> {
+  await new Promise(resolve => setImmediate(resolve));
+  await client.flush();
+  await new Promise(resolve => setImmediate(resolve));
+}
 
 function set__DEV__(value: boolean): void {
   Object.defineProperty(globalThis, '__DEV__', { value, writable: true, configurable: true });
