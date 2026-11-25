@@ -32,7 +32,7 @@
     attachJsHangFlamegraph: true,
   });
   ```
-- Report JS thread hangs as errors on Android with the experimental `enableJsHangTracking` option ([#NNNN](https://github.com/getsentry/sentry-react-native/pull/NNNN))
+- Report JS thread hangs as errors on Android with the experimental `enableJsHangTracking` option ([#7111](https://github.com/getsentry/sentry-react-native/pull/7111))
   - Until now the option worked only on iOS. With Hermes, the event contains the JS stack trace and the bundle Debug ID for source map symbolication.
   - The SDK turns off the Hermes sampler before React Native destroys the JS thread, so a reload during a hang sample does not crash the app ([facebook/hermes#1853](https://github.com/facebook/hermes/issues/1853)).
   - `attachJsHangFlamegraph` is still iOS only.
