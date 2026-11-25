@@ -23,8 +23,9 @@ Android emulator and iOS simulator. Real devices and CI are out of scope for now
 | **Not reproduced** | No symptom without the change, so the fix proves nothing on this setup. |
 | **Failed** | Symptom still present with the change. |
 | **Inconclusive** | An event didn't arrive in time, the build/run broke, or the evidence is indirect. Say which. |
+| **Not verifiable this way** | Decided in step 1, before any build: the claim isn't observable on a simulator/emulator, or the change can't be built yet. Say why and what would verify it instead. |
 
-Prefer **Inconclusive** over a guess.
+Prefer **Inconclusive** over a guess, and **Not verifiable this way** over a run that can't separate the two sides.
 
 ## 1. Plan
 
@@ -43,9 +44,32 @@ Write down, before touching anything:
 
 If you can't state the evidence that would separate the two runs, stop and ask; the run would prove nothing.
 
+### Gate: can this be verified on a device?
+
+Answer these before building. Any "no" ends the run with **Not verifiable this way** for that platform; write the report with the reason.
+
+- **Is the claim about runtime behavior?** Build fixes, dependency bumps, Metro/bundler config, type-only changes, and performance claims don't produce a difference in Sentry events. A run can only show nothing broke; say so instead of running.
+- **Can the trigger happen on a simulator/emulator?** For example, MetricKit reports, real-device hardware, OS-scheduled background work, and store-only behavior can't.
+- **Do the bundled native SDKs have the APIs the PR calls?** Check the pinned versions (`packages/core/RNSentry.podspec` `sentry_cocoa_version`, `packages/core/android/build.gradle` `sentryAndroidVersion`) against where the API was released. A PR waiting on a native bump can't be built on that platform yet.
+- **Is there enough disk?** `df -h /System/Volumes/Data` — stop under ~15 GB free. Clean iOS and Android sample builds together take ~13 GB.
+
+### Feature PRs
+
+A feature has no symptom; verify its **presence**:
+
+- "Without" is still the PR's SDK change reversed. Keep the PR's own sample changes (a new option, a new button) on both sides, so only the SDK differs.
+- If the sample calls a new API that doesn't exist without the change, guard the call (`?.method?.()`) on the "without" side only, and say so.
+- An opt-in option can be checked more cheaply with one build and the option off, but that doesn't show the default is unchanged; prefer the reversed build.
+
 ## 2. Without the change
 
 Build the "without" side from the current checkout with only the PR's SDK change reversed. This needs one clean build; the "with" side is then an incremental rebuild.
+
+Before the first build:
+
+- `node_modules` must match the checkout: `node -p "require('react-native/package.json').version"` in `samples/react-native` equals the pinned version in its `package.json`; otherwise `yarn install`.
+- The run-tagging code (`samples/react-native/src/verifyRun.ts` and the `tagVerifyRun()` call in `App.tsx`) must be in the tree. A PR branched before it landed doesn't have it: copy both from `main`, and list them under sample changes.
+- If the PR's head doesn't contain this skill, copy `flows/steps/` out of the repo before checking the head out, and point `runFlow` at the copy.
 
 ```bash
 # merged PR — save the merge commit's SDK changes (no tests/changelog), then reverse them
@@ -62,7 +86,9 @@ git apply -R --check <out-dir>/pr<N>.patch && git apply -R <out-dir>/pr<N>.patch
 
 Keep the patch in a file; a shell variable holding the command breaks under zsh ("No valid patches in input").
 
-- First check the files the PR touched haven't changed on your checkout since: `git diff <merge-sha> HEAD -- <files>` is empty, or the revert won't be the PR's exact before-state. Note it in the report either way.
+- Merged PRs: first check the files the PR touched haven't changed on your checkout since: `git diff <merge-sha> HEAD -- <files>` is empty, or the revert won't be the PR's exact before-state. Note it in the report either way.
+- Open PRs: you build the head itself. Say which base it's on; if it needs something `main` has (e.g. a native bump), apply the PR's patch onto `main` instead and say so.
+- **Spec changes** (`NativeRNSentry.ts`, `*NativeComponent.ts`): check the generated code matches each side (iOS: grep `samples/react-native/ios/build/generated/ios/ReactCodegen/RNSentrySpec*.h` for the method; reinstall Pods if it's stale). A stale spec makes the "with" run silently skip the new method and look like Failed.
 - When `git apply -R --check` fails, fall back to the parent commit: `git checkout <merge-sha>^` (detached), `yarn install && yarn build`, build there, then return. Slower; record that you did it.
 - The sample bundles `packages/core/dist/`. Before the first sample build, run `yarn build` in `packages/core` if `dist/` is older than the last change to `packages/core/src` (`git log -1 --format=%cd -- packages/core/src`) — even for native-only PRs.
 - **JS changes** (`packages/core/src/`) need that `yarn build` on **both** sides.
@@ -74,13 +100,14 @@ Keep the patch in a file; a shell variable holding the command breaks under zsh 
 Setup, build, install, and drive commands are in [references/android.md](references/android.md) and [references/ios.md](references/ios.md). The short version:
 
 - Android: full emulator image (e.g. `Pixel_8`), not an ATD image — ATD returns black screenshots. JDK 17, `SENTRY_DISABLE_AUTO_UPLOAD=true`, `yarn build-android-release`.
+- Prefer **release** builds. Debug builds load JS from whatever Metro is on port 8081 (another session's, if one is running), and the all-ABI debug APK may not fit on the emulator.
 - iOS: a booted simulator, Pods installed for the build you make (`yarn pod-install-release-static`), `SENTRY_DISABLE_AUTO_UPLOAD=true`, `yarn build-ios-release`.
 - Maestro needs JDK 17 on both platforms. With an emulator and a simulator both running, pass `--device <id>`.
 - Drive the UI with **Maestro**. Compose the run's scenario from the shared steps in [flows/steps/](flows/steps/) (`launch.yml` with the run tags, `open-errors-screen-button.yml`, `native-crash-and-relaunch.yml`), using [flows/examples/](flows/examples/) as a pattern. Save the flow next to the report, not in the skill.
 - Don't add flows or steps to the skill during a verification run. Promote something to `flows/steps/` only when a second run needs it, in a separate change.
 - Pass the run tags as launch arguments (next step). Relaunch after a crash so the event is sent.
 - Logs and other batched data are sent later: keep the app running ~20 s after the flow before looking them up.
-- Capture a screenshot at the step that shows the scenario ran, and keep the device log (Android: `adb logcat -d`; iOS: `xcrun simctl spawn <udid> log show --last 5m --predicate 'process == "sentryreactnativesample"'`).
+- Capture proof that the scenario ran: a screenshot of its result, or a device-log line when the screen can't show it (a blocked JS thread shows only the tap). Keep the device log from the run's start (Android: `adb logcat -c` before, `adb logcat -d` after; iOS: `xcrun simctl spawn <udid> log show --start "<run start>" --predicate 'process == "sentryreactnativesample"'`), and grep it by the run's own id.
 
 ## 4. Tag
 
@@ -108,13 +135,14 @@ Compare against the expectation from step 1. Unexpected extra differences go in 
 
 ## 6. Report
 
-Write the report with [references/report-template.md](references/report-template.md) to a local file (scratchpad, or `samples/react-native/verify-reports/` if the maintainer wants it in the tree). Include the verdict, the claim, the exact scenario, both event links, screenshots, the sample diff if any, timings, and every problem hit. Then show it and ask before posting anywhere.
+Write the report with [references/report-template.md](references/report-template.md) to a local file (scratchpad, or `samples/react-native/verify-reports/` if the maintainer wants it in the tree). Running as a subagent that can't write report files: return the full report text instead, and the parent saves it. Include the verdict, the claim, the exact scenario, both event links, screenshots, the sample diff if any, timings, and every problem hit. Then show it and ask before posting anywhere.
 
 Finally:
 
 - Restore the SDK sources with `git checkout -- packages/core` (this also restores `replay-stubs.jar`), or return from the detached parent checkout.
 - iOS: restore what `pod install` rewrote: `git checkout -- samples/react-native/ios/sentryreactnativesample.xcodeproj samples/react-native/ios/sentryreactnativesample/PrivacyInfo.xcprivacy`. The ignored `Pods/` then no longer match the tracked project, which is why every iOS run reinstalls Pods first.
-- Shut down any simulator or emulator you booted (`xcrun simctl shutdown <udid>`, `adb emu kill`).
+- Shut down any simulator or emulator you booted (`xcrun simctl shutdown <udid>`, `adb -s <serial> emu kill`), and stop any Metro or helper server you started. Leave devices and servers you didn't start alone.
+- Remove the large build outputs you created if disk is short: `samples/react-native/{ios/DerivedData,ios/build,android/app/build,app.apk,sentryreactnativesample.app}` (all git-ignored).
 - Report `git status`.
 
 ## Recording what you learn

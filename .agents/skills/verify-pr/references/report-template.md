@@ -3,10 +3,10 @@
 Keep it short. Fill every section; write "none" rather than dropping one.
 
 ```markdown
-# Verification: #<N> <PR title> — <Verified | Not reproduced | Failed | Inconclusive>
+# Verification: #<N> <PR title> — <Verified | Not reproduced | Failed | Inconclusive | Not verifiable this way>
 
 **Claim:** <one sentence: what was broken or missing, what should be true now>
-**Platform:** Android <version> emulator (<AVD>), <New | Old> Architecture, <release | debug> build
+**Platform:** <Android <version> emulator (<AVD>) | iOS <version> simulator (<device>)>, <New | Old> Architecture, <release | debug> build
 **Scenario flow:** `<run-id>.yml` next to this report (or inline below), so the report stands alone
 
 ## Check made

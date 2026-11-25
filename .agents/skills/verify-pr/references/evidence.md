@@ -13,7 +13,9 @@ Choose the signal that differs between the two runs, and write the expectation f
 | Profiles | Profile chunks of each run | `search_profiles` by time window; open from the transaction |
 | Screenshots, view hierarchy, other attachments | The attachment on each run's event, read back from Sentry — not the device's own screenshot | `get_event_attachment` with the event id (lists them), then with the `attachmentId` (returns the image). Save both images with the report |
 | Masking (screenshots, replay) | A **probe** the mask must hide: a view that is neither text nor an image (so default masking leaves it alone) in two contrasting colors (a redaction is one flat color) | as above; describe what each run's image shows |
-| Replays | The replay on the run's event | the event's `replays.attached` field |
+| Replays | The replay on the run's event | the event's `replays.attached` field; `get_replay_details` for the timeline |
+| Replay recording content (touches, frames) | The rrweb events in each segment. The MCP's replay timeline shows only breadcrumbs (e.g. `tap`), not recorded touch positions | Android with `debug: true`: logcat holds each segment's full rrweb JSON (touches are `type 3`, `source 2`). Android Spotlight doesn't forward replay envelopes |
+| A JS-thread block or hang | The hang event; a device-log line the scenario prints after the block | screenshots show only the tap |
 | Option mapping, native init | The **resolved option on device**, logged by the scenario (e.g. `ScopesAdapter.getInstance().getOptions().getLogs().isEnabled()`); the option's effect in Sentry is secondary | logcat, or put the value in the message/tag the run sends. Mind the sample's init path (SKILL.md step 1.3) |
 | Performance (startup, allocation) | Usually not checkable end to end on an emulator | Say so and mark **Inconclusive** rather than measuring noise |
 
