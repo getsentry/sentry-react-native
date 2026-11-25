@@ -173,7 +173,7 @@ interface SentryNativeWrapper {
   setCurrentScopePropagationContext(ctx: {
     traceId: string;
     spanId: string;
-    sampled: boolean;
+    sampled?: boolean;
     sampleRand: number;
   }): boolean;
 

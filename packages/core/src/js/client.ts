@@ -30,6 +30,7 @@ import { getDefaultSidecarUrl } from './integrations/spotlight';
 import { defaultNativeLogHandler, setupNativeLogListener } from './NativeLogListener';
 import { getProfilingOptions, UI_PROFILING_INTEGRATION_NAME } from './profiling/uiProfilingIntegration';
 import { MOBILE_REPLAY_INTEGRATION_NAME, serializeNetworkDetailUrlsForNative } from './replay/mobilereplay';
+import { syncPropagationContextToNative } from './tracing/span';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -282,6 +283,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
         },
       )
       .then((didCallNativeInit: boolean) => {
+        syncPropagationContextToNative();
         this._options.onReady?.({ didCallNativeInit });
         this.emit('afterInit');
       })
