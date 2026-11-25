@@ -1,4 +1,4 @@
-import { getCurrentScope, SentryNonRecordingSpan, startInactiveSpan } from '@sentry/core';
+import { getCurrentScope, SentryNonRecordingSpan, startInactiveSpan, startSpanManual } from '@sentry/core';
 
 jest.mock('../../src/js/wrapper', () => ({
   NATIVE: {
@@ -76,10 +76,63 @@ describe('syncPropagationContextToNative', () => {
     span.end();
   });
 
+  it('sends the active span when called without a span', () => {
+    startSpanManual({ name: 'root' }, span => {
+      syncPropagationContextToNative();
+
+      expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
+      expect(mockSetPropagationContext).toHaveBeenLastCalledWith({
+        traceId: span.spanContext().traceId,
+        spanId: span.spanContext().spanId,
+        sampled: true,
+        sampleRand: getCurrentScope().getPropagationContext().sampleRand,
+      });
+
+      span.end();
+    });
+  });
+
+  describe('without an active span', () => {
+    const traceId = '0123456789abcdef0123456789abcdef';
+
+    it('sends the current scope propagation context', () => {
+      getCurrentScope().setPropagationContext({
+        traceId,
+        propagationSpanId: '0123456789abcdef',
+        sampled: false,
+        sampleRand: 0.42,
+      });
+
+      syncPropagationContextToNative();
+
+      expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
+      expect(mockSetPropagationContext.mock.lastCall[0]).toStrictEqual({
+        traceId,
+        spanId: '0123456789abcdef',
+        sampled: false,
+        sampleRand: 0.42,
+      });
+    });
+
+    it('omits sampled when the scope has no sampling decision', () => {
+      getCurrentScope().setPropagationContext({ traceId, sampleRand: 0.42 });
+
+      syncPropagationContextToNative();
+
+      expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
+      expect(mockSetPropagationContext.mock.lastCall[0]).toStrictEqual({
+        traceId,
+        spanId: expect.stringMatching(/^[0-9a-f]{16}$/),
+        sampleRand: 0.42,
+      });
+    });
+  });
+
   it('does not call NATIVE.setCurrentScopePropagationContext just from creating an inactive forceTransaction root span', () => {
     // Regression test for background roots (app-start, expo-updates) created via
     // startInactiveSpan({ forceTransaction: true }) - they must not sync to native
-    // on their own; only startIdleSpan calls syncPropagationContextToNative explicitly.
+    // on their own; only startIdleSpan and ReactNativeClient's post-init sync call
+    // syncPropagationContextToNative explicitly.
     const span = startInactiveSpan({ name: 'app-start', forceTransaction: true });
 
     expect(mockSetPropagationContext).not.toHaveBeenCalled();
