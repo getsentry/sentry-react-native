@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 
+@class SentryAttachment;
 @class SentryEvent;
 @class SentryScope;
 
@@ -8,6 +9,8 @@
 + (void)configureScope:(void (^)(SentryScope *scope))callback;
 
 + (void)captureEvent:(SentryEvent *)event;
+
++ (void)captureEvent:(SentryEvent *)event attachment:(SentryAttachment *)attachment;
 
 + (void)crash;
 

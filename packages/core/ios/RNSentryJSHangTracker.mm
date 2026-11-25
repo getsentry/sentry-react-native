@@ -15,6 +15,8 @@
 static const int64_t kPollIntervalNs = 100 * NSEC_PER_MSEC;
 static const std::chrono::milliseconds kStackSampleWindow(300);
 static NSString *const kBundleFileName = @"app:///main.jsbundle";
+// https://develop.sentry.dev/sdk/telemetry/attachments/#flame-graph-validation-and-limits
+static const NSUInteger kMaxFlamegraphBytes = 10 * 1024 * 1024;
 
 namespace {
 struct PingState {
@@ -197,29 +199,61 @@ isDebuggerAttached()
     NSData *traceData
         = trace ? [NSData dataWithBytes:trace->json.data() length:trace->json.size()] : nil;
     BOOL newestFirst = trace && trace->fromProfile;
+    BOOL attachFlamegraph = self.attachFlamegraph;
 
     // `stop` waits for this thread, so only the sample runs here. The capture also waits for the
     // main thread to take the screenshot.
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
         @try {
-            NSArray<SentryFrame *> *frames = traceData != nil
-                ? [RNSentryJSHangTracker framesFromHermesTrace:traceData newestFirst:newestFirst]
-                : @[];
-            [SentrySDKWrapper
-                captureEvent:[RNSentryJSHangTracker eventWithTimeoutIntervalMs:timeoutIntervalMs
-                                                                        frames:frames
-                                                                 bundleDebugId:bundleDebugId]];
+            id json = traceData != nil
+                ? [NSJSONSerialization JSONObjectWithData:traceData options:0 error:nil]
+                : nil;
+            NSDictionary *profile = [json isKindOfClass:[NSDictionary class]] ? json : nil;
+            [RNSentryJSHangTracker captureHangWithProfile:profile
+                                              newestFirst:newestFirst
+                                        timeoutIntervalMs:timeoutIntervalMs
+                                            bundleDebugId:bundleDebugId
+                                         attachFlamegraph:attachFlamegraph];
         } @catch (NSException *exception) {
             NSLog(@"[Sentry] Failed to report JS thread hang: %@", exception.reason);
         }
     });
 }
 
-+ (NSArray<SentryFrame *> *)framesFromHermesTrace:(NSData *)trace newestFirst:(BOOL)newestFirst
++ (void)captureHangWithProfile:(nullable NSDictionary *)profile
+                   newestFirst:(BOOL)newestFirst
+             timeoutIntervalMs:(uint64_t)timeoutIntervalMs
+                 bundleDebugId:(nullable NSString *)bundleDebugId
+              attachFlamegraph:(BOOL)attachFlamegraph
+{
+    NSArray<SentryFrame *> *frames = [self framesFromHermesProfile:profile newestFirst:newestFirst];
+    SentryEvent *event = [self eventWithTimeoutIntervalMs:timeoutIntervalMs
+                                                   frames:frames
+                                            bundleDebugId:bundleDebugId];
+    // Relay fills a missing exception stack from the flame graph, which would split events
+    // without JS frames into issues per native function.
+    NSData *flamegraph = attachFlamegraph && frames.count > 0
+        ? [self flamegraphFromHermesProfile:profile
+                                newestFirst:newestFirst
+                              bundleDebugId:bundleDebugId]
+        : nil;
+    if (flamegraph == nil) {
+        [SentrySDKWrapper captureEvent:event];
+        return;
+    }
+    SentryAttachment *attachment =
+        [[SentryAttachment alloc] initWithData:flamegraph
+                                      filename:@"flamegraph.json"
+                                   contentType:@"application/json"
+                                attachmentType:kSentryAttachmentTypeFlamegraph];
+    [SentrySDKWrapper captureEvent:event attachment:attachment];
+}
+
++ (NSArray<SentryFrame *> *)framesFromHermesProfile:(nullable NSDictionary *)profile
+                                        newestFirst:(BOOL)newestFirst
 {
     // A trace with unexpected JSON types gives an event without a stack trace.
     @try {
-        NSDictionary *profile = [NSJSONSerialization JSONObjectWithData:trace options:0 error:nil];
         NSDictionary *stackFrames = profile[@"stackFrames"];
         // A profile trace starts before the hang, so its newest JS stack is the hang. A sample of
         // our own starts at the hang, and the JS thread can recover during the window, so its
@@ -240,52 +274,241 @@ isDebuggerAttached()
     }
 }
 
++ (nullable NSData *)flamegraphFromHermesProfile:(nullable NSDictionary *)profile
+                                     newestFirst:(BOOL)newestFirst
+                                   bundleDebugId:(nullable NSString *)bundleDebugId
+{
+    @try {
+        NSDictionary *stackFrames = profile[@"stackFrames"];
+        NSArray<NSDictionary *> *samples = profile[@"samples"];
+
+        NSString *attributedThreadId = nil;
+        NSEnumerator *ordered
+            = newestFirst ? samples.reverseObjectEnumerator : samples.objectEnumerator;
+        for (NSDictionary *sample in ordered) {
+            NSArray<NSString *> *jsFrameIds = [self frameIdsFromFrameId:sample[@"sf"]
+                                                            stackFrames:stackFrames
+                                                          includeNative:NO];
+            if (jsFrameIds.count > 0) {
+                attributedThreadId = [sample[@"tid"] description] ?: @"";
+                break;
+            }
+        }
+
+        double newestTs = [samples.lastObject[@"ts"] doubleValue];
+        double windowUs
+            = std::chrono::duration_cast<std::chrono::microseconds>(kStackSampleWindow).count();
+
+        NSMutableArray<NSDictionary *> *frames = [NSMutableArray array];
+        NSMutableDictionary<NSString *, NSNumber *> *frameIndexesByHermesId =
+            [NSMutableDictionary dictionary];
+        // Hermes gives each call tree position its own frame id, so the same function reached from
+        // different callers has several ids.
+        NSMutableDictionary<NSString *, NSNumber *> *frameIndexesByContent =
+            [NSMutableDictionary dictionary];
+        NSMutableArray<NSMutableDictionary *> *nodes = [NSMutableArray array];
+        NSMutableArray<NSMutableDictionary<NSNumber *, NSNumber *> *> *nodeIndexesByFrame =
+            [NSMutableArray array];
+        NSMutableArray<NSMutableDictionary *> *trees = [NSMutableArray array];
+        NSMutableDictionary<NSString *, NSMutableDictionary *> *treesByThread =
+            [NSMutableDictionary dictionary];
+        NSMutableDictionary<NSString *, NSMutableDictionary<NSNumber *, NSNumber *> *>
+            *rootIndexesByThread = [NSMutableDictionary dictionary];
+
+        for (NSDictionary *sample in samples) {
+            if (newestFirst && newestTs - [sample[@"ts"] doubleValue] > windowUs) {
+                continue;
+            }
+            NSArray<NSString *> *frameIds = [self frameIdsFromFrameId:sample[@"sf"]
+                                                          stackFrames:stackFrames
+                                                        includeNative:YES];
+            if (frameIds.count == 0) {
+                continue;
+            }
+
+            id tid = sample[@"tid"];
+            NSString *threadId = [tid description] ?: @"";
+            NSMutableDictionary *tree = treesByThread[threadId];
+            if (tree == nil) {
+                tree = [NSMutableDictionary dictionaryWithObject:[NSMutableArray array]
+                                                          forKey:@"roots"];
+                if (tid != nil) {
+                    tree[@"thread_id"] = threadId;
+                }
+                if ([threadId isEqualToString:attributedThreadId]) {
+                    tree[@"thread_attributed"] = @YES;
+                }
+                [trees addObject:tree];
+                treesByThread[threadId] = tree;
+                rootIndexesByThread[threadId] = [NSMutableDictionary dictionary];
+            }
+
+            NSMutableArray<NSNumber *> *siblings = tree[@"roots"];
+            NSMutableDictionary<NSNumber *, NSNumber *> *siblingIndexesByFrame
+                = rootIndexesByThread[threadId];
+            for (NSString *frameId in frameIds) {
+                NSNumber *frameIndex = frameIndexesByHermesId[frameId];
+                if (frameIndex == nil) {
+                    NSDictionary *frame = [self profileFrameFromHermesFrame:stackFrames[frameId]
+                                                              includeNative:YES];
+                    NSString *contentKey = [NSString stringWithFormat:@"%@|%@|%@|%@",
+                        frame[@"filename"] ?: @"", frame[@"function"] ?: @"",
+                        frame[@"lineno"] ?: @"", frame[@"colno"] ?: @""];
+                    frameIndex = frameIndexesByContent[contentKey];
+                    if (frameIndex == nil) {
+                        frameIndex = @(frames.count);
+                        [frames addObject:frame];
+                        frameIndexesByContent[contentKey] = frameIndex;
+                    }
+                    frameIndexesByHermesId[frameId] = frameIndex;
+                }
+
+                NSNumber *nodeIndex = siblingIndexesByFrame[frameIndex];
+                if (nodeIndex == nil) {
+                    nodeIndex = @(nodes.count);
+                    [nodes addObject:[@{
+                        @"frame_id" : frameIndex,
+                        @"sample_count" : @0,
+                        @"children" : [NSMutableArray array],
+                    } mutableCopy]];
+                    [nodeIndexesByFrame addObject:[NSMutableDictionary dictionary]];
+                    [siblings addObject:nodeIndex];
+                    siblingIndexesByFrame[frameIndex] = nodeIndex;
+                }
+
+                NSMutableDictionary *node = nodes[nodeIndex.unsignedIntegerValue];
+                node[@"sample_count"] = @([node[@"sample_count"] unsignedIntegerValue] + 1);
+                siblings = node[@"children"];
+                siblingIndexesByFrame = nodeIndexesByFrame[nodeIndex.unsignedIntegerValue];
+            }
+        }
+
+        if (nodes.count == 0) {
+            return nil;
+        }
+
+        NSMutableDictionary *flamegraph = [@{
+            @"version" : @"1",
+            @"platform" : @"javascript",
+            @"frames" : frames,
+            @"nodes" : nodes,
+            @"trees" : trees,
+        } mutableCopy];
+        if (bundleDebugId != nil) {
+            flamegraph[@"debug_meta"] = @{
+                @"images" : @[ @{
+                    @"type" : @"sourcemap",
+                    @"debug_id" : bundleDebugId,
+                    @"code_file" : kBundleFileName,
+                } ]
+            };
+        }
+
+        NSData *data = [NSJSONSerialization dataWithJSONObject:flamegraph options:0 error:nil];
+        if (data.length > kMaxFlamegraphBytes) {
+            NSLog(
+                @"[Sentry] Not attaching the JS hang flame graph, its %lu bytes exceed %lu bytes.",
+                (unsigned long)data.length, (unsigned long)kMaxFlamegraphBytes);
+            return nil;
+        }
+        return data;
+    } @catch (NSException *exception) {
+        NSLog(@"[Sentry] Failed to build the JS hang flame graph: %@", exception.reason);
+        return nil;
+    }
+}
+
 + (NSArray<SentryFrame *> *)framesFromFrameId:(nullable id)frameId
                                   stackFrames:(NSDictionary *)stackFrames
 {
-    // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
     NSMutableArray<SentryFrame *> *frames = [NSMutableArray array];
-    for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
-        NSDictionary *hermesFrame = stackFrames[[frameId description]];
-        if (hermesFrame == nil) {
-            break;
-        }
-        SentryFrame *frame = [self frameFromHermesFrame:hermesFrame];
-        if (frame != nil) {
-            [frames insertObject:frame atIndex:0];
-        }
-        frameId = hermesFrame[@"parent"];
+    for (NSString *jsFrameId in [self frameIdsFromFrameId:frameId
+                                              stackFrames:stackFrames
+                                            includeNative:NO]) {
+        [frames addObject:[self frameFromHermesFrame:stackFrames[jsFrameId]]];
     }
     return frames;
 }
 
+/// Returns the ids of the mapped frames in the stack, from the caller to the callee.
++ (NSArray<NSString *> *)frameIdsFromFrameId:(nullable id)frameId
+                                 stackFrames:(NSDictionary *)stackFrames
+                               includeNative:(BOOL)includeNative
+{
+    // Hermes links each frame to its caller, so the walk goes from the top frame to the root.
+    NSMutableArray<NSString *> *frameIds = [NSMutableArray array];
+    for (NSUInteger depth = 0; frameId != nil && depth < stackFrames.count; depth++) {
+        NSString *key = [frameId description];
+        NSDictionary *hermesFrame = stackFrames[key];
+        if (hermesFrame == nil) {
+            break;
+        }
+        if ([self profileFrameFromHermesFrame:hermesFrame includeNative:includeNative] != nil) {
+            [frameIds insertObject:key atIndex:0];
+        }
+        frameId = hermesFrame[@"parent"];
+    }
+    return frameIds;
+}
+
 + (nullable SentryFrame *)frameFromHermesFrame:(NSDictionary *)hermesFrame
 {
-    NSString *name = hermesFrame[@"name"];
-    if (![hermesFrame[@"category"] isEqual:@"JavaScript"] || name == nil ||
-        [name isEqualToString:@"[root]"]) {
+    NSDictionary *profileFrame = [self profileFrameFromHermesFrame:hermesFrame includeNative:NO];
+    if (profileFrame == nil) {
         return nil;
     }
 
     SentryFrame *frame = [[SentryFrame alloc] init];
-    frame.platform = @"javascript";
-    frame.fileName = kBundleFileName;
+    frame.platform = profileFrame[@"platform"];
+    frame.fileName = profileFrame[@"filename"];
+    frame.function = profileFrame[@"function"];
+    frame.lineNumber = profileFrame[@"lineno"];
+    frame.columnNumber = profileFrame[@"colno"];
+    return frame;
+}
+
+/// Maps a Hermes frame to a profile frame, which the event stack and the flame graph share.
+/// Native frames, such as built-in and host functions, have only a name, so the event stack
+/// leaves them out. The device cannot tell app code from library code in the bundle, so every JS
+/// frame is in_app; the event stack does not copy it.
++ (nullable NSDictionary *)profileFrameFromHermesFrame:(NSDictionary *)hermesFrame
+                                         includeNative:(BOOL)includeNative
+{
+    NSString *name = hermesFrame[@"name"];
+    if (name == nil || [name isEqualToString:@"[root]"]) {
+        return nil;
+    }
+    if (![hermesFrame[@"category"] isEqual:@"JavaScript"]) {
+        return includeNative ? @{ @"function" : name, @"in_app" : @NO } : nil;
+    }
+
+    NSMutableDictionary *frame = [NSMutableDictionary dictionary];
+    frame[@"platform"] = @"javascript";
+    frame[@"filename"] = kBundleFileName;
+    frame[@"abs_path"] = kBundleFileName;
+    frame[@"in_app"] = @YES;
     NSRange paren = [name rangeOfString:@"("];
     NSString *function
         = paren.location == NSNotFound ? name : [name substringToIndex:paren.location];
-    frame.function = function.length > 0 ? function : nil;
+    if (function.length > 0) {
+        frame[@"function"] = function;
+    }
 
     id funcVirtAddr = hermesFrame[@"funcVirtAddr"];
     id offset = hermesFrame[@"offset"];
     if (funcVirtAddr != nil && offset != nil) {
         // Hermes bytecode has one line, and its column is 0-based while Sentry's is 1-based.
-        frame.lineNumber = @1;
-        frame.columnNumber = @([funcVirtAddr longLongValue] + [offset longLongValue] + 1);
+        frame[@"lineno"] = @1;
+        frame[@"colno"] = @([funcVirtAddr longLongValue] + [offset longLongValue] + 1);
     } else {
         id line = hermesFrame[@"line"];
         id column = hermesFrame[@"column"];
-        frame.lineNumber = line != nil ? @([line longLongValue]) : nil;
-        frame.columnNumber = column != nil ? @([column longLongValue]) : nil;
+        if (line != nil) {
+            frame[@"lineno"] = @([line longLongValue]);
+        }
+        if (column != nil) {
+            frame[@"colno"] = @([column longLongValue]);
+        }
     }
     return frame;
 }

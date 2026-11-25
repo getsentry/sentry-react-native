@@ -321,6 +321,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void setAttachJsHangFlamegraph(boolean enabled) {
+    this.impl.setAttachJsHangFlamegraph(enabled);
+  }
+
+  @Override
   public void invalidate() {
     this.impl.invalidate();
     super.invalidate();

@@ -17,6 +17,9 @@ typedef BOOL (^RNSentryJSThreadScheduler)(dispatch_block_t block);
 
 + (instancetype)sharedInstance;
 
+/// Attaches a flame graph of the sampled JS stacks to each JS hang event.
+@property (atomic) BOOL attachFlamegraph;
+
 /// Starts tracking, or restarts it with the new values when it already runs.
 - (void)startWithTimeoutIntervalMs:(uint64_t)timeoutIntervalMs
                      bundleDebugId:(nullable NSString *)bundleDebugId

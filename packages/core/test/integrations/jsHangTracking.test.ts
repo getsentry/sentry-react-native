@@ -50,6 +50,7 @@ describe('jsHangTrackingIntegration', () => {
     client.emit('afterInit');
 
     expect(NATIVE.startJsHangTracking).not.toHaveBeenCalled();
+    expect(NATIVE.setAttachJsHangFlamegraph).not.toHaveBeenCalled();
   });
 
   it('does not start native tracking before the native SDK is initialized', () => {
@@ -65,6 +66,27 @@ describe('jsHangTrackingIntegration', () => {
     client.emit('afterInit');
 
     expect(NATIVE.startJsHangTracking).toHaveBeenCalledWith(2000, DEBUG_IMAGE.debug_id);
+  });
+
+  it('does not attach a flame graph by default', () => {
+    const client = initClient();
+
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.setAttachJsHangFlamegraph).toHaveBeenCalledWith(false);
+  });
+
+  it('enables the flame graph attachment before it starts native tracking', () => {
+    const client = initClient(jsHangTrackingIntegration({ attachFlamegraph: true }));
+
+    // @ts-expect-error Only available on ReactNativeClient
+    client.emit('afterInit');
+
+    expect(NATIVE.setAttachJsHangFlamegraph).toHaveBeenCalledWith(true);
+    const setterOrder = (NATIVE.setAttachJsHangFlamegraph as jest.Mock).mock.invocationCallOrder[0];
+    const startOrder = (NATIVE.startJsHangTracking as jest.Mock).mock.invocationCallOrder[0];
+    expect(setterOrder).toBeLessThan(startOrder);
   });
 
   it('converts the timeout interval from seconds to milliseconds', () => {
@@ -120,5 +142,6 @@ describe('jsHangTrackingIntegration', () => {
     client.emit('afterInit');
 
     expect(NATIVE.startJsHangTracking).not.toHaveBeenCalled();
+    expect(NATIVE.setAttachJsHangFlamegraph).not.toHaveBeenCalled();
   });
 });
