@@ -91,7 +91,7 @@ jobs:
           - rn-architecture: "new"
             ios-use-frameworks: "dynamic"
           # RN >= 0.82 is New Architecture only on Android, so "legacy" would duplicate "new"
-          - rn-version: "0.88.1"
+          - rn-version: "0.89.0-rc.3"
             rn-architecture: "legacy"
             platform: "android"
 
