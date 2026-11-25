@@ -39,6 +39,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
   PerformanceObserver?: PerformanceObserver;
+  performance?: { now(): number };
   alert?: (message: string) => void;
   __SENTRY_OPTIONS__?: ReactNativeOptions;
   SENTRY_RELEASE?: {
@@ -55,9 +56,12 @@ type TextEncoder = {
   };
 };
 
+type PerformanceEntry = { startTime: number; duration: number };
+
 type PerformanceObserver = {
-  new (callback: (list: { getEntries(): ReadonlyArray<{ duration: number }> }) => void): {
+  new (callback: (list: { getEntries(): ReadonlyArray<PerformanceEntry> }) => void): {
     observe(options: { type: string; buffered?: boolean }): void;
+    takeRecords(): ReadonlyArray<PerformanceEntry>;
     disconnect(): void;
   };
   supportedEntryTypes?: ReadonlyArray<string>;

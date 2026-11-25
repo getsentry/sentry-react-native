@@ -1,13 +1,20 @@
-import type { Client, Integration } from '@sentry/core';
+import type { Client, Event, Integration } from '@sentry/core';
 
-import { debug, metrics } from '@sentry/core';
+import { debug, hasSpansEnabled, metrics, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, timestampInSeconds } from '@sentry/core';
 
+import { createSpanJSON } from '../tracing/utils';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 const INTEGRATION_NAME = 'LongTask';
 
+const ORIGIN = 'auto.react_native.long_task';
 const METRIC_NAME = 'react_native.long_task.duration';
-const METRIC_OPTIONS = { unit: 'millisecond', attributes: { 'sentry.origin': 'auto.react_native.long_task' } };
+const METRIC_OPTIONS = { unit: 'millisecond', attributes: { [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: ORIGIN } };
+const SPAN_OP = 'ui.long-task';
+const SPAN_NAME = 'JS thread blocked';
+
+/** Caps the memory of long tasks kept for transactions that have not ended yet. */
+const MAX_BUFFERED_LONG_TASKS = 100;
 
 /** Options for {@link longTaskIntegration}. */
 export interface LongTaskOptions {
@@ -28,9 +35,15 @@ export interface LongTaskOptions {
   sampleRate?: number;
 }
 
+interface LongTask {
+  startTimestamp: number;
+  endTimestamp: number;
+}
+
 /**
  * Reports JS thread long tasks as the `react_native.long_task.duration` distribution metric,
- * independently of tracing.
+ * independently of tracing. When tracing is enabled, it also adds the long tasks of each
+ * transaction as `ui.long-task` child spans.
  *
  * Requires React Native 0.82 or newer on the New Architecture.
  * In other environments, the integration does nothing.
@@ -38,18 +51,23 @@ export interface LongTaskOptions {
 export const longTaskIntegration = (options: LongTaskOptions = {}): Integration => {
   const { minDurationMs = 200, sampleRate = 1 } = options;
 
+  const longTasks: LongTask[] = [];
+  let readPendingLongTasks: (() => void) | undefined;
+
   return {
     name: INTEGRATION_NAME,
     setup(client: Client): void {
-      if (client.getOptions().enableMetrics === false) {
-        debug.log(`[${INTEGRATION_NAME}] Metrics are disabled, long tasks will not be reported.`);
+      const reportMetrics = client.getOptions().enableMetrics !== false;
+      const reportSpans = hasSpansEnabled(client.getOptions());
+      if (!reportMetrics && !reportSpans) {
+        debug.log(`[${INTEGRATION_NAME}] Metrics and tracing are disabled, long tasks will not be reported.`);
         return;
       }
 
       try {
         // Reading the lazy global loads the RN module, and `supportedEntryTypes` calls into native code.
-        const PerformanceObserver = RN_GLOBAL_OBJ.PerformanceObserver;
-        if (!PerformanceObserver?.supportedEntryTypes?.includes('longtask')) {
+        const { PerformanceObserver, performance } = RN_GLOBAL_OBJ;
+        if (!performance || !PerformanceObserver?.supportedEntryTypes?.includes('longtask')) {
           debug.log(`[${INTEGRATION_NAME}] Long tasks are not supported in this environment.`);
           return;
         }
@@ -58,18 +76,78 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
           return;
         }
 
-        const observer = new PerformanceObserver(list => {
-          for (const { duration } of list.getEntries()) {
-            if (duration >= minDurationMs) {
+        const record = (entries: ReadonlyArray<{ startTime: number; duration: number }>): void => {
+          // Entry times use the `performance.now()` clock. Converting them relative to now matches span
+          // timestamps also when the SDK ignores an unreliable `performance.timeOrigin`.
+          const nowSeconds = timestampInSeconds();
+          const nowMs = performance.now();
+
+          for (const { startTime, duration } of entries) {
+            if (duration < minDurationMs) {
+              continue;
+            }
+            if (reportMetrics) {
               metrics.distribution(METRIC_NAME, duration, METRIC_OPTIONS);
             }
+            if (reportSpans) {
+              const startTimestamp = nowSeconds - (nowMs - startTime) / 1000;
+              longTasks.push({ startTimestamp, endTimestamp: startTimestamp + duration / 1000 });
+            }
           }
-        });
+
+          if (longTasks.length > MAX_BUFFERED_LONG_TASKS) {
+            longTasks.splice(0, longTasks.length - MAX_BUFFERED_LONG_TASKS);
+          }
+        };
+
+        const observer = new PerformanceObserver(list => record(list.getEntries()));
         observer.observe({ type: 'longtask', buffered: true });
         client.on('close', () => observer.disconnect());
+
+        if (reportSpans) {
+          // React Native delivers entries to the observer callback with idle priority, often after the
+          // transaction ends, so the transaction reads the entries that are not delivered yet.
+          readPendingLongTasks = () => record(observer.takeRecords());
+        }
       } catch (error) {
         debug.warn(`[${INTEGRATION_NAME}] Failed to observe long tasks.`, error);
       }
+    },
+    processEvent(event: Event): Event {
+      if (!readPendingLongTasks || event.type !== 'transaction') {
+        return event;
+      }
+
+      try {
+        readPendingLongTasks();
+      } catch (error) {
+        debug.warn(`[${INTEGRATION_NAME}] Failed to read pending long tasks.`, error);
+      }
+
+      const { start_timestamp: transactionStart, timestamp: transactionEnd } = event;
+      const trace = event.contexts?.trace;
+      if (transactionStart === undefined || transactionEnd === undefined || !trace) {
+        return event;
+      }
+
+      for (const { startTimestamp, endTimestamp } of longTasks) {
+        if (startTimestamp >= transactionStart && startTimestamp < transactionEnd) {
+          event.spans = event.spans ?? [];
+          event.spans.push(
+            createSpanJSON({
+              op: SPAN_OP,
+              description: SPAN_NAME,
+              origin: ORIGIN,
+              start_timestamp: startTimestamp,
+              timestamp: endTimestamp,
+              trace_id: trace.trace_id,
+              parent_span_id: trace.span_id,
+            }),
+          );
+        }
+      }
+
+      return event;
     },
   };
 };

@@ -1,21 +1,23 @@
-import type { Metric } from '@sentry/core';
+import type { Event, Metric } from '@sentry/core';
 
-import { getClient } from '@sentry/core';
+import { getClient, startInactiveSpan, timestampInSeconds } from '@sentry/core';
 
 import type { LongTaskOptions } from '../../src/js/integrations/longTask';
-import type { TestClientOptions } from '../mocks/client';
+import type { TestClient, TestClientOptions } from '../mocks/client';
 
 import { longTaskIntegration } from '../../src/js/integrations/longTask';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { setupTestClient } from '../mocks/client';
 
-type EntriesCallback = (list: { getEntries: () => Array<{ duration: number }> }) => void;
+type Entry = { startTime: number; duration: number };
+type EntriesCallback = (list: { getEntries: () => Entry[] }) => void;
 
 class FakePerformanceObserver {
   public static supportedEntryTypes: ReadonlyArray<string> = ['longtask'];
   public static instances: FakePerformanceObserver[] = [];
 
   public observe = jest.fn();
+  public takeRecords = jest.fn((): Entry[] => []);
   public disconnect = jest.fn();
 
   public constructor(public callback: EntriesCallback) {
@@ -23,7 +25,11 @@ class FakePerformanceObserver {
   }
 
   public emit(...durations: number[]): void {
-    this.callback({ getEntries: () => durations.map(duration => ({ duration })) });
+    this.emitEntries(...durations.map(duration => ({ startTime: 0, duration })));
+  }
+
+  public emitEntries(...entries: Entry[]): void {
+    this.callback({ getEntries: () => entries });
   }
 }
 
@@ -131,10 +137,142 @@ describe('longTaskIntegration', () => {
     });
   });
 
-  it('does not observe when metrics are disabled', () => {
-    setup(undefined, { enableMetrics: false });
+  it('does not observe when metrics and tracing are disabled', () => {
+    setup(undefined, { enableMetrics: false, tracesSampleRate: undefined });
 
     expect(FakePerformanceObserver.instances).toHaveLength(0);
+  });
+
+  it('does not emit metrics when metrics are disabled', () => {
+    setup(undefined, { enableMetrics: false });
+
+    FakePerformanceObserver.instances[0]?.emit(300);
+
+    expect(beforeSendMetric).not.toHaveBeenCalled();
+  });
+
+  describe('spans', () => {
+    const PERFORMANCE_NOW_MS = 100_000;
+    /** The `timestampInSeconds()` value of `performance.now() === 0`. */
+    let timeOriginSeconds: number;
+
+    const observer = (): FakePerformanceObserver => FakePerformanceObserver.instances[0]!;
+
+    const endTransaction = async (startMs: number, endMs: number): Promise<Event | undefined> => {
+      startInactiveSpan({ name: 'Screen', forceTransaction: true, startTime: timeOriginSeconds + startMs / 1000 }).end(
+        timeOriginSeconds + endMs / 1000,
+      );
+      const client = getClient<TestClient>();
+      await client?.flush();
+      return client?.eventQueue.find(event => event.type === 'transaction');
+    };
+
+    const longTaskSpans = (event: Event | undefined): unknown[] =>
+      event?.spans?.filter(span => span.op === 'ui.long-task') ?? [];
+
+    beforeEach(() => {
+      jest.spyOn(performance, 'now').mockReturnValue(PERFORMANCE_NOW_MS);
+      jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+      timeOriginSeconds = timestampInSeconds() - PERFORMANCE_NOW_MS / 1000;
+    });
+
+    it('adds long tasks that start in the transaction as ui.long-task child spans', async () => {
+      setup();
+      observer().emitEntries(
+        { startTime: 900, duration: 300 },
+        { startTime: 1_200, duration: 250 },
+        { startTime: 1_900, duration: 400 },
+        { startTime: 2_000, duration: 300 },
+      );
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(longTaskSpans(transaction)).toEqual([
+        expect.objectContaining({
+          description: 'JS thread blocked',
+          op: 'ui.long-task',
+          origin: 'auto.react_native.long_task',
+          parent_span_id: transaction?.contexts?.trace?.span_id,
+          start_timestamp: expect.closeTo(timeOriginSeconds + 1.2, 6),
+          timestamp: expect.closeTo(timeOriginSeconds + 1.45, 6),
+        }),
+        expect.objectContaining({
+          start_timestamp: expect.closeTo(timeOriginSeconds + 1.9, 6),
+          timestamp: expect.closeTo(timeOriginSeconds + 2.3, 6),
+        }),
+      ]);
+    });
+
+    it('adds long tasks that the observer has not delivered yet', async () => {
+      setup();
+      observer().takeRecords.mockReturnValueOnce([{ startTime: 1_500, duration: 300 }]);
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(longTaskSpans(transaction)).toEqual([
+        expect.objectContaining({ start_timestamp: expect.closeTo(timeOriginSeconds + 1.5, 6) }),
+      ]);
+      expect(beforeSendMetric).toHaveBeenCalledWith(expect.objectContaining({ value: 300 }));
+    });
+
+    it('does not add long tasks shorter than minDurationMs', async () => {
+      setup({ minDurationMs: 300 });
+      observer().emitEntries({ startTime: 1_200, duration: 299 });
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(longTaskSpans(transaction)).toEqual([]);
+    });
+
+    it('adds spans when metrics are disabled', async () => {
+      setup(undefined, { enableMetrics: false });
+      observer().emitEntries({ startTime: 1_200, duration: 300 });
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(longTaskSpans(transaction)).toHaveLength(1);
+    });
+
+    it('does not read pending long tasks when tracing is disabled', () => {
+      setup(undefined, { tracesSampleRate: undefined });
+
+      startInactiveSpan({ name: 'Screen', forceTransaction: true }).end();
+
+      expect(observer().takeRecords).not.toHaveBeenCalled();
+    });
+
+    it('does not add spans to unsampled transactions', () => {
+      setup(undefined, { tracesSampleRate: 0 });
+
+      startInactiveSpan({ name: 'Screen', forceTransaction: true }).end();
+
+      expect(observer().takeRecords).not.toHaveBeenCalled();
+    });
+
+    it('keeps only the latest 100 long tasks', async () => {
+      setup();
+      observer().emitEntries(
+        ...Array.from({ length: 101 }, (_, index) => ({ startTime: 1_000 + index, duration: 300 })),
+      );
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(longTaskSpans(transaction)).toHaveLength(100);
+      expect(longTaskSpans(transaction)[0]).toEqual(
+        expect.objectContaining({ start_timestamp: expect.closeTo(timeOriginSeconds + 1.001, 6) }),
+      );
+    });
+
+    it('sends the transaction when reading pending long tasks throws', async () => {
+      setup();
+      observer().takeRecords.mockImplementationOnce(() => {
+        throw new Error('native module missing');
+      });
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(transaction).toBeDefined();
+    });
   });
 
   it('does not throw when reading supportedEntryTypes throws', () => {
