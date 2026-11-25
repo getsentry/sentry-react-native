@@ -10,7 +10,7 @@ families = ["hybrid"]
 paths = [
   "packages/expo-upload-sourcemaps/**", "packages/core/metro.*", "packages/core/expo.*",
   "packages/core/app.plugin.js", "packages/core/sentry.gradle*", "packages/core/scripts/**",
-  "packages/core/plugin/**",
+  "packages/core/plugin/**", "packages/core/src/js/tools/**",
 ]
 families = ["tooling", "hybrid"]
 
