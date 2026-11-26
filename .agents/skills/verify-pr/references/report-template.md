@@ -5,8 +5,14 @@ Keep it short. Fill every section; write "none" rather than dropping one.
 ```markdown
 # Verification: #<N> <PR title> — <Verified | Not reproduced | Failed | Inconclusive | Not verifiable this way>
 
+> **<Verdict>** on <platforms>. <Claim in one sentence.>
+> Without the change: <[<event id>](<url>), several if the evidence spans events | for an absence, the run id and what showed it ran> — <what it showed>. With it: [<event id>](<url>) — <what it showed>.
+> Also checked: <"2 same" | "1 same, 1 changed: <what>" | "none planned">. Not covered: <the short list>.
+
 **Claim:** <one sentence: what was broken or missing, what should be true now>
+**Claim source:** <the linked issue #<M> | the PR (no linked issue)>. <What of the issue the PR leaves out, or "the PR covers the issue"; what of the issue this run leaves out goes under Not covered>
 **Platform:** <Android <version> emulator (<AVD>) | iOS <version> simulator (<device>)>, <New | Old> Architecture, <release | debug> build. <Other platform>: not applicable (<why>), if so
+**Not covered:** <the other architecture, other RN versions, real devices, debug builds, an affected platform not run ("affected, not run" — not "not applicable"), skipped paths — whatever applies>
 **Scenario flow:** `<run-id>.yml` next to this report (or inline below), so the report stands alone
 
 ## Check made
@@ -28,6 +34,24 @@ Expected: without the change <X>; with it <Y>.
 ### How the "without" side was built
 
 <Reverse-applied the PR's SDK diff on `<sha>` / checked out `<sha>^`. Whether the touched files changed since the PR.>
+
+## Also checked, expected unchanged
+
+Not part of the verdict. See references/review-checks.md.
+
+| Path | Why | Without | With | Result |
+|---|---|---|---|---|
+| <scenario> | <other caller / other branch / default option / review question> | <evidence> | <evidence> | Same / Changed |
+
+<For a Changed row: what differs, and whether the PR mentions it. Review questions not checked, and why. Or "none".>
+
+## Spec notes
+
+Not part of the verdict. Only fields the PR adds or changes.
+
+- `<field>` = `<value sent>`: <what the spec says, or "no guidance"> (<URL>)
+
+<or "none: the PR adds or changes no field the SDK sends">
 
 ## Sample app changes
 
@@ -59,23 +83,36 @@ Attempts: <failed builds or runs, why, and time lost — or "first try">. Repeat
 <flaky or failed steps, workarounds, skill gaps — or "none">
 ```
 
-## Short report: stopped at the gate
+## Gate report
 
-When step 1's gate stops the run, nothing was built. Write only this:
+For a run the gate stopped, and for every **gate-only** run. Nothing was built.
 
 ```markdown
-# Verification: #<N> <PR title> — Not verifiable this way
+# Verification gate: #<N> <PR title> — <Verifiable | Not verifiable this way>
+
+> **<Verifiable on <platforms> | Not verifiable this way>.** <Claim in one sentence.> <The reason, or the scenario a full run would use.>
 
 **Claim:** <one sentence>
+**Claim source:** <the linked issue #<M> | the PR (no linked issue)>
 **Platform:** <platforms the claim affects; others not applicable and why>
+**Not covered:** <what even a full run wouldn't show>
+**Prior evidence:** <events or recordings linked in the PR or issue, and runs it only describes (say "unlinked"), with what they show (one side only, untagged…) — or "none">
+**Without side:** <open PR: the head with its diff reversed, plus what it lacks (run tagging, flows) | merged PR: the reverse patch applies / needs the parent commit>
+**Also check:** <the step 1.6 paths and review questions, or "none planned">
 
 ## Gate
 
-<which question was "no", and the evidence: the files the PR changes, the pinned native SDK version, …>
+| Question | Answer |
+|---|---|
+| Runtime behavior? | <yes / no: why> |
+| Trigger possible on a simulator/emulator? | <yes / no: why> |
+| Native APIs in the pinned SDKs? | <yes / no: the pinned version and where the path the PR uses landed> |
+| Enough disk? | <yes / no / not checked (gate-only)> |
 
-## What would verify it
+## <If verifiable: Planned run | If not: What would verify it>
 
-<a unit test, a real device, a native SDK release, a manual check — or "nothing beyond CI">
+<Verifiable: the scenario, the evidence and expectation for each side, the step 1.6 paths, build type, estimated time.
+Not verifiable: a unit test, a real device, a native SDK release, a manual check — or "nothing beyond CI".>
 
 ## Timing
 
