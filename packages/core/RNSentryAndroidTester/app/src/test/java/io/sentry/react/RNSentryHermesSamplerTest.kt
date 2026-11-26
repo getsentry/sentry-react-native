@@ -80,6 +80,33 @@ class RNSentryHermesSamplerTest {
     }
 
     @Test
+    fun `sample retries disable when it throws once`() {
+        var failedOnce = false
+        RNSentryHermesSampler.setProfiler(
+            object : RNSentryHermesSampler.Profiler {
+                override fun enable() {
+                    calls.add("enable")
+                }
+
+                override fun disable() {
+                    calls.add("disable")
+                    if (!failedOnce) {
+                        failedOnce = true
+                        throw IllegalStateException("disable failed")
+                    }
+                }
+
+                override fun dumpSampledTraceToFile(path: String) {
+                    calls.add("dump")
+                }
+            },
+        )
+
+        assertNull(RNSentryHermesSampler.sample(10, folder.root))
+        assertEquals(listOf("enable", "disable", "disable"), calls)
+    }
+
+    @Test
     fun `sample does not touch the sampler while a profile runs`() {
         RNSentryHermesSampler.startProfiling()
         calls.clear()

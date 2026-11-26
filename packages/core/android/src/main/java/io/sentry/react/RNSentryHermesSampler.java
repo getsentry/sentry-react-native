@@ -102,8 +102,8 @@ final class RNSentryHermesSampler {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
-        enabled = false;
         profiler.disable();
+        enabled = false;
         profiler.dumpSampledTraceToFile(trace.getPath());
         return RNSentryModuleImpl.readStringFromFile(trace);
       } catch (Throwable e) { // NOPMD - We don't want to crash in any case
