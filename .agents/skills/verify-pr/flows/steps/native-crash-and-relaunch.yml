@@ -1,0 +1,16 @@
+# Crashes natively from the Errors tab, then relaunches without clearing
+# state so the SDK sends the stored crash event. Needs a release build.
+# "Native Crash" is near the top of the list, so scroll up to it.
+appId: io.sentry.reactnative.sample
+---
+- scrollUntilVisible:
+    element: 'Native Crash'
+    direction: UP
+    timeout: 10000
+- tapOn: 'Native Crash'
+- launchApp:
+    clearState: false
+    stopApp: false
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: relaunched
