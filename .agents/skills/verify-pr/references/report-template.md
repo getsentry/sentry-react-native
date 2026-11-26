@@ -106,7 +106,7 @@ For a run the gate stopped, and for every **gate-only** run. Nothing was built.
 |---|---|
 | Runtime behavior? | <yes / no: why> |
 | Trigger possible on a simulator/emulator? | <yes / no: why / not reached> |
-| Native APIs in the pinned SDKs? | <yes / no: the pinned version and where the path the PR uses landed / not reached> |
+| Native SDKs and React Native have what it needs? | <yes / no: the pinned versions and where the path the PR uses landed / not reached> |
 | Enough disk? | <yes / no / not checked (gate-only) / not reached> |
 
 ## <If verifiable: Planned run | If not: What would verify it>
