@@ -12,13 +12,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.Debug;
 import android.os.Process;
 import android.util.SparseIntArray;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
-import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -51,6 +51,7 @@ import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import io.sentry.Session;
 import io.sentry.android.core.AndroidProfiler;
+import io.sentry.android.core.AppState;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
@@ -157,6 +158,8 @@ public class RNSentryModuleImpl {
 
   private final @NotNull Runnable emitNewFrameEvent;
 
+  private final @NotNull RNSentryJSHangTracker jsHangTracker;
+
   private static final String ON_SHAKE_EVENT = "rn_sentry_on_shake";
   private @Nullable SentryShakeDetector shakeDetector;
 
@@ -172,6 +175,30 @@ public class RNSentryModuleImpl {
     this.emitNewFrameEvent = createEmitNewFrameEvent();
     this.dateProvider = new SentryAndroidDateProvider();
     this.loadClass = new LoadClass();
+    this.jsHangTracker = createJsHangTracker(reactApplicationContext);
+  }
+
+  private static @NotNull RNSentryJSHangTracker createJsHangTracker(
+      final @NotNull ReactApplicationContext reactContext) {
+    return new RNSentryJSHangTracker(
+        // runOnJSQueueThread returns void on older React Native versions, so the result is not
+        // used.
+        runnable -> {
+          reactContext.runOnJSQueueThread(runnable);
+          return true;
+        },
+        durationMs -> RNSentryHermesSampler.sample(durationMs, reactContext.getCacheDir()),
+        // The capture can wait for disk I/O, so it must not keep the tracker thread from ending.
+        event -> {
+          final Thread capture =
+              new Thread(() -> Sentry.captureEvent(event), "io.sentry.react.js-hang-capture");
+          capture.setDaemon(true);
+          capture.start();
+        },
+        () ->
+            Boolean.TRUE.equals(AppState.getInstance().isInBackground())
+                || Debug.isDebuggerConnected(),
+        logger);
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -346,15 +373,28 @@ public class RNSentryModuleImpl {
   }
 
   public void startJsHangTracking(double timeoutIntervalMs, @Nullable String bundleDebugId) {
-    // No-op: JS hang tracking is iOS-only
+    // The cast below needs a finite value, and values below 1 ms would become 0.
+    if (Double.isNaN(timeoutIntervalMs)
+        || Double.isInfinite(timeoutIntervalMs)
+        || timeoutIntervalMs < 1) {
+      logger.log(
+          SentryLevel.WARNING,
+          "Not starting JS hang tracking, invalid timeoutIntervalMs: " + timeoutIntervalMs);
+      return;
+    }
+    try {
+      jsHangTracker.start((long) timeoutIntervalMs, bundleDebugId);
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Failed to start JS hang tracking.", e);
+    }
   }
 
   public void stopJsHangTracking() {
-    // No-op: JS hang tracking is iOS-only
+    jsHangTracker.stop();
   }
 
   public void setAttachJsHangFlamegraph(boolean enabled) {
-    // No-op: JS hang tracking is iOS-only
+    // No-op: the JS hang flame graph is iOS-only
   }
 
   public void fetchModules(Promise promise) {
@@ -1142,11 +1182,7 @@ public class RNSentryModuleImpl {
     }
 
     try {
-      // Defensive reset: the Hermes sampling profiler is global with no state
-      // introspection, so flush any leaked registration from a prior run before
-      // enabling. See https://github.com/facebook/hermes/issues/1853.
-      HermesSamplingProfiler.disable();
-      HermesSamplingProfiler.enable();
+      RNSentryHermesSampler.startProfiling();
       // Mark profiling active immediately after enable() succeeds so a concurrent
       // invalidate() observes the running state even if androidProfiler.start() below throws.
       isProfiling.set(true);
@@ -1165,7 +1201,7 @@ public class RNSentryModuleImpl {
       // this idempotent with a concurrent invalidate()/stopProfiling().
       if (isProfiling.getAndSet(false)) {
         try {
-          HermesSamplingProfiler.disable();
+          RNSentryHermesSampler.disableProfiling();
         } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
         }
       }
@@ -1195,16 +1231,10 @@ public class RNSentryModuleImpl {
       if (profiler != null) {
         end = profiler.endAndCollect(false, performanceCollectionData);
       }
-      HermesSamplingProfiler.disable();
-
-      output =
-          File.createTempFile(
-              "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+      output = RNSentryHermesSampler.stopProfiling(reactApplicationContext.getCacheDir());
       if (isDebug) {
         logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
       }
-
-      HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
       result.putString("profile", readStringFromFile(output));
 
       if (end != null) {
@@ -1259,8 +1289,9 @@ public class RNSentryModuleImpl {
 
   /**
    * Cleanup hook invoked from the module wrappers when the React instance is destroyed (e.g. Metro
-   * reload, orderly Activity teardown). Calls HermesSamplingProfiler.disable(), which synchronously
-   * joins the sampler's timer thread, so no pthread_kill can fire after the JS thread is torn down.
+   * reload, orderly Activity teardown). Stops the JS hang tracker and calls
+   * HermesSamplingProfiler.disable(), which synchronously joins the sampler's timer thread, so no
+   * pthread_kill can fire after the JS thread is torn down.
    *
    * <p>Correctness depends on RN invoking module invalidate() before joining the JS message queue
    * thread. That is the documented contract for both old-arch CatalystInstance shutdown and
@@ -1270,6 +1301,10 @@ public class RNSentryModuleImpl {
    * https://github.com/facebook/hermes/issues/1853.
    */
   public void invalidate() {
+    // Crash-critical: stop the JS hang tracker first. stop() ends a running Hermes sample and
+    // waits until the tracker thread ends, so its sampler is off before the JS thread exits.
+    jsHangTracker.stop();
+
     // Atomic gate: only one caller (invalidate vs stopProfiling vs a re-entrant invalidate)
     // wins the right to clean up; the rest no-op.
     if (!isProfiling.getAndSet(false)) {
@@ -1284,7 +1319,7 @@ public class RNSentryModuleImpl {
     // joined. Isolated in its own try/catch so a failure in the Android profiler cleanup
     // below cannot skip this call.
     try {
-      HermesSamplingProfiler.disable();
+      RNSentryHermesSampler.disableProfiling();
       logger.log(SentryLevel.INFO, "Stopped Hermes sampling profiler on React instance destroy.");
     } catch (Throwable e) { // NOPMD - Guards the JNI boundary; does not catch native SIGABRT.
       logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
@@ -1382,7 +1417,7 @@ public class RNSentryModuleImpl {
     return null;
   }
 
-  private String readStringFromFile(File path) throws IOException {
+  static String readStringFromFile(File path) throws IOException {
     try (BufferedReader br = new BufferedReader(new FileReader(path)); ) {
 
       final StringBuilder text = new StringBuilder();

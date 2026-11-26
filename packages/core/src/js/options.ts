@@ -222,11 +222,8 @@ export interface BaseReactNativeOptions {
    * The tracker does not run in development builds (`__DEV__`), because a JS debugger that pauses
    * at a breakpoint would be reported as a hang.
    *
-   * iOS only
-   *
    * @default false
    * @experimental
-   * @platform ios
    */
   enableJsHangTracking?: boolean;
 
@@ -235,11 +232,8 @@ export interface BaseReactNativeOptions {
    * The actual amount may be a little longer.
    * Value should be in seconds. Values below 0.25 use 0.25.
    *
-   * iOS only
-   *
    * @default 2
    * @experimental
-   * @platform ios
    */
   jsHangTimeoutInterval?: number;
 
