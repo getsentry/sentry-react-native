@@ -10,7 +10,7 @@
 | Source maps upload | `export SENTRY_DISABLE_AUTO_UPLOAD=true` for release builds. The local token can't upload, and verification doesn't need it. |
 | Sentry | The Sentry MCP with read access to `sentry-sdks`. `sentry-cli` can't read events (no `api` command, `org:ci` token). |
 
-Start an emulator if none is running: `emulator -avd Pixel_8 -no-snapshot-save &`, then `adb wait-for-device`. If another session's emulator (e.g. an ATD image) is already running, boot `Pixel_8` next to it and pass `-s <serial>` to `adb` and `--device <serial>` to Maestro.
+Start an emulator if none is running: `emulator -avd Pixel_8 -no-snapshot-save &`, then `adb wait-for-device`. If another session's emulator (e.g. an ATD image) is already running, boot `Pixel_8` next to it on a known port (`emulator -avd Pixel_8 -port 5556 …` gives serial `emulator-5556`) and pass `-s <serial>` to `adb` and `--device <serial>` to Maestro.
 
 ## Build
 
@@ -65,6 +65,7 @@ maestro test \
 - Maestro matches text case-insensitively (Android upper-cases button labels) and scrolls with `scrollUntilVisible`.
 - `scrollUntilVisible.direction` can't come from a variable. A pushed screen keeps the list's scroll offset when you go back, so scroll **UP** to buttons near the top after a `back`.
 - After a crash, relaunch with `clearState: false` so the stored event is sent (`steps/native-crash-and-relaunch.yml`). Wait for the crashed app's UI to go first, pass the run tags again, and wait for the tab bar before a screenshot; a screenshot taken right after `launchApp` is blank.
+- Two fatals within about a minute make Android show the "keeps stopping" dialog, which keeps the process alive, so `launchApp` with `stopApp: false` never reaches the app. In a flow with more than one fatal, tap `Close app` when it's visible (`optional: true`), then `launchApp` with `stopApp: true` and the run tags.
 - Whether the crashed process survives a moment (a crash dialog) or is killed at once changes what an in-flight envelope does. When a crash event goes missing, check `ActivityManager` lines in logcat (`Showing crash dialog` vs `has died`) before blaming the change. For a JS fatal this is down to the sample's debuggable release build, which skips the SDK's synchronous write (SKILL.md step 1.5, #7113).
 - Maestro's log prints `${VAR}` unexpanded in launch arguments and in `runFlow` env values (e.g. `Tap on "${BUTTON}"`); the values are still applied. Confirm in logcat (`grep '"verify.run_id"'`).
 - Maestro has no plain sleep. When the evidence is batched (logs), wait in the shell after `maestro test` returns, with the app still running.

@@ -6,13 +6,13 @@ Keep it short. Fill every section; write "none" rather than dropping one.
 # Verification: #<N> <PR title> — <Verified | Not reproduced | Failed | Inconclusive | Not verifiable this way>
 
 > **<Verdict>** on <platforms>. <Claim in one sentence.>
-> Without the change: [<event id>](<url>) — <what it showed>. With it: [<event id>](<url>) — <what it showed>.
+> Without the change: <[<event id>](<url>), several if the evidence spans events | for an absence, the run id and what showed it ran> — <what it showed>. With it: [<event id>](<url>) — <what it showed>.
 > Also checked: <"2 same" | "1 same, 1 changed: <what>" | "none planned">. Not covered: <the short list>.
 
 **Claim:** <one sentence: what was broken or missing, what should be true now>
-**Claim source:** <the linked issue #<M> | the PR (no linked issue)>. <What of the issue the PR leaves out, or "the PR covers the issue">
+**Claim source:** <the linked issue #<M> | the PR (no linked issue)>. <What of the issue the PR leaves out, or "the PR covers the issue"; what of the issue this run leaves out goes under Not covered>
 **Platform:** <Android <version> emulator (<AVD>) | iOS <version> simulator (<device>)>, <New | Old> Architecture, <release | debug> build. <Other platform>: not applicable (<why>), if so
-**Not covered:** <the other architecture, other RN versions, real devices, debug builds, a platform not run, skipped paths — whatever applies>
+**Not covered:** <the other architecture, other RN versions, real devices, debug builds, an affected platform not run ("affected, not run" — not "not applicable"), skipped paths — whatever applies>
 **Scenario flow:** `<run-id>.yml` next to this report (or inline below), so the report stands alone
 
 ## Check made
@@ -96,7 +96,9 @@ For a run the gate stopped, and for every **gate-only** run. Nothing was built.
 **Claim source:** <the linked issue #<M> | the PR (no linked issue)>
 **Platform:** <platforms the claim affects; others not applicable and why>
 **Not covered:** <what even a full run wouldn't show>
-**Prior evidence:** <events or recordings already linked in the PR or issue, and what they show (one side only, untagged…) — or "none">
+**Prior evidence:** <events or recordings linked in the PR or issue, and runs it only describes (say "unlinked"), with what they show (one side only, untagged…) — or "none">
+**Without side:** <open PR: the head with its diff reversed, plus what it lacks (run tagging, flows) | merged PR: the reverse patch applies / needs the parent commit>
+**Also check:** <the step 1.6 paths and review questions, or "none planned">
 
 ## Gate
 

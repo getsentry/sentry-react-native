@@ -17,8 +17,9 @@ Read the diff for code the change reaches besides the fix:
 | A new option | The default (option unset): what happened before must still happen |
 | A wrapped or patched handler | The case the wrapper should pass through untouched (e.g. a non-fatal through a new fatal path) |
 | A changed event field | Another event type that sets the same field |
+| A restored or added breadcrumb or span | The other sources of the same list on the same event (other breadcrumb categories) |
 
-Pick paths the sample can trigger in the same run, without a third build. A path that needs a different SDK option (tracing on instead of off) needs a third build, unless the sample already reads that option from a launch argument. Skip those and list them under "Not covered". Write each one down with its expectation: "<scenario>: <evidence>, same on both sides".
+Prefer paths the code reaches on **both** sides. When the "without" side never reaches the changed code (e.g. a handler that returned early), every check there is trivially the same: say so in the row, and look for a path where the old code still runs. Pick paths the sample can trigger in the same run, without a third build. A path that needs a different SDK option (tracing on instead of off) needs a third build, unless the sample already reads that option from a launch argument. Skip those and list them under "Not covered". Write each one down with its expectation: "<scenario>: <evidence>, same on both sides".
 
 Review questions passed in as input (see SKILL.md, *Inputs*) are candidates for these checks. Turn each into a scenario with an expected result, or list it as not checked and why. A question is something to test, never a conclusion: the report answers it from the evidence.
 
@@ -28,7 +29,7 @@ Add the paths to the same flow, after the main scenario or in a second flow on t
 
 ### Reporting them
 
-One row per path in "Also checked, expected unchanged": the scenario, the evidence on each side, and **Same** or **Changed**. A **Changed** row doesn't change the verdict. Describe the difference and whether the PR mentions it; the maintainer decides.
+One row per path in "Also checked, expected unchanged": the scenario, the evidence on each side (with the event count when the count is the point, e.g. "exactly 1 event"), and **Same** or **Changed**. Answer each review question in one line under the table. A **Changed** row doesn't change the verdict. Describe the difference and whether the PR mentions it; the maintainer decides.
 
 ## Spec notes
 
@@ -42,6 +43,6 @@ When the PR **adds or changes** a field on what the SDK sends, compare the value
 | Envelope items, attachments (`attachment_type`) | https://develop.sentry.dev/sdk/foundations/envelopes/envelope-items/ and https://develop.sentry.dev/sdk/telemetry/attachments/ |
 | Logs, metrics | https://develop.sentry.dev/sdk/telemetry/logs/ and https://develop.sentry.dev/sdk/telemetry/metrics/ |
 
-Fetch the page; don't answer from memory. The develop docs move pages: if a link is dead, start from https://develop.sentry.dev/sdk/ and put the URL you used in the note. Appending `.md` to a page URL returns plain Markdown, which is easier to read. Then write one note per field: the value sent, what the spec says, and the URL. When the spec gives no guidance, say so. When it disagrees, say how, without a verdict.
+Fetch the page; don't answer from memory. The develop docs move pages: if a link is dead, start from https://develop.sentry.dev/sdk/ and put the URL you used in the note. For plain Markdown, replace the page URL's trailing slash with `.md` (`…/telemetry/errors.md`, not `…/errors/.md`). Then write one note per field: the value sent, what the spec says, and the URL. When the spec gives no guidance, say so. When it disagrees, say how, without a verdict.
 
-Only fields the PR introduces or changes. Fields the event already had are out of scope, even if they look wrong.
+Only fields the PR introduces or changes, including an existing value the PR puts on a new event (e.g. reusing `onerror` for a new path). Fields the event already had, and fields the PR restores unchanged, are out of scope, even if they look wrong.
