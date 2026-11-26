@@ -160,7 +160,7 @@ Sentry.init({
       }),
       Sentry.extraErrorDataIntegration(),
       // Lower than the 200 ms default so the sample reports more long tasks.
-      Sentry.longTaskIntegration({ minDurationMs: 100 }),
+      Sentry.longTaskIntegration({ minDurationMs: 100, spans: true }),
       sampleFeatureFlagsIntegration,
       sampleTurboModuleContextIntegration,
     );
