@@ -97,22 +97,22 @@ For a run the gate stopped, and for every **gate-only** run. Nothing was built.
 **Platform:** <platforms the claim affects; others not applicable and why>
 **Not covered:** <what even a full run wouldn't show>
 **Prior evidence:** <events or recordings linked in the PR or issue, and runs it only describes (say "unlinked"), with what they show (one side only, untagged…) — or "none">
-**Without side:** <open PR: the head with its diff reversed, plus what it lacks (run tagging, flows) | merged PR: the reverse patch applies / needs the parent commit>
-**Also check:** <the step 1.6 paths and review questions, or "none planned">
+**Without side:** <open PR: the head with its diff reversed, plus what it lacks (run tagging, flows) | merged PR: the reverse patch applies / needs the parent commit | not needed (Not verifiable this way)>
+**Also check:** <the step 1.6 paths and review questions, or "none planned" | not needed (Not verifiable this way)>
 
 ## Gate
 
 | Question | Answer |
 |---|---|
 | Runtime behavior? | <yes / no: why> |
-| Trigger possible on a simulator/emulator? | <yes / no: why> |
-| Native APIs in the pinned SDKs? | <yes / no: the pinned version and where the path the PR uses landed> |
-| Enough disk? | <yes / no / not checked (gate-only)> |
+| Trigger possible on a simulator/emulator? | <yes / no: why / not reached> |
+| Native APIs in the pinned SDKs? | <yes / no: the pinned version and where the path the PR uses landed / not reached> |
+| Enough disk? | <yes / no / not checked (gate-only) / not reached> |
 
 ## <If verifiable: Planned run | If not: What would verify it>
 
 <Verifiable: the scenario, the evidence and expectation for each side, the step 1.6 paths, build type, estimated time.
-Not verifiable: a unit test, a real device, a native SDK release, a manual check — or "nothing beyond CI".>
+Not verifiable: a unit test, a real device, a native SDK release, a bundle or APK content check (with the command), a manual check — or "nothing beyond CI".>
 
 ## Timing
 
