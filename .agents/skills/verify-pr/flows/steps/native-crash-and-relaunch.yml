@@ -1,6 +1,8 @@
 # Crashes natively from the Errors tab, then relaunches without clearing
 # state so the SDK sends the stored crash event. Needs a release build.
 # "Native Crash" is near the top of the list, so scroll up to it.
+# Pass the same VERIFY_* values as launch.yml: the relaunch carries the run
+# tags too, so events sent after it are still found by run id.
 appId: io.sentry.reactnative.sample
 ---
 - scrollUntilVisible:
@@ -8,9 +10,19 @@ appId: io.sentry.reactnative.sample
     direction: UP
     timeout: 10000
 - tapOn: 'Native Crash'
+# Relaunching while the crashing process is still alive reuses it.
+- extendedWaitUntil:
+    notVisible: 'Native Crash'
+    timeout: 15000
 - launchApp:
     clearState: false
     stopApp: false
-- waitForAnimationToEnd:
-    timeout: 5000
+    arguments:
+      verifyPr: ${VERIFY_PR}
+      verifyCommit: ${VERIFY_COMMIT}
+      verifyRunId: ${VERIFY_RUN_ID}
+- extendedWaitUntil:
+    visible:
+      id: 'errors-tab-icon'
+    timeout: 60000
 - takeScreenshot: relaunched

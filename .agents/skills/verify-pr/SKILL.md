@@ -34,11 +34,13 @@ Read the PR and anything it links: `gh pr view <N> --json title,body,mergeCommit
 Write down, before touching anything:
 
 1. **Claim** — one sentence: what was broken (or missing) and what should be true now.
-2. **Platform** — which platforms the claim affects: Android, iOS, or both. Run each one.
+2. **Platform** — which platforms the claim affects: Android, iOS, or both. Run each one. A platform the PR doesn't touch and the claim doesn't affect is **not applicable**; say so on the report's Platform line (it isn't a verdict).
 3. **Scenario** — the user actions in `samples/react-native` that produce the symptom. Search the sample's screens (`src/Screens/`, `src/tabs/`) for a way to trigger the symptom, and write the scenario for this run. Add a sample button only if none exists. Leave it in the working tree next to its flow and list it in the report; the maintainer decides whether it's committed. A flow must never point at a button that isn't in the tree.
    - **How the sample starts the native SDK matters.** By default both platforms start the native SDK from `samples/react-native/sentry.options.json` (`RNSentrySDK.init` / `[RNSentrySDK start]`), and JS `Sentry.init` runs with `autoInitializeNativeSdk: false`. Options set in `App.tsx` don't reach the native SDK. For native option claims, set the option in `sentry.options.json` (and say so in the report).
      - iOS: the `sentryDisableNativeStart: true` launch argument switches to JS init (the iOS e2e tests use it).
      - Android: building with `SENTRY_DISABLE_NATIVE_START=true` did **not** work in a release build (JS still saw it as off); don't rely on it.
+   - **Check the sample's defaults don't hide the symptom.** Its default tracing syncs the JS trace to native on the first navigation span, which hid a trace-sync bug until tracing was turned off for the run. `App.tsx` sets `ignoreErrors: ['should', /(.)*2(.)*/]`: an error whose message contains "should" or the digit 2 is dropped, so never put a run id or a date in a scenario's error message. Turn off what's in the way for the run and list it under sample changes.
+   - **Build-configuration claims** (a module excluded, a Gradle property, a Pod subspec): make the change in the sample's build files, then confirm it took effect in the built app before running, e.g. Android: `unzip -o app.apk 'classes*.dex' -d <out-dir>/dex && $ANDROID_HOME/build-tools/<version>/dexdump <out-dir>/dex/classes*.dex | grep -c '<class path>'`.
 4. **Evidence** — what you'll read in Sentry (or on device) to tell the two runs apart, and what each run should show. See [references/evidence.md](references/evidence.md).
 5. **Build type** — release when the scenario needs a native crash (Android: `Sentry.nativeCrash()` only crashes in release; iOS: a debugger catches the crash first, so never run the scenario from Xcode) or when the PR is about release behavior; otherwise debug is fine.
 
@@ -46,7 +48,7 @@ If you can't state the evidence that would separate the two runs, stop and ask; 
 
 ### Gate: can this be verified on a device?
 
-Answer these before building. Any "no" ends the run with **Not verifiable this way** for that platform; write the report with the reason.
+Answer these before building. Any "no" ends the run with **Not verifiable this way** for that platform; write the short report (see the template) with the reason and what would verify it instead, and build nothing.
 
 - **Is the claim about runtime behavior?** Build fixes, dependency bumps, Metro/bundler config, type-only changes, and performance claims don't produce a difference in Sentry events. A run can only show nothing broke; say so instead of running.
 - **Can the trigger happen on a simulator/emulator?** For example, MetricKit reports, real-device hardware, OS-scheduled background work, and store-only behavior can't.
@@ -92,6 +94,7 @@ Keep the patch in a file; a shell variable holding the command breaks under zsh 
 - When `git apply -R --check` fails, fall back to the parent commit: `git checkout <merge-sha>^` (detached), `yarn install && yarn build`, build there, then return. Slower; record that you did it.
 - The sample bundles `packages/core/dist/`. Before the first sample build, run `yarn build` in `packages/core` if `dist/` is older than the last change to `packages/core/src` (`git log -1 --format=%cd -- packages/core/src`) — even for native-only PRs.
 - **JS changes** (`packages/core/src/`) need that `yarn build` on **both** sides.
+- **Android reuses a stale JS bundle.** Gradle's bundle task stays up to date after `packages/core/dist` changes, so the "with" APK ships the "without" JS and reads as **Failed**. After every `yarn build` in `packages/core`, force the re-bundle (see references/android.md), then confirm the APK has the side's code: `unzip -p samples/react-native/app.apk assets/index.android.bundle | grep -c '<string only the PR adds>'` is non-zero with the change and zero without it. Pick a string literal (a log message, an option name); identifiers are minified.
 - `yarn build` in `packages/core` rewrites the tracked `packages/core/android/libs/replay-stubs.jar`; the restore at the end covers it.
 - iOS: a native-only change is a ~45 s incremental rebuild on the "with" side; CocoaPods doesn't need reinstalling, because `RNSentry` is a local `:path` pod.
 
@@ -99,7 +102,7 @@ Keep the patch in a file; a shell variable holding the command breaks under zsh 
 
 Setup, build, install, and drive commands are in [references/android.md](references/android.md) and [references/ios.md](references/ios.md). The short version:
 
-- Android: full emulator image (e.g. `Pixel_8`), not an ATD image — ATD returns black screenshots. JDK 17, `SENTRY_DISABLE_AUTO_UPLOAD=true`, `yarn build-android-release`.
+- Android: full emulator image (e.g. `Pixel_8`), not an ATD image — ATD returns black screenshots. JDK 17, `SENTRY_DISABLE_AUTO_UPLOAD=true`, `yarn build-android-release`. Uninstall before every install: `adb install -r` can fail for space and leave the previous side's app running.
 - Prefer **release** builds. Debug builds load JS from whatever Metro is on port 8081 (another session's, if one is running), and the all-ABI debug APK may not fit on the emulator.
 - iOS: a booted simulator, Pods installed for the build you make (`yarn pod-install-release-static`), `SENTRY_DISABLE_AUTO_UPLOAD=true`, `yarn build-ios-release`.
 - Maestro needs JDK 17 on both platforms. With an emulator and a simulator both running, pass `--device <id>`.
@@ -133,13 +136,18 @@ Logs can't be searched by `verify.run_id`; put the run id in the log message (se
 
 Compare against the expectation from step 1. Unexpected extra differences go in the report.
 
+**Absences need a control, surprises need repeats.**
+
+- When the evidence is that something is missing (no event, no tag), add a control to the same run: an action on the same build whose event must arrive (e.g. the sample's "Uncaught Thrown Error" next to a new fatal path). A missing event with the control present is evidence; both missing is Inconclusive.
+- When a run surprises you (an expected event doesn't arrive, a side behaves differently from the claim), repeat it twice more with fresh run ids before deciding. Report the count ("delivered in 2 of 3 runs") and what differed between the runs in the device log, not one run's guess at the cause.
+
 ## 6. Report
 
 Write the report with [references/report-template.md](references/report-template.md) to a local file (scratchpad, or `samples/react-native/verify-reports/` if the maintainer wants it in the tree). Running as a subagent that can't write report files: return the full report text instead, and the parent saves it. Include the verdict, the claim, the exact scenario, both event links, screenshots, the sample diff if any, timings, and every problem hit. Then show it and ask before posting anywhere.
 
 Finally:
 
-- Restore the SDK sources with `git checkout -- packages/core` (this also restores `replay-stubs.jar`), or return from the detached parent checkout.
+- Restore the SDK sources with `git checkout -- packages/core` (this also restores `replay-stubs.jar`), or return from the detached parent checkout. If you ran `yarn build` in `packages/core`, run it again after the restore and then restore `replay-stubs.jar` once more (`git checkout -- packages/core/android/libs/replay-stubs.jar`): otherwise `dist/` stays on the last side you built.
 - iOS: restore what `pod install` rewrote: `git checkout -- samples/react-native/ios/sentryreactnativesample.xcodeproj samples/react-native/ios/sentryreactnativesample/PrivacyInfo.xcprivacy`. The ignored `Pods/` then no longer match the tracked project, which is why every iOS run reinstalls Pods first.
 - Shut down any simulator or emulator you booted (`xcrun simctl shutdown <udid>`, `adb -s <serial> emu kill`), and stop any Metro or helper server you started. Leave devices and servers you didn't start alone.
 - Remove the large build outputs you created if disk is short: `samples/react-native/{ios/DerivedData,ios/build,android/app/build,app.apk,sentryreactnativesample.app}` (all git-ignored).
