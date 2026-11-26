@@ -17,6 +17,7 @@ import getErrorsTab from './tabs/ErrorsTab';
 import getPerformanceTab from './tabs/PerformanceTab';
 import getPlaygroundTab from './tabs/PlaygroundTab';
 import { logWithoutTracing, shouldUseAutoStart } from './utils';
+import { tagVerifyRun } from './verifyRun';
 import NativePlatformSampleModule from '../tm/NativePlatformSampleModule';
 import NativeSampleModule from '../tm/NativeSampleModule';
 
@@ -210,6 +211,8 @@ Sentry.init({
   // No-op on the Old Architecture.
   enableTurboModuleTracking: true,
 });
+// Tags events with the `verify-pr` skill's run id, when launched with one.
+tagVerifyRun();
 
 function BottomTabsNavigator() {
   return (
