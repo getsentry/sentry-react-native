@@ -1,6 +1,6 @@
 import type { Event, Metric } from '@sentry/core';
 
-import { getClient, startInactiveSpan, timestampInSeconds } from '@sentry/core';
+import { getClient, startIdleSpan, startInactiveSpan, startSpanManual, timestampInSeconds } from '@sentry/core';
 
 import type { LongTaskOptions } from '../../src/js/integrations/longTask';
 import type { TestClient, TestClientOptions } from '../mocks/client';
@@ -158,13 +158,17 @@ describe('longTaskIntegration', () => {
 
     const observer = (): FakePerformanceObserver => FakePerformanceObserver.instances[0]!;
 
-    const endTransaction = async (startMs: number, endMs: number): Promise<Event | undefined> => {
-      startInactiveSpan({ name: 'Screen', forceTransaction: true, startTime: timeOriginSeconds + startMs / 1000 }).end(
-        timeOriginSeconds + endMs / 1000,
-      );
+    const at = (ms: number): number => timeOriginSeconds + ms / 1000;
+
+    const sentTransaction = async (): Promise<Event | undefined> => {
       const client = getClient<TestClient>();
       await client?.flush();
       return client?.eventQueue.find(event => event.type === 'transaction');
+    };
+
+    const endTransaction = async (startMs: number, endMs: number): Promise<Event | undefined> => {
+      startInactiveSpan({ name: 'Screen', forceTransaction: true, startTime: at(startMs) }).end(at(endMs));
+      return sentTransaction();
     };
 
     const longTaskSpans = (event: Event | undefined): unknown[] =>
@@ -176,11 +180,11 @@ describe('longTaskIntegration', () => {
       timeOriginSeconds = timestampInSeconds() - PERFORMANCE_NOW_MS / 1000;
     });
 
-    it('adds long tasks that start in the transaction as ui.long-task child spans', async () => {
+    it('adds long tasks that overlap the transaction as ui.long-task child spans', async () => {
       setup();
       observer().emitEntries(
+        { startTime: 700, duration: 300 },
         { startTime: 900, duration: 300 },
-        { startTime: 1_200, duration: 250 },
         { startTime: 1_900, duration: 400 },
         { startTime: 2_000, duration: 300 },
       );
@@ -191,15 +195,53 @@ describe('longTaskIntegration', () => {
         expect.objectContaining({
           description: 'JS thread blocked',
           op: 'ui.long-task',
-          origin: 'auto.react_native.long_task',
+          origin: 'auto.ui.long_task',
           parent_span_id: transaction?.contexts?.trace?.span_id,
-          start_timestamp: expect.closeTo(timeOriginSeconds + 1.2, 6),
-          timestamp: expect.closeTo(timeOriginSeconds + 1.45, 6),
+          start_timestamp: expect.closeTo(at(900), 6),
+          timestamp: expect.closeTo(at(1_200), 6),
+          data: expect.objectContaining({ 'thread.name': 'javascript' }),
         }),
         expect.objectContaining({
-          start_timestamp: expect.closeTo(timeOriginSeconds + 1.9, 6),
-          timestamp: expect.closeTo(timeOriginSeconds + 2.3, 6),
+          start_timestamp: expect.closeTo(at(1_900), 6),
+          timestamp: expect.closeTo(at(2_300), 6),
         }),
+      ]);
+    });
+
+    it('adds long tasks that the observer delivers while the transaction is open as child spans', async () => {
+      setup();
+
+      startSpanManual({ name: 'Screen', forceTransaction: true, startTime: at(1_000) }, span => {
+        observer().emitEntries({ startTime: 700, duration: 200 }, { startTime: 900, duration: 300 });
+        span.end(at(2_000));
+      });
+      const transaction = await sentTransaction();
+
+      expect(longTaskSpans(transaction)).toEqual([
+        expect.objectContaining({
+          description: 'JS thread blocked',
+          op: 'ui.long-task',
+          origin: 'auto.ui.long_task',
+          parent_span_id: transaction?.contexts?.trace?.span_id,
+          start_timestamp: expect.closeTo(at(900), 6),
+          timestamp: expect.closeTo(at(1_200), 6),
+          data: expect.objectContaining({ 'thread.name': 'javascript' }),
+        }),
+      ]);
+    });
+
+    it('keeps an idle transaction open for long tasks after its last child span', async () => {
+      setup();
+
+      const idleSpan = startIdleSpan({ name: 'Screen', startTime: at(1_000) });
+      startInactiveSpan({ name: 'child', startTime: at(1_000) }).end(at(1_500));
+      observer().emitEntries({ startTime: 1_600, duration: 300 });
+      idleSpan.end(at(3_000));
+      const transaction = await sentTransaction();
+
+      expect(transaction?.timestamp).toBeCloseTo(at(1_900), 6);
+      expect(longTaskSpans(transaction)).toEqual([
+        expect.objectContaining({ start_timestamp: expect.closeTo(at(1_600), 6) }),
       ]);
     });
 
@@ -210,7 +252,7 @@ describe('longTaskIntegration', () => {
       const transaction = await endTransaction(1_000, 2_000);
 
       expect(longTaskSpans(transaction)).toEqual([
-        expect.objectContaining({ start_timestamp: expect.closeTo(timeOriginSeconds + 1.5, 6) }),
+        expect.objectContaining({ start_timestamp: expect.closeTo(at(1_500), 6) }),
       ]);
       expect(beforeSendMetric).toHaveBeenCalledWith(expect.objectContaining({ value: 300 }));
     });
@@ -259,7 +301,7 @@ describe('longTaskIntegration', () => {
 
       expect(longTaskSpans(transaction)).toHaveLength(100);
       expect(longTaskSpans(transaction)[0]).toEqual(
-        expect.objectContaining({ start_timestamp: expect.closeTo(timeOriginSeconds + 1.001, 6) }),
+        expect.objectContaining({ start_timestamp: expect.closeTo(at(1_001), 6) }),
       );
     });
 

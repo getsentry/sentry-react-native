@@ -1,17 +1,35 @@
-import type { Client, Event, Integration } from '@sentry/core';
+import type { Client, Event, Integration, Span } from '@sentry/core';
 
-import { debug, hasSpansEnabled, metrics, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, timestampInSeconds } from '@sentry/core';
+import {
+  debug,
+  getActiveSpan,
+  getRootSpan,
+  hasSpansEnabled,
+  metrics,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  spanToJSON,
+  startInactiveSpan,
+  timestampInSeconds,
+} from '@sentry/core';
 
+import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../tracing/span';
 import { createSpanJSON } from '../tracing/utils';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 const INTEGRATION_NAME = 'LongTask';
 
-const ORIGIN = 'auto.react_native.long_task';
 const METRIC_NAME = 'react_native.long_task.duration';
-const METRIC_OPTIONS = { unit: 'millisecond', attributes: { [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: ORIGIN } };
+const METRIC_OPTIONS = {
+  unit: 'millisecond',
+  attributes: { [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto.react_native.long_task' },
+};
 const SPAN_OP = 'ui.long-task';
 const SPAN_NAME = 'JS thread blocked';
+const SPAN_ORIGIN = 'auto.ui.long_task';
+const SPAN_ATTRIBUTES = {
+  [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN,
+  [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
+};
 
 /** Caps the memory of long tasks kept for transactions that have not ended yet. */
 const MAX_BUFFERED_LONG_TASKS = 100;
@@ -42,8 +60,8 @@ interface LongTask {
 
 /**
  * Reports JS thread long tasks as the `react_native.long_task.duration` distribution metric,
- * independently of tracing. When tracing is enabled, it also adds the long tasks of each
- * transaction as `ui.long-task` child spans.
+ * independently of tracing. When tracing is enabled, it also adds the long tasks that overlap
+ * a transaction as `ui.long-task` child spans.
  *
  * Requires React Native 0.82 or newer on the New Architecture.
  * In other environments, the integration does nothing.
@@ -76,7 +94,7 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
           return;
         }
 
-        const record = (entries: ReadonlyArray<{ startTime: number; duration: number }>): void => {
+        const record = (entries: ReadonlyArray<{ startTime: number; duration: number }>, openRootSpan?: Span): void => {
           // Entry times use the `performance.now()` clock. Converting them relative to now matches span
           // timestamps also when the SDK ignores an unreliable `performance.timeOrigin`.
           const nowSeconds = timestampInSeconds();
@@ -89,9 +107,23 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
             if (reportMetrics) {
               metrics.distribution(METRIC_NAME, duration, METRIC_OPTIONS);
             }
-            if (reportSpans) {
-              const startTimestamp = nowSeconds - (nowMs - startTime) / 1000;
-              longTasks.push({ startTimestamp, endTimestamp: startTimestamp + duration / 1000 });
+            if (!reportSpans) {
+              continue;
+            }
+
+            const startTimestamp = nowSeconds - (nowMs - startTime) / 1000;
+            const endTimestamp = startTimestamp + duration / 1000;
+            if (openRootSpan && endTimestamp > spanToJSON(openRootSpan).start_timestamp) {
+              // A real child span keeps an idle transaction open, so it is not trimmed to its last child.
+              startInactiveSpan({
+                parentSpan: openRootSpan,
+                name: SPAN_NAME,
+                op: SPAN_OP,
+                startTime: startTimestamp,
+                attributes: SPAN_ATTRIBUTES,
+              }).end(endTimestamp);
+            } else {
+              longTasks.push({ startTimestamp, endTimestamp });
             }
           }
 
@@ -100,7 +132,7 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
           }
         };
 
-        const observer = new PerformanceObserver(list => record(list.getEntries()));
+        const observer = new PerformanceObserver(list => record(list.getEntries(), getOpenRootSpan()));
         observer.observe({ type: 'longtask', buffered: true });
         client.on('close', () => observer.disconnect());
 
@@ -131,17 +163,18 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
       }
 
       for (const { startTimestamp, endTimestamp } of longTasks) {
-        if (startTimestamp >= transactionStart && startTimestamp < transactionEnd) {
+        if (startTimestamp < transactionEnd && endTimestamp > transactionStart) {
           event.spans = event.spans ?? [];
           event.spans.push(
             createSpanJSON({
               op: SPAN_OP,
               description: SPAN_NAME,
-              origin: ORIGIN,
+              origin: SPAN_ORIGIN,
               start_timestamp: startTimestamp,
               timestamp: endTimestamp,
               trace_id: trace.trace_id,
               parent_span_id: trace.span_id,
+              data: { [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT },
             }),
           );
         }
@@ -150,4 +183,10 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
       return event;
     },
   };
+};
+
+const getOpenRootSpan = (): Span | undefined => {
+  const activeSpan = getActiveSpan();
+  const rootSpan = activeSpan && getRootSpan(activeSpan);
+  return rootSpan?.isRecording() ? rootSpan : undefined;
 };
