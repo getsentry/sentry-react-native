@@ -13,7 +13,7 @@ Android emulator and iOS simulator. Real devices and CI are out of scope for now
 - **Review questions** (optional): concerns from a code review, e.g. "does a non-fatal still go through the old path?". Each becomes an unchanged-behavior check (step 1.6), never a conclusion.
 - **Mode:**
   - **Full** (default): every step below.
-  - **Gate only**: the claim (step 1.1), the gate, then the rest of step 1 only if the gate passes. Nothing is built or changed; `git apply -R --check` with the patch in a scratch directory is fine. Returns the gate report from the template: *Not verifiable this way* with the reason, or *Verifiable* with the platforms, scenario and evidence a full run would use. Takes a few minutes; meant for a review or a cheap per-PR check.
+  - **Gate only**: the claim (step 1.1), the gate, then the rest of step 1 only if the gate passes. Nothing is built, checked out, or changed in the tree. Returns the gate report from the template: *Not verifiable this way* with the reason, or *Verifiable* with the platforms, scenario and evidence a full run would use. Takes a few minutes; meant for a review or a cheap per-PR check.
 - Note the start time when you begin; the report's timing counts from it.
 - Running as a subagent: return the report text as your answer; the caller saves it.
 
@@ -66,9 +66,13 @@ Answer these before building. Any "no" ends the run with **Not verifiable this w
 
 - **Is the claim about runtime behavior?** Build fixes, dependency bumps, Metro/bundler config, type-only changes, and performance claims don't produce a difference in Sentry events. A run can only show nothing broke; say so instead of running.
 - **Can the trigger happen on a simulator/emulator?** For example, MetricKit reports, real-device hardware, OS-scheduled background work, and store-only behavior can't.
-- **Do the bundled native SDKs have what the PR relies on?** Check the pinned versions on the checkout you'll build (`packages/core/RNSentry.podspec` `sentry_cocoa_version`, `packages/core/android/build.gradle` `sentryAndroidVersion`) against the release where the **path the PR uses** landed, which can be later than the API itself (e.g. an options-dictionary key). Find it with `gh release view <version> --repo getsentry/sentry-cocoa` (or `sentry-java`) and grep the notes for the native PR. A PR waiting on a native bump can't be built on that platform yet.
-- **Can the "without" side be built?** Save the PR's SDK patch (step 2) and run `git apply -R --check` on it. If it fails, the slower parent-commit fallback applies; say so in the plan.
+- **Do the bundled native SDKs have what the PR relies on?** Check the pinned versions on the checkout you'll build (`packages/core/RNSentry.podspec` `sentry_cocoa_version`, `packages/core/android/build.gradle` `sentryAndroidVersion`) against the release where the **path the PR uses** landed, which can be later than the API itself (e.g. an options-dictionary key). Find it with `gh release view <version> --repo getsentry/sentry-cocoa` (or `sentry-java`) and grep the notes for the native PR. A PR waiting on a native bump can't be built on that platform yet. For an open PR in gate-only mode, read the head's files without checking it out: `git fetch origin pull/<N>/head` then `git show FETCH_HEAD:<path>`.
 - **Is there enough disk?** `df -h /System/Volumes/Data` — stop under ~15 GB free. Clean iOS and Android sample builds together take ~13 GB. Skip this one in gate-only mode: it's about this machine, not the PR.
+
+Not a gate question, but part of the plan (in gate-only mode too): **how the "without" side will be built.**
+
+- Open PR: the head with its own diff reversed. That always applies, so there's nothing to check.
+- Merged PR: save the merge commit's SDK patch (step 2) and run `git apply -R --check` on the current checkout. It's read-only. If it fails, plan the slower parent-commit fallback. Either way the run goes ahead.
 
 ### Feature PRs
 

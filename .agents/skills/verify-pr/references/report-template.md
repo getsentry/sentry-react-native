@@ -7,7 +7,7 @@ Keep it short. Fill every section; write "none" rather than dropping one.
 
 > **<Verdict>** on <platforms>. <Claim in one sentence.>
 > Without the change: [<event id>](<url>) — <what it showed>. With it: [<event id>](<url>) — <what it showed>.
-> Also checked, unchanged: <the paths, or "none">. Not covered: <the short list>.
+> Also checked: <"2 same" | "1 same, 1 changed: <what>" | "none planned">. Not covered: <the short list>.
 
 **Claim:** <one sentence: what was broken or missing, what should be true now>
 **Claim source:** <the linked issue #<M> | the PR (no linked issue)>. <What of the issue the PR leaves out, or "the PR covers the issue">
@@ -105,7 +105,6 @@ For a run the gate stopped, and for every **gate-only** run. Nothing was built.
 | Runtime behavior? | <yes / no: why> |
 | Trigger possible on a simulator/emulator? | <yes / no: why> |
 | Native APIs in the pinned SDKs? | <yes / no: the pinned version and where the path the PR uses landed> |
-| "Without" side buildable? | <the reverse patch applies / needs the parent commit> |
 | Enough disk? | <yes / no / not checked (gate-only)> |
 
 ## <If verifiable: Planned run | If not: What would verify it>
