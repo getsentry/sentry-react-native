@@ -26,19 +26,28 @@ yarn build-android-debug     # needs Metro: `yarn start`
 
 - `*-legacy` variants build the Old Architecture. Verify on the architecture the claim is about; when it's both, run both.
 - Build time depends on the Gradle cache: ~5–6 min with a cold cache, 15–40 s with a warm one, including after a native-only change.
-- JS SDK changes: `cd packages/core && yarn build` first, on both sides.
+- JS SDK changes: `cd packages/core && yarn build` first, on both sides. Then force the JS re-bundle, because Gradle doesn't see `packages/core/dist` as an input and keeps the previous side's bundle:
+
+  ```bash
+  cd samples/react-native/android/app/build
+  rm -rf generated/assets/react/release generated/res/react/release \
+    generated/sourcemaps/react/release intermediates/sourcemaps/react/release
+  ```
+
+  (or build with `./gradlew :app:assembleRelease --rerun-tasks`, which is much slower). Check the bundle in the APK afterwards (SKILL.md step 2).
 - Run builds in the background and wait for them to finish; don't poll.
 
 ## Install and launch
 
 ```bash
-adb install -r samples/react-native/app.apk
+adb uninstall io.sentry.reactnative.sample
+adb install samples/react-native/app.apk     # check it prints "Success"
 adb shell am start -n io.sentry.reactnative.sample/.MainActivity \
   -e verifyPr <N> -e verifyCommit <sha> -e verifyRunId <id>
 ```
 
 `adb shell monkey -p <pkg> -c android.intent.category.LAUNCHER 1` doesn't start this app; use `am start`.
-Use `adb uninstall io.sentry.reactnative.sample` before switching between debug and release (different signatures).
+Uninstall first every time: `adb install -r` can fail for lack of space (`INSTALL_FAILED_INSUFFICIENT_STORAGE`) and leave the previous side's app installed, and debug and release builds have different signatures.
 
 ## Drive the UI with Maestro
 
@@ -55,7 +64,8 @@ maestro test \
 - Screenshots from `takeScreenshot: <name>` land in `<out-dir>/screenshots/<name>.png`.
 - Maestro matches text case-insensitively (Android upper-cases button labels) and scrolls with `scrollUntilVisible`.
 - `scrollUntilVisible.direction` can't come from a variable. A pushed screen keeps the list's scroll offset when you go back, so scroll **UP** to buttons near the top after a `back`.
-- After a crash, relaunch with `clearState: false` so the stored event is sent (`steps/native-crash-and-relaunch.yml`).
+- After a crash, relaunch with `clearState: false` so the stored event is sent (`steps/native-crash-and-relaunch.yml`). Wait for the crashed app's UI to go first, pass the run tags again, and wait for the tab bar before a screenshot; a screenshot taken right after `launchApp` is blank.
+- Whether the crashed process survives a moment (a crash dialog) or is killed at once changes what an in-flight envelope does. When a crash event goes missing, check `ActivityManager` lines in logcat (`Showing crash dialog` vs `has died`) before blaming the change. For a JS fatal this is down to the sample's debuggable release build, which skips the SDK's synchronous write (SKILL.md step 1.5, #7113).
 - Maestro's log prints `${VAR}` unexpanded in launch arguments and in `runFlow` env values (e.g. `Tap on "${BUTTON}"`); the values are still applied. Confirm in logcat (`grep '"verify.run_id"'`).
 - Maestro has no plain sleep. When the evidence is batched (logs), wait in the shell after `maestro test` returns, with the app still running.
 

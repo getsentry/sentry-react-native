@@ -16,6 +16,8 @@ Choose the signal that differs between the two runs, and write the expectation f
 | Replays | The replay on the run's event | the event's `replays.attached` field; `get_replay_details` for the timeline |
 | Replay recording content (touches, frames) | The rrweb events in each segment. The MCP's replay timeline shows only breadcrumbs (e.g. `tap`), not recorded touch positions | Android with `debug: true`: logcat holds each segment's full rrweb JSON (touches are `type 3`, `source 2`). Android Spotlight doesn't forward replay envelopes |
 | A JS-thread block or hang | The hang event; a device-log line the scenario prints after the block | screenshots show only the tap |
+| Trace linking between the JS and native layers | `contexts.trace.trace_id` of a JS event and a native event (e.g. a native crash) from the **same run**: equal or different | open both events; logcat (`debug: true`) shows the native scope's trace at startup and when it changes |
+| Native SDK started without the React Native setup | The native event's `sdk.name` (`sentry.java.android.react-native` / `sentry.cocoa.react-native` when the React Native options were applied, the plain native name when not) and React Native tags such as `event.origin` | the event detail; logcat for errors from the options callback during init |
 | Option mapping, native init | The **resolved option on device**, logged by the scenario (e.g. `ScopesAdapter.getInstance().getOptions().getLogs().isEnabled()`); the option's effect in Sentry is secondary | logcat, or put the value in the message/tag the run sends. Mind the sample's init path (SKILL.md step 1.3) |
 | Performance (startup, allocation) | Usually not checkable end to end on an emulator | Say so and mark **Inconclusive** rather than measuring noise |
 
@@ -56,6 +58,7 @@ Org `sentry-sdks`, region `https://us.sentry.io`, project `sentry-react-native`.
 
 - **Discover can't tell missing from empty.** A `tags[x]` column shows `""` for both. In the event detail, a tag the SDK sent as `""` appears with `value: null` (ingestion dropped it); a tag never sent is absent.
 - **Processing errors aren't visible through the MCP.** The event's `errors` list (e.g. "Discarded invalid value") isn't returned. Use indirect evidence (a `null` tag value) and say so in the report. Reading it needs a token with `event:read`.
+- **Dropped by the sample's filter.** `ignoreErrors` in the sample's `App.tsx` drops messages containing "should" or the digit 2; a missing event may never have been sent.
 - **Stale events.** The sample keeps unsent envelopes across launches. Use a fresh run id per attempt and launch with `clearState: true`.
 - **Grouping.** Both runs' events may land in the same, long-lived issue, and the same scenario groups differently per platform (`Sentry.nativeCrash()` is a Java `RuntimeException` on Android and an `EXC_BAD_ACCESS` on iOS). Link the **events**, not the issue.
 - **Attachment download URLs carry a token** (`os_auth=`). Copy the image next to the report and never paste the URL into a report: the repos are public.

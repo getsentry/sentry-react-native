@@ -1,5 +1,7 @@
 # Clean launch with the run tags (see samples/react-native/src/verifyRun.ts).
 # Pass VERIFY_PR, VERIFY_COMMIT and VERIFY_RUN_ID with `maestro test -e`.
+# A cold release start can take well over 10 s on an emulator, so wait for
+# the tab bar instead of a fixed delay.
 appId: io.sentry.reactnative.sample
 ---
 - launchApp:
@@ -9,5 +11,9 @@ appId: io.sentry.reactnative.sample
       verifyPr: ${VERIFY_PR}
       verifyCommit: ${VERIFY_COMMIT}
       verifyRunId: ${VERIFY_RUN_ID}
+- extendedWaitUntil:
+    visible:
+      id: 'errors-tab-icon'
+    timeout: 60000
 - waitForAnimationToEnd:
     timeout: 2000
