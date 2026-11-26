@@ -64,6 +64,20 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
   },
+  // Neither text nor an image, so only `Sentry.Mask` can mask it. Two colors,
+  // so a masked probe (one flat color) can't be mistaken for an unmasked one.
+  maskProbe: {
+    flexDirection: 'row',
+    height: 40,
+  },
+  maskProbeLeft: {
+    flex: 1,
+    backgroundColor: '#ff00ff',
+  },
+  maskProbeRight: {
+    flex: 1,
+    backgroundColor: '#00ff00',
+  },
 });
 
 const Separator = () => <View style={styles.separator} />;
@@ -178,6 +192,10 @@ export default function getPlaygroundTab() {
                           This is masked always because it's a child of a
                           Sentry.Mask
                         </Text>
+                        <View style={styles.maskProbe}>
+                          <View style={styles.maskProbeLeft} />
+                          <View style={styles.maskProbeRight} />
+                        </View>
                         <Sentry.Unmask>
                           {/* Sentry.Unmask does not override the Sentry.Mask from above in the hierarchy */}
                           <Text>
@@ -188,6 +206,15 @@ export default function getPlaygroundTab() {
                       </Sentry.Mask>
                     </Sentry.Unmask>
                   </View>
+                  <Button
+                    testID="capture-masked-exception-button"
+                    title="Capture exception with masks"
+                    onPress={() => {
+                      Sentry.captureException(
+                        new Error('Playground: screenshot masking'),
+                      );
+                    }}
+                  />
                   <Text>Text:</Text>
                   <Text>{'This is <Text>'}</Text>
                   <View style={styles.space} />

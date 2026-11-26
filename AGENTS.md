@@ -141,7 +141,7 @@ The deep, task-specific guidance lives in `.agents/skills/` (registered in `agen
 | `test-guidelines` | Writing, modifying, or reviewing Jest tests, fixtures, and mocks. |
 | `review` | A three-axis (Standards / Spec / Correctness) pass on a branch or PR before opening or merging. |
 | `diagnosing-bugs` | A hard bug, flaky test, CI hang, native crash, or perf regression — builds a red-capable loop before hypothesizing. |
-| `verify-pr` | Verifying a PR end to end on an Android emulator against real Sentry — runs the sample without and with the change and writes a draft before/after report. |
+| `verify-pr` | Verifying a PR end to end on an Android emulator or iOS simulator against real Sentry — runs the sample without and with the change and writes a draft before/after report. |
 
 Warden's automated PR review and `agents.toml` also pull **remote** specialists (`security-review`, `gha-security-review`, `span-convention-review`, and more) — invoke those for depth beyond the local pass.
 

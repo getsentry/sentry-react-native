@@ -10,7 +10,7 @@
 | Source maps upload | `export SENTRY_DISABLE_AUTO_UPLOAD=true` for release builds. The local token can't upload, and verification doesn't need it. |
 | Sentry | The Sentry MCP with read access to `sentry-sdks`. `sentry-cli` can't read events (no `api` command, `org:ci` token). |
 
-Start an emulator if none is running: `emulator -avd Pixel_8 -no-snapshot-save &`, then `adb wait-for-device`.
+Start an emulator if none is running: `emulator -avd Pixel_8 -no-snapshot-save &`, then `adb wait-for-device`. If another session's emulator (e.g. an ATD image) is already running, boot `Pixel_8` next to it and pass `-s <serial>` to `adb` and `--device <serial>` to Maestro.
 
 ## Build
 
@@ -20,6 +20,9 @@ From `samples/react-native`:
 yarn build-android-release   # → samples/react-native/app.apk (New Architecture)
 yarn build-android-debug     # needs Metro: `yarn start`
 ```
+
+- These scripts **drop extra arguments**: `-P…` flags never reach Gradle. For Gradle properties, call `./gradlew :app:assembleRelease -P…` in `samples/react-native/android` directly.
+- Debug builds load JS from port 8081 on the host (`10.0.2.2:8081`); `adb reverse` doesn't change that on an emulator. If another Metro holds 8081, build with `-PreactNativeDevServerPort=<port>` and `yarn start --port <port>`, or use a release build.
 
 - `*-legacy` variants build the Old Architecture. Verify on the architecture the claim is about; when it's both, run both.
 - Build time depends on the Gradle cache: ~5–6 min with a cold cache, 15–40 s with a warm one, including after a native-only change.
