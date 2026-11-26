@@ -3,6 +3,8 @@ import type { Client, Event, EventHint, Integration, StartSpanOptions } from '@s
 import { instrumentOutgoingRequests } from '@sentry/browser';
 import { debug, getClient } from '@sentry/core';
 
+import type { ReactNativeClient } from '../client';
+
 import { isExpoFetchEnabled, isResourceTimingSupported, isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { getTransactionEventDiscardReason } from './onSpanEndUtils';
@@ -187,6 +189,7 @@ export const reactNativeTracingIntegration = (
     state,
     setCurrentRoute: (route: string) => {
       state.currentRoute = route;
+      getClient<ReactNativeClient>()?.emit('currentRouteChange', route);
     },
   };
 };

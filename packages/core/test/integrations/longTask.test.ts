@@ -1,15 +1,19 @@
 import type { Metric } from '@sentry/core';
 
-import { getClient } from '@sentry/core';
+import { getClient, startInactiveSpan } from '@sentry/core';
+import { AppState } from 'react-native';
 
 import type { LongTaskOptions } from '../../src/js/integrations/longTask';
 import type { TestClientOptions } from '../mocks/client';
 
 import { longTaskIntegration } from '../../src/js/integrations/longTask';
+import { _clearAppStartEndData, _setAppStartEndData } from '../../src/js/tracing/integrations/appStart';
+import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { setupTestClient } from '../mocks/client';
 
-type EntriesCallback = (list: { getEntries: () => Array<{ duration: number }> }) => void;
+type Entry = { startTime: number; duration: number };
+type EntriesCallback = (list: { getEntries: () => Entry[] }) => void;
 
 class FakePerformanceObserver {
   public static supportedEntryTypes: ReadonlyArray<string> = ['longtask'];
@@ -23,7 +27,11 @@ class FakePerformanceObserver {
   }
 
   public emit(...durations: number[]): void {
-    this.callback({ getEntries: () => durations.map(duration => ({ duration })) });
+    this.emitEntries(...durations.map(duration => ({ startTime: 0, duration })));
+  }
+
+  public emitEntries(...entries: Entry[]): void {
+    this.callback({ getEntries: () => entries });
   }
 }
 
@@ -39,12 +47,15 @@ describe('longTaskIntegration', () => {
     FakePerformanceObserver.supportedEntryTypes = ['longtask'];
     FakePerformanceObserver.instances = [];
     RN_GLOBAL_OBJ.PerformanceObserver = FakePerformanceObserver;
+    _setAppStartEndData({ timestampMs: 0, endFrames: null });
   });
 
   afterEach(() => {
     getClient()?.close();
     delete RN_GLOBAL_OBJ.PerformanceObserver;
+    _clearAppStartEndData();
     jest.restoreAllMocks();
+    jest.useRealTimers();
   });
 
   it('observes buffered long tasks', () => {
@@ -156,6 +167,158 @@ describe('longTaskIntegration', () => {
     };
 
     expect(() => setup()).not.toThrow();
+  });
+
+  describe('context at the start of the task', () => {
+    const START_MS = 1_700_000_000_000;
+    let nowMs: number;
+
+    const observer = (): FakePerformanceObserver => FakePerformanceObserver.instances[0]!;
+    const at = (ms: number): number => (START_MS + ms) / 1000;
+    const advanceTo = (ms: number): void => {
+      nowMs = ms;
+    };
+    const metricAttributes = (): Array<Record<string, unknown> | undefined> =>
+      beforeSendMetric.mock.calls.map(([metric]) => metric.attributes);
+    const changeAppState = (state: string): void => {
+      const listener = (AppState.addEventListener as jest.Mock).mock.calls.at(-1)?.[1];
+      listener(state);
+    };
+
+    beforeEach(() => {
+      nowMs = 0;
+      jest.spyOn(performance, 'now').mockImplementation(() => nowMs);
+      jest.spyOn(Date, 'now').mockImplementation(() => START_MS + nowMs);
+      (AppState as { currentState: string }).currentState = 'active';
+    });
+
+    it('adds the route at the start of each task', () => {
+      const tracing = reactNativeTracingIntegration();
+      setup(undefined, { integrations: [tracing, longTaskIntegration()] });
+
+      advanceTo(1_000);
+      tracing.setCurrentRoute('Home');
+      advanceTo(2_000);
+      tracing.setCurrentRoute('Settings');
+      advanceTo(5_000);
+      observer().emitEntries(
+        { startTime: 500, duration: 300 },
+        { startTime: 1_500, duration: 300 },
+        {
+          startTime: 2_500,
+          duration: 300,
+        },
+      );
+
+      expect(metricAttributes()).toEqual([
+        expect.not.objectContaining({ route: expect.anything() }),
+        expect.objectContaining({ route: 'Home' }),
+        expect.objectContaining({ route: 'Settings' }),
+      ]);
+    });
+
+    it('adds the foreground state at the start of each task', () => {
+      setup();
+
+      advanceTo(2_000);
+      changeAppState('background');
+      advanceTo(5_000);
+      observer().emitEntries({ startTime: 1_500, duration: 300 }, { startTime: 2_500, duration: 300 });
+
+      expect(metricAttributes()).toEqual([
+        expect.objectContaining({ 'app.in_foreground': true }),
+        expect.objectContaining({ 'app.in_foreground': false }),
+      ]);
+    });
+
+    it('does not add the foreground state when the app state is unknown', () => {
+      (AppState as { currentState: string }).currentState = 'unknown';
+      setup();
+
+      observer().emitEntries({ startTime: 0, duration: 300 });
+
+      expect(metricAttributes()).toEqual([expect.not.objectContaining({ 'app.in_foreground': expect.anything() })]);
+    });
+
+    it('adds the name and op of the root span at the start of each task', () => {
+      setup();
+
+      startInactiveSpan({ name: 'Home', op: 'navigation', forceTransaction: true, startTime: at(1_000) }).end(
+        at(2_000),
+      );
+      advanceTo(5_000);
+      observer().emitEntries({ startTime: 1_500, duration: 300 }, { startTime: 2_500, duration: 300 });
+
+      expect(metricAttributes()).toEqual([
+        expect.objectContaining({ 'sentry.segment.name': 'Home', 'sentry.op': 'navigation' }),
+        expect.anything(),
+      ]);
+      expect(metricAttributes()[1]).not.toHaveProperty('sentry.segment.name');
+      expect(metricAttributes()[1]).not.toHaveProperty('sentry.op');
+    });
+
+    it('adds the app start phase of each task', () => {
+      _setAppStartEndData({ timestampMs: START_MS + 2_000, endFrames: null });
+      setup();
+
+      advanceTo(5_000);
+      observer().emitEntries({ startTime: 1_500, duration: 300 }, { startTime: 2_500, duration: 300 });
+
+      expect(metricAttributes()).toEqual([
+        expect.objectContaining({ 'app.start_phase': 'app_start' }),
+        expect.objectContaining({ 'app.start_phase': 'steady_state' }),
+      ]);
+    });
+
+    describe('before the app start ends', () => {
+      beforeEach(() => {
+        _clearAppStartEndData();
+      });
+
+      it('reports the waiting tasks with the phase when the app start ends', () => {
+        setup();
+        advanceTo(1_000);
+        observer().emitEntries({ startTime: 500, duration: 300 });
+
+        expect(beforeSendMetric).not.toHaveBeenCalled();
+
+        advanceTo(2_000);
+        _setAppStartEndData({ timestampMs: START_MS + 2_000, endFrames: null });
+
+        expect(metricAttributes()).toEqual([expect.objectContaining({ 'app.start_phase': 'app_start' })]);
+      });
+
+      it('reports the waiting tasks without the phase after the deadline', () => {
+        jest.useFakeTimers({ doNotFake: ['Date', 'performance'] });
+        setup();
+        observer().emitEntries({ startTime: 0, duration: 300 });
+
+        jest.advanceTimersByTime(30_000);
+        observer().emitEntries({ startTime: 100, duration: 300 });
+
+        expect(metricAttributes()).toEqual([
+          expect.not.objectContaining({ 'app.start_phase': expect.anything() }),
+          expect.not.objectContaining({ 'app.start_phase': expect.anything() }),
+        ]);
+      });
+
+      it('reports the oldest waiting task without the phase when more than 50 tasks wait', () => {
+        setup();
+        observer().emitEntries(...Array.from({ length: 51 }, (_, index) => ({ startTime: index, duration: 300 })));
+
+        expect(beforeSendMetric).toHaveBeenCalledTimes(1);
+        expect(metricAttributes()[0]).not.toHaveProperty('app.start_phase');
+      });
+
+      it('reports the waiting tasks when the client closes', async () => {
+        setup();
+        observer().emitEntries({ startTime: 0, duration: 300 });
+
+        await getClient()?.close();
+
+        expect(beforeSendMetric).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   it('disconnects the observer when the client closes', async () => {
