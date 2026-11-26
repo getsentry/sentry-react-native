@@ -43,6 +43,7 @@ Write down, before touching anything:
    - **Build-configuration claims** (a module excluded, a Gradle property, a Pod subspec): make the change in the sample's build files, then confirm it took effect in the built app before running, e.g. Android: `unzip -o app.apk 'classes*.dex' -d <out-dir>/dex && $ANDROID_HOME/build-tools/<version>/dexdump <out-dir>/dex/classes*.dex | grep -c '<class path>'`.
 4. **Evidence** — what you'll read in Sentry (or on device) to tell the two runs apart, and what each run should show. See [references/evidence.md](references/evidence.md).
 5. **Build type** — release when the scenario needs a native crash (Android: `Sentry.nativeCrash()` only crashes in release; iOS: a debugger catches the crash first, so never run the scenario from Xcode) or when the PR is about release behavior; otherwise debug is fine.
+   - Android: the sample's `release` build type sets `debuggable true` (`android/app/build.gradle`), so the SDK skips the synchronous hard-crash write (#6937) and queues a JS fatal instead. The event is then delivered only when the process outlives the crash (crash dialog shown), never when the OS kills it at once (#7113). For a claim about fatal delivery, build with `debuggable false`. `run-as` doesn't work on that build, so read the cache from in-app logs.
 
 If you can't state the evidence that would separate the two runs, stop and ask; the run would prove nothing.
 
