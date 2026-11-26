@@ -1,11 +1,21 @@
 ---
 name: verify-pr
-description: Verify a merged or open PR end to end the way a maintainer does — run the sample app on an Android emulator or iOS simulator without the change and with it, find both runs' events in the shared `sentry-sdks` org, and write a before/after draft report. Use when asked to "verify PR #N", "check that the fix works on device", "reproduce the bug and confirm the fix", or to replay an older fix against real Sentry. Android and iOS (simulator).
+description: Verify a merged or open PR end to end the way a maintainer does — run the sample app on an Android emulator or iOS simulator without the change and with it, find both runs' events in the shared `sentry-sdks` org, and write a before/after draft report. Use when asked to "verify PR #N", "check that the fix works on device", "reproduce the bug and confirm the fix", or to replay an older fix against real Sentry. A gate-only mode answers "can PR #N be verified on a device?" in minutes without building. Android and iOS (simulator).
 ---
 
 Verify one PR on an Android emulator or iOS simulator against real Sentry. The output is a **draft report** showing the claim's symptom **without** the change and its absence (or the feature's presence) **with** it, linked to both runs' Sentry events.
 
 Android emulator and iOS simulator. Real devices and CI are out of scope for now. Verify on every platform the PR's native changes touch (`packages/core/android/`, `packages/core/ios/`); a JS-only change needs one platform unless the claim is platform-specific.
+
+## Inputs and modes
+
+- **PR number** (required).
+- **Review questions** (optional): concerns from a code review, e.g. "does a non-fatal still go through the old path?". Each becomes an unchanged-behavior check (step 1.6), never a conclusion.
+- **Mode:**
+  - **Full** (default): every step below.
+  - **Gate only**: the claim (step 1.1), the gate, then the rest of step 1 only if the gate passes. Nothing is built or changed; `git apply -R --check` with the patch in a scratch directory is fine. Returns the gate report from the template: *Not verifiable this way* with the reason, or *Verifiable* with the platforms, scenario and evidence a full run would use. Takes a few minutes; meant for a review or a cheap per-PR check.
+- Note the start time when you begin; the report's timing counts from it.
+- Running as a subagent: return the report text as your answer; the caller saves it.
 
 ## Rules
 
@@ -33,8 +43,8 @@ Read the PR and anything it links: `gh pr view <N> --json title,body,mergeCommit
 
 Write down, before touching anything:
 
-1. **Claim** — one sentence: what was broken (or missing) and what should be true now.
-2. **Platform** — which platforms the claim affects: Android, iOS, or both. Run each one. A platform the PR doesn't touch and the claim doesn't affect is **not applicable**; say so on the report's Platform line (it isn't a verdict).
+1. **Claim** — one sentence: what was broken (or missing) and what should be true now. Take it from the **linked issue**'s problem statement and repro, not from the PR description: the issue says what users hit, the PR says what the author fixed. Build the scenario from the issue's repro. When the PR fixes something narrower or different from the issue, verify the PR's claim and say in the report what of the issue it leaves out. With no linked issue, use the PR and say so.
+2. **Platform** — which platforms the claim affects: Android, iOS, or both. Run each one. A JS-only change whose effect goes through a bridge method that each platform handles differently (e.g. one applies fields the other ignores) affects both. A platform the PR doesn't touch and the claim doesn't affect is **not applicable**; say so on the report's Platform line (it isn't a verdict).
 3. **Scenario** — the user actions in `samples/react-native` that produce the symptom. Search the sample's screens (`src/Screens/`, `src/tabs/`) for a way to trigger the symptom, and write the scenario for this run. Add a sample button only if none exists. Leave it in the working tree next to its flow and list it in the report; the maintainer decides whether it's committed. A flow must never point at a button that isn't in the tree.
    - **How the sample starts the native SDK matters.** By default both platforms start the native SDK from `samples/react-native/sentry.options.json` (`RNSentrySDK.init` / `[RNSentrySDK start]`), and JS `Sentry.init` runs with `autoInitializeNativeSdk: false`. Options set in `App.tsx` don't reach the native SDK. For native option claims, set the option in `sentry.options.json` (and say so in the report).
      - iOS: the `sentryDisableNativeStart: true` launch argument switches to JS init (the iOS e2e tests use it).
@@ -45,16 +55,20 @@ Write down, before touching anything:
 5. **Build type** — release when the scenario needs a native crash (Android: `Sentry.nativeCrash()` only crashes in release; iOS: a debugger catches the crash first, so never run the scenario from Xcode) or when the PR is about release behavior; otherwise debug is fine.
    - Android: the sample's `release` build type sets `debuggable true` (`android/app/build.gradle`), so the SDK skips the synchronous hard-crash write (#6937) and queues a JS fatal instead. The event is then delivered only when the process outlives the crash (crash dialog shown), never when the OS kills it at once (#7113). For a claim about fatal delivery, build with `debuggable false`. `run-as` doesn't work on that build, so read the cache from in-app logs.
 
+6. **Also check** — up to two nearby paths the diff touches besides the fix (another caller, the other branch of a new condition, a new option left at its default), each expected to give the **same** evidence on both builds. Add the review questions here. How to pick and report them: [references/review-checks.md](references/review-checks.md).
+7. **Not covered** — what this run won't show: the other architecture, other React Native versions, real devices, debug builds, a platform not run, paths from step 6 you skipped.
+
 If you can't state the evidence that would separate the two runs, stop and ask; the run would prove nothing.
 
 ### Gate: can this be verified on a device?
 
-Answer these before building. Any "no" ends the run with **Not verifiable this way** for that platform; write the short report (see the template) with the reason and what would verify it instead, and build nothing.
+Answer these before building. Any "no" ends the run with **Not verifiable this way** for that platform; write the gate report (see the template) with the reason and what would verify it instead, and build nothing. In **gate-only** mode, stop after the gate either way and write the gate report.
 
 - **Is the claim about runtime behavior?** Build fixes, dependency bumps, Metro/bundler config, type-only changes, and performance claims don't produce a difference in Sentry events. A run can only show nothing broke; say so instead of running.
 - **Can the trigger happen on a simulator/emulator?** For example, MetricKit reports, real-device hardware, OS-scheduled background work, and store-only behavior can't.
-- **Do the bundled native SDKs have the APIs the PR calls?** Check the pinned versions (`packages/core/RNSentry.podspec` `sentry_cocoa_version`, `packages/core/android/build.gradle` `sentryAndroidVersion`) against where the API was released. A PR waiting on a native bump can't be built on that platform yet.
-- **Is there enough disk?** `df -h /System/Volumes/Data` — stop under ~15 GB free. Clean iOS and Android sample builds together take ~13 GB.
+- **Do the bundled native SDKs have what the PR relies on?** Check the pinned versions on the checkout you'll build (`packages/core/RNSentry.podspec` `sentry_cocoa_version`, `packages/core/android/build.gradle` `sentryAndroidVersion`) against the release where the **path the PR uses** landed, which can be later than the API itself (e.g. an options-dictionary key). Find it with `gh release view <version> --repo getsentry/sentry-cocoa` (or `sentry-java`) and grep the notes for the native PR. A PR waiting on a native bump can't be built on that platform yet.
+- **Can the "without" side be built?** Save the PR's SDK patch (step 2) and run `git apply -R --check` on it. If it fails, the slower parent-commit fallback applies; say so in the plan.
+- **Is there enough disk?** `df -h /System/Volumes/Data` — stop under ~15 GB free. Clean iOS and Android sample builds together take ~13 GB. Skip this one in gate-only mode: it's about this machine, not the PR.
 
 ### Feature PRs
 
@@ -135,7 +149,9 @@ Look the evidence up in `sentry-sdks` (region `https://us.sentry.io`, project `s
 
 Logs can't be searched by `verify.run_id`; put the run id in the log message (see evidence.md).
 
-Compare against the expectation from step 1. Unexpected extra differences go in the report.
+Compare against the expectation from step 1. Unexpected extra differences go in the report. Check the step 1.6 paths the same way: same evidence on both sides, or describe the change.
+
+When the PR adds or changes a field the SDK sends (`mechanism.type`, `handled`, a span op or origin, an attribute name), compare the value in the "with" event with the published spec and write a spec note: [references/review-checks.md](references/review-checks.md#spec-notes). Notes don't affect the verdict.
 
 **Absences need a control, surprises need repeats.**
 
@@ -144,7 +160,7 @@ Compare against the expectation from step 1. Unexpected extra differences go in 
 
 ## 6. Report
 
-Write the report with [references/report-template.md](references/report-template.md) to a local file (scratchpad, or `samples/react-native/verify-reports/` if the maintainer wants it in the tree). Running as a subagent that can't write report files: return the full report text instead, and the parent saves it. Include the verdict, the claim, the exact scenario, both event links, screenshots, the sample diff if any, timings, and every problem hit. Then show it and ask before posting anywhere.
+Write the report with [references/report-template.md](references/report-template.md) to a local file (scratchpad, or `samples/react-native/verify-reports/` if the maintainer wants it in the tree). Running as a subagent that can't write report files: return the full report text instead, and the parent saves it. Include the verdict, the claim, the exact scenario, both event links, screenshots, the sample diff if any, timings, and every problem hit. Start with the **summary block**: a few lines a maintainer can paste into the PR (verdict, claim, the two event links, what's not covered). Then show it and ask before posting anywhere.
 
 Finally:
 
