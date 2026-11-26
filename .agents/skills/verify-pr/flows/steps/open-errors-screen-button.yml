@@ -1,0 +1,10 @@
+# Scrolls the Errors tab down to a button and taps it. Pass BUTTON.
+# Maestro can't parameterize `direction`: when the list was already scrolled
+# past the button (a pushed screen keeps the offset), scroll UP inline instead.
+appId: io.sentry.reactnative.sample
+---
+- scrollUntilVisible:
+    element: ${BUTTON}
+    direction: DOWN
+    timeout: 15000
+- tapOn: ${BUTTON}

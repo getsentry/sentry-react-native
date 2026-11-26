@@ -1,0 +1,56 @@
+# Evidence: what to check and how to find it
+
+## Pick the evidence first
+
+Choose the signal that differs between the two runs, and write the expectation for each side before running.
+
+| Claim is about… | Evidence | How to look it up |
+|---|---|---|
+| Event content (tags, contexts, extras, stack trace, mechanism) | The error event of each run | `search_errors` by `verify.run_id`, then open the event (below) |
+| A crash the change prevents | A crash event without the change; none with it, **plus** proof the scenario ran (screenshot, logcat line, a later event from the same run) | `search_errors` by run id; `adb logcat -d \| grep "FATAL EXCEPTION"` |
+| Logs | Log entries of each run | `search_logs` (recipe below). Delivery alone may not separate the runs: in the #6967 run, a native `Sentry.logger()` call was delivered with logs disabled |
+| Spans, transactions, measurements | The transaction of each run | `search_traces` / `get_trace_details`; add the run id as a tag before the transaction starts |
+| Profiles | Profile chunks of each run | `search_profiles` by time window; open from the transaction |
+| Replays, attachments | The replay or attachment on the run's event | the event's `replays.attached` field / `get_event_attachment` |
+| Option mapping, native init | The **resolved option on device**, logged by the scenario (e.g. `ScopesAdapter.getInstance().getOptions().getLogs().isEnabled()`); the option's effect in Sentry is secondary | logcat, or put the value in the message/tag the run sends. Mind the sample's init path (SKILL.md step 1.3) |
+| Performance (startup, allocation) | Usually not checkable end to end on an emulator | Say so and mark **Inconclusive** rather than measuring noise |
+
+An absence ("tag missing", "no crash") only counts when the same run also shows the scenario ran.
+
+## Sentry MCP sequence
+
+Org `sentry-sdks`, region `https://us.sentry.io`, project `sentry-react-native`.
+
+1. **Search** — `search_errors`:
+   ```
+   organizationSlug: sentry-sdks
+   regionUrl: https://us.sentry.io
+   query: verify.run_id:<id>
+   period: 1h
+   fields: ["id", "title", "issue", "timestamp", "tags[verify.commit]"]
+   ```
+   Events usually show up within a minute of the relaunch. Repeat every ~30 s; after **5 minutes** with nothing, the run is Inconclusive (check logcat for `Envelope sent successfully` / rate limits first).
+2. **Open** — `get_sentry_resource` with `url: https://sentry-sdks.sentry.io/issues/<issue short id>/events/<event id>/`. Looking up a bare event id (`resourceType: event`) fails with "No issue found".
+3. **Read** the `tags` and `contexts` in the event detail.
+
+## Logs
+
+`search_logs` rejects `verify.run_id` ("Unknown attribute"), and a wildcard on the run id alone returned nothing. What worked:
+
+1. The scenario logs a message with a fixed prefix plus the run id, e.g. `verify-pr log <run id> ...`.
+2. `search_logs` with `message:"*<fixed prefix>*"`, `period: 1h`; pick the entry whose message holds the run id.
+3. Wait ~20 s after the flow before the first lookup: logs are batched on device.
+
+## Links for the report
+
+| Evidence | Link |
+|---|---|
+| Error event | `https://sentry-sdks.sentry.io/issues/<short id>/events/<event id>/` |
+| Log entry | `https://sentry-sdks.sentry.io/explore/logs/?project=-1&logsPinned=<log id>` |
+
+## Pitfalls
+
+- **Discover can't tell missing from empty.** A `tags[x]` column shows `""` for both. In the event detail, a tag the SDK sent as `""` appears with `value: null` (ingestion dropped it); a tag never sent is absent.
+- **Processing errors aren't visible through the MCP.** The event's `errors` list (e.g. "Discarded invalid value") isn't returned. Use indirect evidence (a `null` tag value) and say so in the report. Reading it needs a token with `event:read`.
+- **Stale events.** The sample keeps unsent envelopes across launches. Use a fresh run id per attempt and launch with `clearState: true`.
+- **Grouping.** Both runs' events may land in the same, long-lived issue (e.g. `SENTRY-REACT-NATIVE-28E` for `Sentry.nativeCrash()`). Link the **events**, not the issue.

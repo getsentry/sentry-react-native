@@ -106,3 +106,7 @@ source = "path:.agents/skills/diagnosing-bugs"
 [[skills]]
 name = "review"
 source = "path:.agents/skills/review"
+
+[[skills]]
+name = "verify-pr"
+source = "path:.agents/skills/verify-pr"

@@ -1,0 +1,20 @@
+# Worked example from the #7087 verification, and the skill's own regression
+# check (run it after changing `flows/steps/`). Not a scenario to look up:
+# write each run's scenario next to its report.
+#
+# Runs the sample TurboModule calls, which set and then clear the
+# `turbo_module.*` scope tags, then crashes natively.
+appId: io.sentry.reactnative.sample
+---
+- runFlow: ../steps/launch.yml
+- runFlow:
+    file: ../steps/open-errors-screen-button.yml
+    env:
+      BUTTON: 'TurboModule Playground'
+- tapOn: 'Run TurboModule calls'
+- extendedWaitUntil:
+    visible: 'Status: Done'
+    timeout: 30000
+- takeScreenshot: turbo-module-done
+- back
+- runFlow: ../steps/native-crash-and-relaunch.yml
