@@ -4,6 +4,7 @@ import {
   debug,
   getActiveSpan,
   getRootSpan,
+  getSpanDescendants,
   hasSpansEnabled,
   metrics,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
@@ -12,7 +13,8 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
-import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../tracing/span';
+import { getCurrentReactNativeTracingIntegration } from '../tracing/reactnativetracing';
+import { defaultIdleOptions, SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../tracing/span';
 import { createSpanJSON } from '../tracing/utils';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
@@ -51,6 +53,12 @@ export interface LongTaskOptions {
    * @default 1
    */
   sampleRate?: number;
+  /**
+   * Adds the long tasks that overlap a transaction as `ui.long-task` child spans. Requires tracing.
+   *
+   * @default false
+   */
+  spans?: boolean;
 }
 
 interface LongTask {
@@ -60,14 +68,14 @@ interface LongTask {
 
 /**
  * Reports JS thread long tasks as the `react_native.long_task.duration` distribution metric,
- * independently of tracing. When tracing is enabled, it also adds the long tasks that overlap
+ * independently of tracing. With the `spans` option, it also adds the long tasks that overlap
  * a transaction as `ui.long-task` child spans.
  *
  * Requires React Native 0.82 or newer on the New Architecture.
  * In other environments, the integration does nothing.
  */
 export const longTaskIntegration = (options: LongTaskOptions = {}): Integration => {
-  const { minDurationMs = 200, sampleRate = 1 } = options;
+  const { minDurationMs = 200, sampleRate = 1, spans = false } = options;
 
   const longTasks: LongTask[] = [];
   let readPendingLongTasks: (() => void) | undefined;
@@ -76,9 +84,9 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
     name: INTEGRATION_NAME,
     setup(client: Client): void {
       const reportMetrics = client.getOptions().enableMetrics !== false;
-      const reportSpans = hasSpansEnabled(client.getOptions());
+      const reportSpans = spans && hasSpansEnabled(client.getOptions());
       if (!reportMetrics && !reportSpans) {
-        debug.log(`[${INTEGRATION_NAME}] Metrics and tracing are disabled, long tasks will not be reported.`);
+        debug.log(`[${INTEGRATION_NAME}] Metrics and spans are disabled, long tasks will not be reported.`);
         return;
       }
 
@@ -113,7 +121,11 @@ export const longTaskIntegration = (options: LongTaskOptions = {}): Integration 
 
             const startTimestamp = nowSeconds - (nowMs - startTime) / 1000;
             const endTimestamp = startTimestamp + duration / 1000;
-            if (openRootSpan && endTimestamp > spanToJSON(openRootSpan).start_timestamp) {
+            if (
+              openRootSpan &&
+              endTimestamp > spanToJSON(openRootSpan).start_timestamp &&
+              startsInIdleWindow(openRootSpan, startTimestamp)
+            ) {
               // A real child span keeps an idle transaction open, so it is not trimmed to its last child.
               startInactiveSpan({
                 parentSpan: openRootSpan,
@@ -189,4 +201,26 @@ const getOpenRootSpan = (): Span | undefined => {
   const activeSpan = getActiveSpan();
   const rootSpan = activeSpan && getRootSpan(activeSpan);
   return rootSpan?.isRecording() ? rootSpan : undefined;
+};
+
+/**
+ * Each real child span restarts the idle timeout of a navigation transaction. Only the tasks that start
+ * within the idle timeout after the last other child can extend it, so recurring long tasks do not keep
+ * the transaction open until the final timeout.
+ */
+const startsInIdleWindow = (rootSpan: Span, startTimestamp: number): boolean => {
+  const idleTimeoutMs =
+    getCurrentReactNativeTracingIntegration()?.options.idleTimeoutMs ?? defaultIdleOptions.idleTimeout;
+  let lastChildEnd = spanToJSON(rootSpan).start_timestamp;
+  for (const child of getSpanDescendants(rootSpan)) {
+    const { op, timestamp } = spanToJSON(child);
+    if (child === rootSpan || op === SPAN_OP) {
+      continue;
+    }
+    if (timestamp === undefined) {
+      return true;
+    }
+    lastChildEnd = Math.max(lastChildEnd, timestamp);
+  }
+  return startTimestamp <= lastChildEnd + idleTimeoutMs / 1000;
 };

@@ -137,8 +137,8 @@ describe('longTaskIntegration', () => {
     });
   });
 
-  it('does not observe when metrics and tracing are disabled', () => {
-    setup(undefined, { enableMetrics: false, tracesSampleRate: undefined });
+  it('does not observe when metrics and spans are disabled', () => {
+    setup(undefined, { enableMetrics: false });
 
     expect(FakePerformanceObserver.instances).toHaveLength(0);
   });
@@ -155,6 +155,9 @@ describe('longTaskIntegration', () => {
     const PERFORMANCE_NOW_MS = 100_000;
     /** The `timestampInSeconds()` value of `performance.now() === 0`. */
     let timeOriginSeconds: number;
+
+    const setupWithSpans = (options?: LongTaskOptions, clientOptions?: Partial<TestClientOptions>): void =>
+      setup({ spans: true, ...options }, clientOptions);
 
     const observer = (): FakePerformanceObserver => FakePerformanceObserver.instances[0]!;
 
@@ -181,7 +184,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('adds long tasks that overlap the transaction as ui.long-task child spans', async () => {
-      setup();
+      setupWithSpans();
       observer().emitEntries(
         { startTime: 700, duration: 300 },
         { startTime: 900, duration: 300 },
@@ -209,7 +212,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('adds long tasks that the observer delivers while the transaction is open as child spans', async () => {
-      setup();
+      setupWithSpans();
 
       startSpanManual({ name: 'Screen', forceTransaction: true, startTime: at(1_000) }, span => {
         observer().emitEntries({ startTime: 700, duration: 200 }, { startTime: 900, duration: 300 });
@@ -231,7 +234,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('keeps an idle transaction open for long tasks after its last child span', async () => {
-      setup();
+      setupWithSpans();
 
       const idleSpan = startIdleSpan({ name: 'Screen', startTime: at(1_000) });
       startInactiveSpan({ name: 'child', startTime: at(1_000) }).end(at(1_500));
@@ -245,8 +248,36 @@ describe('longTaskIntegration', () => {
       ]);
     });
 
-    it('adds long tasks that the observer has not delivered yet', async () => {
+    it('lets only the long tasks in the idle timeout after the last other child extend an idle transaction', async () => {
+      setupWithSpans();
+
+      const idleSpan = startIdleSpan({ name: 'Screen', startTime: at(1_000) });
+      startInactiveSpan({ name: 'child', startTime: at(1_000) }).end(at(1_500));
+      observer().emitEntries({ startTime: 1_600, duration: 300 });
+      observer().emitEntries({ startTime: 2_400, duration: 300 });
+      observer().emitEntries({ startTime: 3_200, duration: 300 });
+      idleSpan.end(at(5_000));
+      const transaction = await sentTransaction();
+
+      expect(transaction?.timestamp).toBeCloseTo(at(2_700), 6);
+      expect(longTaskSpans(transaction)).toEqual([
+        expect.objectContaining({ start_timestamp: expect.closeTo(at(1_600), 6) }),
+        expect.objectContaining({ start_timestamp: expect.closeTo(at(2_400), 6) }),
+      ]);
+    });
+
+    it('does not add spans without the spans option', async () => {
       setup();
+      observer().emitEntries({ startTime: 1_200, duration: 300 });
+
+      const transaction = await endTransaction(1_000, 2_000);
+
+      expect(longTaskSpans(transaction)).toEqual([]);
+      expect(observer().takeRecords).not.toHaveBeenCalled();
+    });
+
+    it('adds long tasks that the observer has not delivered yet', async () => {
+      setupWithSpans();
       observer().takeRecords.mockReturnValueOnce([{ startTime: 1_500, duration: 300 }]);
 
       const transaction = await endTransaction(1_000, 2_000);
@@ -258,7 +289,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('does not add long tasks shorter than minDurationMs', async () => {
-      setup({ minDurationMs: 300 });
+      setupWithSpans({ minDurationMs: 300 });
       observer().emitEntries({ startTime: 1_200, duration: 299 });
 
       const transaction = await endTransaction(1_000, 2_000);
@@ -267,7 +298,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('adds spans when metrics are disabled', async () => {
-      setup(undefined, { enableMetrics: false });
+      setupWithSpans(undefined, { enableMetrics: false });
       observer().emitEntries({ startTime: 1_200, duration: 300 });
 
       const transaction = await endTransaction(1_000, 2_000);
@@ -276,7 +307,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('does not read pending long tasks when tracing is disabled', () => {
-      setup(undefined, { tracesSampleRate: undefined });
+      setupWithSpans(undefined, { tracesSampleRate: undefined });
 
       startInactiveSpan({ name: 'Screen', forceTransaction: true }).end();
 
@@ -284,7 +315,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('does not add spans to unsampled transactions', () => {
-      setup(undefined, { tracesSampleRate: 0 });
+      setupWithSpans(undefined, { tracesSampleRate: 0 });
 
       startInactiveSpan({ name: 'Screen', forceTransaction: true }).end();
 
@@ -292,7 +323,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('keeps only the latest 100 long tasks', async () => {
-      setup();
+      setupWithSpans();
       observer().emitEntries(
         ...Array.from({ length: 101 }, (_, index) => ({ startTime: 1_000 + index, duration: 300 })),
       );
@@ -306,7 +337,7 @@ describe('longTaskIntegration', () => {
     });
 
     it('sends the transaction when reading pending long tasks throws', async () => {
-      setup();
+      setupWithSpans();
       observer().takeRecords.mockImplementationOnce(() => {
         throw new Error('native module missing');
       });

@@ -10,7 +10,16 @@
 
 ### Features
 
-- Add the long tasks that overlap a transaction as `ui.long-task` child spans in `longTaskIntegration` when tracing is enabled ([#7110](https://github.com/getsentry/sentry-react-native/pull/7110))
+- Add the `spans` option to `longTaskIntegration` to report the long tasks that overlap a transaction as `ui.long-task` child spans ([#7110](https://github.com/getsentry/sentry-react-native/pull/7110))
+  - The spans are off by default. With tracing enabled, they count toward the span quota, and a long task during the idle wait of a navigation transaction can make it end later.
+
+  ```js
+  Sentry.init({
+    dsn: '__DSN__',
+    tracesSampleRate: 1.0,
+    integrations: [Sentry.longTaskIntegration({ spans: true })],
+  });
+  ```
 - Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#7049](https://github.com/getsentry/sentry-react-native/pull/7049))
 - Report MetricKit hangs on iOS as flame graph attachments with the experimental `metricKitHangReportingMode` option ([#7059](https://github.com/getsentry/sentry-react-native/pull/7059))
   - With `flamegraphAttachment`, the native SDK attaches the aggregated call trees of a MetricKit hang diagnostic as a flame graph, which the backend symbolicates. The default `legacy` mode reports the flattened call stack tree.
