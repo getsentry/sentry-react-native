@@ -4,6 +4,7 @@ const path = require('path');
 /** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
   ...baseConfig,
+  globals: { E2E_PLATFORM: 'ios' },
   testMatch: [
     ...baseConfig.testMatch,
     '<rootDir>/e2e/**/*.test.ios.ts',

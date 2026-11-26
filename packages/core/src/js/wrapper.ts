@@ -108,6 +108,7 @@ interface SentryNativeWrapper {
   resumeAppHangTracking(): void;
   startJsHangTracking(timeoutIntervalMs: number, bundleDebugId: string | null): void;
   stopJsHangTracking(): void;
+  setAttachJsHangFlamegraph(enabled: boolean): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   // oxlint-disable-next-line typescript-eslint(no-explicit-any)
@@ -173,7 +174,7 @@ interface SentryNativeWrapper {
   setCurrentScopePropagationContext(ctx: {
     traceId: string;
     spanId: string;
-    sampled: boolean;
+    sampled?: boolean;
     sampleRand: number;
   }): boolean;
 
@@ -352,6 +353,7 @@ export const NATIVE: SentryNativeWrapper = {
       androidProfilingOptions,
       enableJsHangTracking,
       jsHangTimeoutInterval,
+      attachJsHangFlamegraph,
       ...remainingOptions
     } = options;
     /* oxlint-enable typescript-eslint(no-unused-vars) */
@@ -804,6 +806,22 @@ export const NATIVE: SentryNativeWrapper = {
       RNSentry.stopJsHangTracking();
     } catch (error) {
       debug.error('[NATIVE] Stop JS Hang Tracking Failed', error);
+    }
+  },
+
+  setAttachJsHangFlamegraph(enabled: boolean): void {
+    if (
+      !this.enableNative ||
+      !this._isModuleLoaded(RNSentry) ||
+      typeof RNSentry.setAttachJsHangFlamegraph !== 'function'
+    ) {
+      return;
+    }
+
+    try {
+      RNSentry.setAttachJsHangFlamegraph(enabled);
+    } catch (error) {
+      debug.error('[NATIVE] Set Attach JS Hang Flamegraph Failed', error);
     }
   },
 

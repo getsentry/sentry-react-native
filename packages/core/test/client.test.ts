@@ -22,6 +22,7 @@ import type { ReactNativeClientOptions } from '../src/js/options';
 
 import { ReactNativeClient } from '../src/js/client';
 import { uiProfilingIntegration } from '../src/js/profiling/uiProfilingIntegration';
+import { startIdleNavigationSpan } from '../src/js/tracing/span';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -49,7 +50,12 @@ interface MockedReactNative {
       captureScreenshot: jest.Mock;
       fetchNativeAppStart: jest.Mock;
       enableNativeFramesTracking: jest.Mock;
+      setCurrentScopePropagationContext: jest.Mock;
     };
+  };
+  AppState: {
+    currentState: 'active';
+    addEventListener: jest.Mock;
   };
   Platform: {
     OS: 'mock';
@@ -76,7 +82,12 @@ jest.mock(
         captureScreenshot: jest.fn().mockResolvedValue(null),
         fetchNativeAppStart: jest.fn(),
         enableNativeFramesTracking: jest.fn(),
+        setCurrentScopePropagationContext: jest.fn(() => true),
       },
+    },
+    AppState: {
+      currentState: 'active',
+      addEventListener: jest.fn(() => ({ remove: jest.fn() })),
     },
     Platform: {
       OS: 'mock',
@@ -261,6 +272,100 @@ describe('Tests ReactNativeClient', () => {
         transport: () => transport,
       });
     }
+  });
+
+  describe('native trace', () => {
+    const RN: MockedReactNative = require('react-native');
+    const nativeSetPropagationContext = RN.NativeModules.RNSentry.setCurrentScopePropagationContext;
+
+    let resolveNativeInit: (ready: boolean) => void;
+    const deferNativeInit = (): void => {
+      RN.NativeModules.RNSentry.initNativeSdk.mockImplementationOnce(
+        () => new Promise<boolean>(resolve => (resolveNativeInit = resolve)),
+      );
+    };
+    const flushTasks = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 0));
+
+    const initClient = (options: Partial<ReactNativeClientOptions> = {}): Promise<void> => {
+      const client = new ReactNativeClient(mockedOptions({ dsn: EXAMPLE_DSN, enableNative: true, ...options }));
+      SentryCore.setCurrentClient(client);
+      const afterInit = new Promise<void>(resolve => client.on('afterInit', resolve));
+      client.init();
+      return afterInit;
+    };
+
+    let enableNative: boolean;
+    beforeEach(() => {
+      enableNative = NATIVE.enableNative;
+      NATIVE.enableNative = true;
+      SentryCore.getCurrentScope().clear();
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      NATIVE.enableNative = enableNative;
+      SentryCore.getCurrentScope().setClient(undefined);
+      jest.clearAllMocks();
+    });
+
+    test.each([true, false])(
+      'gives the native SDK the trace of JS events once it is ready (autoInitializeNativeSdk: %s)',
+      async autoInitializeNativeSdk => {
+        let jsTraceId: string | undefined;
+        await initClient({
+          autoInitializeNativeSdk,
+          beforeSend: event => {
+            jsTraceId = event.contexts?.trace?.trace_id;
+            return null;
+          },
+        });
+
+        SentryCore.captureException(new Error('test'));
+        await SentryCore.getClient()?.flush();
+
+        expect(jsTraceId).toBeDefined();
+        expect(nativeSetPropagationContext).toHaveBeenLastCalledWith(expect.objectContaining({ traceId: jsTraceId }));
+      },
+    );
+
+    test('sends no trace to native until native init resolves', async () => {
+      deferNativeInit();
+      const afterInit = initClient();
+      await flushTasks();
+
+      expect(nativeSetPropagationContext).not.toHaveBeenCalled();
+
+      resolveNativeInit(true);
+      await afterInit;
+
+      expect(nativeSetPropagationContext).toHaveBeenCalledTimes(1);
+    });
+
+    test('gives native the idle span that started before native init resolved', async () => {
+      deferNativeInit();
+      const afterInit = initClient({ tracesSampleRate: 1.0 });
+      const span = startIdleNavigationSpan({ name: 'Initial Screen' })!;
+
+      resolveNativeInit(true);
+      await afterInit;
+      span.end();
+
+      expect(nativeSetPropagationContext).toHaveBeenLastCalledWith(
+        expect.objectContaining({ traceId: span.spanContext().traceId, spanId: span.spanContext().spanId }),
+      );
+    });
+
+    test('keeps the trace of an idle span that started after native init', async () => {
+      await initClient({ tracesSampleRate: 1.0 });
+      const span = startIdleNavigationSpan({ name: 'Next Screen' })!;
+      await flushTasks();
+      span.end();
+
+      expect(nativeSetPropagationContext).toHaveBeenCalledTimes(2);
+      expect(nativeSetPropagationContext).toHaveBeenLastCalledWith(
+        expect.objectContaining({ traceId: span.spanContext().traceId, spanId: span.spanContext().spanId }),
+      );
+    });
   });
 
   describe('onReady', () => {

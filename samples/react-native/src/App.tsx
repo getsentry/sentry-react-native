@@ -82,6 +82,7 @@ Sentry.init({
     enableUnhandledCPPExceptionsV2: true,
   },
   enableJsHangTracking: true,
+  attachJsHangFlamegraph: true,
   logsOrigin: 'all',
   enableLogs: true,
   beforeSendLog: log => {

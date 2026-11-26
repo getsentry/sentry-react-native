@@ -2,6 +2,7 @@ import { IncomingMessage, ServerResponse, createServer } from 'node:http';
 import { createGunzip } from 'node:zlib';
 import { Envelope, EnvelopeItem } from '@sentry/core';
 import { parseEnvelope } from './parseEnvelope';
+import { stopApp } from './app';
 import { Event } from '@sentry/core';
 
 type RecordedRequest = {
@@ -64,6 +65,9 @@ export function createSentryServer({ port = 8961 } = {}): {
 
   return {
     start: () => {
+      // Stop the app left running by the previous test, so its late envelopes
+      // can't reach this server.
+      stopApp();
       return new Promise<void>((resolve, _reject) => {
         server.listen(port, () => {
           resolve();

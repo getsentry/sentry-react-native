@@ -20,8 +20,10 @@ const MIN_TIMEOUT_INTERVAL_SECONDS = 0.25;
  */
 export const jsHangTrackingIntegration = ({
   timeoutIntervalSeconds = DEFAULT_TIMEOUT_INTERVAL_SECONDS,
+  attachFlamegraph = false,
 }: {
   timeoutIntervalSeconds?: number;
+  attachFlamegraph?: boolean;
 } = {}): Integration => {
   let timeoutIntervalMs = DEFAULT_TIMEOUT_INTERVAL_SECONDS * 1000;
   if (!Number.isFinite(timeoutIntervalSeconds)) {
@@ -49,6 +51,7 @@ export const jsHangTrackingIntegration = ({
           debug.log(`[${INTEGRATION_NAME}] Not tracking JS hangs in development builds.`);
           return;
         }
+        NATIVE.setAttachJsHangFlamegraph(attachFlamegraph);
         NATIVE.startJsHangTracking(timeoutIntervalMs, getDebugMetadata()[0]?.debug_id ?? null);
       });
       client.on('close', () => {

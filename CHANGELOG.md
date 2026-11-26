@@ -21,6 +21,17 @@
     metricKitHangReportingMode: 'flamegraphAttachment',
   });
   ```
+- Attach a flame graph of the sampled JS stacks to JS hang events on iOS with the experimental `attachJsHangFlamegraph` option ([#7042](https://github.com/getsentry/sentry-react-native/pull/7042))
+  - The flame graph shows where the JS thread spent its time in the sample window of about 300 ms when the SDK detected the hang. It requires `enableJsHangTracking` and Hermes.
+  - The frames in the flame graph are not yet symbolicated with source maps.
+
+  ```js
+  Sentry.init({
+    dsn: '__DSN__',
+    enableJsHangTracking: true,
+    attachJsHangFlamegraph: true,
+  });
+  ```
 
 ### Fixes
 
@@ -31,6 +42,7 @@
   - Before this fix, `includeWebReplay` and `includeWebFeedback` defaulted to `true`, so these packages stayed in native bundles even though they never run there.
   - Web bundles keep both packages. Set the option to `true` to keep a package on all platforms, or to `false` to remove it on all platforms, including web.
 - Fix the TypeScript error `Cannot find module 'react-native/Libraries/Types/CodegenTypes'` with React Native 0.88 and `skipLibCheck: false` ([#7061](https://github.com/getsentry/sentry-react-native/pull/7061))
+- Sync the JavaScript trace to the native SDKs after they start, so native events and native HTTP spans share the app's trace before the first navigation, in the background and without tracing enabled ([#7107](https://github.com/getsentry/sentry-react-native/pull/7107))
 
 ### Dependencies
 

@@ -58,7 +58,6 @@ describe('Capture message', () => {
         contexts: expect.objectContaining({
           device: expect.objectContaining({
             arch: expect.any(String),
-            connection_type: expect.any(String),
             family: expect.any(String),
             free_memory: expect.any(Number),
             locale: expect.any(String),
@@ -73,6 +72,16 @@ describe('Capture message', () => {
         }),
       }),
     );
+
+    // sentry-cocoa only knows the connection type after its reachability monitor reported the
+    // first network path, which happens asynchronously after start. A message captured right
+    // after launch can be sent before that, so the field is optional here. Its presence is
+    // asserted on a later event in captureErrorsScreenTransaction.test.ts.
+    const connectionType = (item?.[1].contexts?.device as Record<string, unknown> | undefined)
+      ?.connection_type;
+    if (connectionType !== undefined) {
+      expect(connectionType).toEqual(expect.any(String));
+    }
   });
 
   it('contains app context', async () => {

@@ -65,6 +65,7 @@ jest.mock('react-native', () => {
     resumeAppHangTracking: jest.fn(),
     startJsHangTracking: jest.fn(),
     stopJsHangTracking: jest.fn(),
+    setAttachJsHangFlamegraph: jest.fn(),
     startReplay: jest.fn(() => Promise.resolve()),
     startReplayBuffering: jest.fn(() => Promise.resolve()),
     stopReplay: jest.fn(() => Promise.resolve()),
@@ -375,6 +376,7 @@ describe('Tests Native Wrapper', () => {
         autoInitializeNativeSdk: true,
         enableJsHangTracking: true,
         jsHangTimeoutInterval: 3,
+        attachJsHangFlamegraph: true,
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
@@ -384,6 +386,7 @@ describe('Tests Native Wrapper', () => {
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('enableJsHangTracking');
       expect(initParameter).not.toHaveProperty('jsHangTimeoutInterval');
+      expect(initParameter).not.toHaveProperty('attachJsHangFlamegraph');
     });
 
     test('filter beforeBreadcrumb when initializing Native SDK', async () => {
@@ -1701,29 +1704,69 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.stopJsHangTracking).toHaveBeenCalled();
     });
 
+    test('setAttachJsHangFlamegraph passes the value to native', async () => {
+      await initNative(true);
+
+      NATIVE.setAttachJsHangFlamegraph(true);
+
+      expect(RNSentry.setAttachJsHangFlamegraph).toHaveBeenCalledWith(true);
+    });
+
+    test('setAttachJsHangFlamegraph does not throw when native throws', async () => {
+      await initNative(true);
+      (RNSentry.setAttachJsHangFlamegraph as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('native error');
+      });
+
+      const error = jest.spyOn(debug, 'error');
+
+      expect(() => NATIVE.setAttachJsHangFlamegraph(true)).not.toThrow();
+      expect(error).toHaveBeenCalledWith('[NATIVE] Set Attach JS Hang Flamegraph Failed', expect.any(Error));
+      error.mockRestore();
+    });
+
     test('does not call native when enableNative is false', async () => {
       await initNative(false);
 
       NATIVE.startJsHangTracking(2000, null);
       NATIVE.stopJsHangTracking();
+      NATIVE.setAttachJsHangFlamegraph(true);
 
       expect(RNSentry.startJsHangTracking).not.toHaveBeenCalled();
       expect(RNSentry.stopJsHangTracking).not.toHaveBeenCalled();
+      expect(RNSentry.setAttachJsHangFlamegraph).not.toHaveBeenCalled();
     });
 
     test('does not throw when an older native binary does not have the methods', async () => {
       await initNative(true);
-      const { startJsHangTracking, stopJsHangTracking } = RNSentry;
+      const { startJsHangTracking, stopJsHangTracking, setAttachJsHangFlamegraph } = RNSentry;
       // @ts-expect-error simulates an older native binary
       RNSentry.startJsHangTracking = undefined;
       // @ts-expect-error simulates an older native binary
       RNSentry.stopJsHangTracking = undefined;
+      // @ts-expect-error simulates an older native binary
+      RNSentry.setAttachJsHangFlamegraph = undefined;
 
       expect(() => NATIVE.startJsHangTracking(2000, null)).not.toThrow();
       expect(() => NATIVE.stopJsHangTracking()).not.toThrow();
+      expect(() => NATIVE.setAttachJsHangFlamegraph(true)).not.toThrow();
 
       RNSentry.startJsHangTracking = startJsHangTracking;
       RNSentry.stopJsHangTracking = stopJsHangTracking;
+      RNSentry.setAttachJsHangFlamegraph = setAttachJsHangFlamegraph;
+    });
+
+    test('starts JS hang tracking when only setAttachJsHangFlamegraph is missing', async () => {
+      await initNative(true);
+      const { setAttachJsHangFlamegraph } = RNSentry;
+      // @ts-expect-error simulates a native binary from before the flame graph option
+      RNSentry.setAttachJsHangFlamegraph = undefined;
+
+      expect(() => NATIVE.setAttachJsHangFlamegraph(true)).not.toThrow();
+      NATIVE.startJsHangTracking(2000, 'debug-id');
+
+      expect(RNSentry.startJsHangTracking).toHaveBeenCalledWith(2000, 'debug-id');
+      RNSentry.setAttachJsHangFlamegraph = setAttachJsHangFlamegraph;
     });
   });
 

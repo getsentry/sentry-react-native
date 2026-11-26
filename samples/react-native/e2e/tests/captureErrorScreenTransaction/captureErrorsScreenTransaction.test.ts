@@ -49,6 +49,28 @@ describe('Capture Errors Screen Transaction', () => {
       if (appStartTransaction) break;
     }
 
+    if (!appStartTransaction) {
+      // Print what did arrive, so a CI failure shows whether the app start was not
+      // attached to the ErrorsScreen transaction or that transaction was never sent.
+      const received = sentryServer.getAllEnvelopes(() => true).flatMap(envelope =>
+        envelope[1]
+          .filter(([header]) => header.type === 'transaction')
+          .map(([, payload]) => {
+            const event = payload as any;
+            return {
+              transaction: event.transaction,
+              op: event.contexts?.trace?.op,
+              origin: event.contexts?.trace?.origin,
+              start_timestamp: event.start_timestamp,
+              timestamp: event.timestamp,
+              measurements: Object.keys(event.measurements ?? {}),
+              span_ops: (event.spans ?? []).map((span: any) => span.op),
+            };
+          }),
+      );
+      console.log('Received transactions:', JSON.stringify(received, null, 2));
+    }
+
     expect(appStartTransaction).toBeDefined();
 
     const [header, payload] = appStartTransaction!;
@@ -117,6 +139,26 @@ describe('Capture Errors Screen Transaction', () => {
           time_to_initial_display: expect.objectContaining({
             unit: 'millisecond',
             value: expect.any(Number),
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('contains device connection type', async () => {
+    // The transaction is sent seconds after launch, once the native SDK reported the
+    // network path, so `connection_type` is reliably present here — unlike on a message
+    // captured right after launch (see captureMessage.test.ios.ts).
+    const item = getItemOfTypeFrom<EventItem>(
+      getErrorsEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        contexts: expect.objectContaining({
+          device: expect.objectContaining({
+            connection_type: expect.any(String),
           }),
         }),
       }),

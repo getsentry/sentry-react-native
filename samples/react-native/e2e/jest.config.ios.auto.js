@@ -4,6 +4,7 @@ const baseConfig = require('./jest.config.base');
 /** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
   ...baseConfig,
+  globals: { E2E_PLATFORM: 'ios' },
   globalSetup: path.resolve(__dirname, 'setup.ios.auto.ts'),
   testMatch: [
     ...baseConfig.testMatch,
