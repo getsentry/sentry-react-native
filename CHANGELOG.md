@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add the route, the foreground state, the app start phase and the root span at the start of each task to the `react_native.long_task.duration` metric of `longTaskIntegration` ([#PLACEHOLDER](https://github.com/getsentry/sentry-react-native/pull/PLACEHOLDER))
+- Add the route, the foreground state, the app start phase and the root span at the start of each task to the `react_native.long_task.duration` metric of `longTaskIntegration` ([#7119](https://github.com/getsentry/sentry-react-native/pull/7119))
 - Create the Android view managers of the SDK on demand, so React Native 0.89+ with the New Architecture does not build their view configs at startup ([#7049](https://github.com/getsentry/sentry-react-native/pull/7049))
 - Report MetricKit hangs on iOS as flame graph attachments with the experimental `metricKitHangReportingMode` option ([#7059](https://github.com/getsentry/sentry-react-native/pull/7059))
   - With `flamegraphAttachment`, the native SDK attaches the aggregated call trees of a MetricKit hang diagnostic as a flame graph, which the backend symbolicates. The default `legacy` mode reports the flattened call stack tree.
