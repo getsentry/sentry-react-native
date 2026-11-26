@@ -78,7 +78,6 @@
 - Bump Cocoa SDK from v9.34.0 to v9.35.0 ([#7045](https://github.com/getsentry/sentry-react-native/pull/7045))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9350)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.34.0...9.35.0)
-||||||| parent of ffea2db8 (feat(replay): Add pauseTouchTracking and resumeTouchTracking)
 
 ## 8.35.0
 
