@@ -9,9 +9,10 @@ import type { Integration, ReplayRecordingMode } from '@sentry/core';
  * can control the replay with the same API regardless of platform.
  *
  * The shape mirrors the native (iOS/Android) Session Replay runtime controls.
- * On Web, `pause()` and `resume()` are no-ops (logged) because the browser
- * Session Replay SDK does not expose them; every other method is fully
- * supported on all platforms.
+ * On Web, `pause()`, `resume()`, `pauseTouchTracking()` and
+ * `resumeTouchTracking()` are no-ops (logged) because the browser Session
+ * Replay SDK does not expose them; every other method is fully supported on
+ * all platforms.
  */
 export interface Replay extends Integration {
   /**
@@ -48,6 +49,34 @@ export interface Replay extends Integration {
    * expose pause/resume.
    */
   resume(): void;
+
+  /**
+   * Stop recording touch positions in the replay. Screenshots continue to be
+   * recorded, so a masked screen (for example a PIN pad) stays visible without
+   * revealing where the user tapped. Breadcrumbs are not affected.
+   *
+   * Independent of `pause()`/`resume()`: `resume()` does not resume touch
+   * tracking. The state persists across new replays and `stop()`/`start()`
+   * until `resumeTouchTracking()` is called, and it can be set before a replay
+   * starts.
+   *
+   * @note Requires a native SDK version that supports it (sentry-android
+   * 8.65.0, sentry-cocoa 9.35.0); no-op on older native SDKs.
+   * @note No-op on Web (logged) - the browser Session Replay SDK does not
+   * expose touch tracking controls.
+   */
+  pauseTouchTracking(): void;
+
+  /**
+   * Resume recording touch positions after `pauseTouchTracking()`. Touches are
+   * still not recorded while the replay itself is paused with `pause()`.
+   *
+   * @note Requires a native SDK version that supports it (sentry-android
+   * 8.65.0, sentry-cocoa 9.35.0); no-op on older native SDKs.
+   * @note No-op on Web (logged) - the browser Session Replay SDK does not
+   * expose touch tracking controls.
+   */
+  resumeTouchTracking(): void;
 
   /**
    * Flush the current replay data to Sentry, or start a full-session replay if

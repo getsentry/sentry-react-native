@@ -121,6 +121,16 @@
     [RNSentryInternal resumeReplay];
 }
 
++ (void)pauseReplayTouchTracking
+{
+    [RNSentryInternal pauseReplayTouchTracking];
+}
+
++ (void)resumeReplayTouchTracking
+{
+    [RNSentryInternal resumeReplayTouchTracking];
+}
+
 + (void)flushReplay
 {
     [RNSentryInternal flushReplay];

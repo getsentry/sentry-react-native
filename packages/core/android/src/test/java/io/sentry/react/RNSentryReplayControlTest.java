@@ -24,7 +24,8 @@ import org.mockito.MockedStatic;
 /**
  * Coverage for the Session Replay runtime controls exposed on {@link RNSentryModuleImpl} ({@code
  * startReplay}, {@code startReplayBuffering}, {@code stopReplay}, {@code pauseReplay}, {@code
- * resumeReplay}, {@code flushReplay}).
+ * resumeReplay}, {@code pauseReplayTouchTracking}, {@code resumeReplayTouchTracking}, {@code
+ * flushReplay}).
  *
  * <p>Each control forwards to the corresponding {@link IReplayApi} method returned by {@code
  * Sentry.replay()} and then resolves the promise with {@code null}.
@@ -109,6 +110,34 @@ public class RNSentryReplayControlTest {
       module.resumeReplay(promise);
 
       verify(replay).resume();
+      verify(promise).resolve(null);
+    }
+  }
+
+  @Test
+  public void pauseReplayTouchTrackingCallsSdkAndResolvesNull() {
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class)) {
+      final IReplayApi replay = mock(IReplayApi.class);
+      sentry.when(Sentry::replay).thenReturn(replay);
+
+      final Promise promise = mock(Promise.class);
+      module.pauseReplayTouchTracking(promise);
+
+      verify(replay).pauseTouchTracking();
+      verify(promise).resolve(null);
+    }
+  }
+
+  @Test
+  public void resumeReplayTouchTrackingCallsSdkAndResolvesNull() {
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class)) {
+      final IReplayApi replay = mock(IReplayApi.class);
+      sentry.when(Sentry::replay).thenReturn(replay);
+
+      final Promise promise = mock(Promise.class);
+      module.resumeReplayTouchTracking(promise);
+
+      verify(replay).resumeTouchTracking();
       verify(promise).resolve(null);
     }
   }

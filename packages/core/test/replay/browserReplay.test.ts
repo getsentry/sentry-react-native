@@ -23,7 +23,7 @@ describe('Browser Replay', () => {
     expect(SentryReact.replayIntegration).not.toHaveBeenCalled();
   });
 
-  describe('pause/resume no-op on Web', () => {
+  describe('pause/resume and touch tracking no-op on Web', () => {
     const mockUpstreamIntegration = (): void => {
       spyOn(environment, 'notWeb').mockReturnValue(false);
       spyOn(SentryReact, 'replayIntegration').mockReturnValue({
@@ -47,6 +47,24 @@ describe('Browser Replay', () => {
       const integration = browserReplayIntegration();
       expect(() => integration.resume()).not.toThrow();
       expect(debugLog).toHaveBeenCalledWith(expect.stringContaining('`resume()` is not supported on Web'));
+    });
+
+    test('pauseTouchTracking() is a no-op that logs', () => {
+      mockUpstreamIntegration();
+      const debugLog = spyOn(debug, 'log').mockImplementation(() => {});
+
+      const integration = browserReplayIntegration();
+      expect(() => integration.pauseTouchTracking()).not.toThrow();
+      expect(debugLog).toHaveBeenCalledWith(expect.stringContaining('`pauseTouchTracking()` is not supported on Web'));
+    });
+
+    test('resumeTouchTracking() is a no-op that logs', () => {
+      mockUpstreamIntegration();
+      const debugLog = spyOn(debug, 'log').mockImplementation(() => {});
+
+      const integration = browserReplayIntegration();
+      expect(() => integration.resumeTouchTracking()).not.toThrow();
+      expect(debugLog).toHaveBeenCalledWith(expect.stringContaining('`resumeTouchTracking()` is not supported on Web'));
     });
   });
 });

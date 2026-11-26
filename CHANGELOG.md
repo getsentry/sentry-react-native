@@ -32,6 +32,15 @@
     attachJsHangFlamegraph: true,
   });
   ```
+- Add `pauseTouchTracking()` and `resumeTouchTracking()` to the Session Replay API ([#7030](https://github.com/getsentry/sentry-react-native/pull/7030))
+  - Use them to stop recording touch positions on sensitive screens, for example a custom PIN pad. Screenshots and breadcrumbs continue to be recorded.
+  - They are independent of `pause()` and `resume()`. Touch tracking stays paused across new replays until you call `resumeTouchTracking()`.
+
+  ```js
+  Sentry.getReplay()?.pauseTouchTracking();
+  // Show the PIN pad.
+  Sentry.getReplay()?.resumeTouchTracking();
+  ```
 
 ### Fixes
 
