@@ -65,7 +65,7 @@ maestro test \
 - Maestro matches text case-insensitively (Android upper-cases button labels) and scrolls with `scrollUntilVisible`.
 - `scrollUntilVisible.direction` can't come from a variable. A pushed screen keeps the list's scroll offset when you go back, so scroll **UP** to buttons near the top after a `back`.
 - After a crash, relaunch with `clearState: false` so the stored event is sent (`steps/native-crash-and-relaunch.yml`). Wait for the crashed app's UI to go first, pass the run tags again, and wait for the tab bar before a screenshot; a screenshot taken right after `launchApp` is blank.
-- Whether the crashed process survives a moment (a crash dialog) or is killed at once changes what an in-flight envelope does. When a crash event goes missing, check `ActivityManager` lines in logcat (`Showing crash dialog` vs `has died`) before blaming the change.
+- Whether the crashed process survives a moment (a crash dialog) or is killed at once changes what an in-flight envelope does. When a crash event goes missing, check `ActivityManager` lines in logcat (`Showing crash dialog` vs `has died`) before blaming the change. For a JS fatal this is down to the sample's debuggable release build, which skips the SDK's synchronous write (SKILL.md step 1.5, #7113).
 - Maestro's log prints `${VAR}` unexpanded in launch arguments and in `runFlow` env values (e.g. `Tap on "${BUTTON}"`); the values are still applied. Confirm in logcat (`grep '"verify.run_id"'`).
 - Maestro has no plain sleep. When the evidence is batched (logs), wait in the shell after `maestro test` returns, with the app still running.
 
