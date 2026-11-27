@@ -11,8 +11,8 @@ name: verify-pr spike
 #
 # The fetch job checks out nothing and runs no repository code: its logic is
 # inline below. It is the only job that gets SENTRY_AUTH_TOKEN. It builds the
-# expected run ids itself from github.run_id and github.run_attempt and refuses
-# any event whose verify.run_id differs.
+# expected run ids itself from github.run_id and refuses any event whose
+# verify.run_id differs.
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ inputs.ref }}
+  group: ${{ github.workflow }}-${{ github.run_id }}
   cancel-in-progress: true
 
 env:
@@ -54,13 +54,14 @@ jobs:
       SPIKE: .github/verify-pr-spike/spike.py
       VERIFY_PR: ${{ inputs.pr }}
       MERGE_SHA: ${{ inputs.merge_sha }}
-      RUN_ID_WITHOUT: gh${{ github.run_id }}-${{ github.run_attempt }}-without
-      RUN_ID_WITH: gh${{ github.run_id }}-${{ github.run_attempt }}-with
+      RUN_ID_WITHOUT: gh${{ github.run_id }}-without
+      RUN_ID_WITH: gh${{ github.run_id }}-with
     outputs:
       without_event_id: ${{ steps.ids.outputs.without_event_id }}
       with_event_id: ${{ steps.ids.outputs.with_event_id }}
     steps:
       - name: Validate the inputs
+        id: validate
         shell: python
         env:
           INPUT_REF: ${{ inputs.ref }}
@@ -190,15 +191,15 @@ jobs:
         run: python3 "$SPIKE" outputs
 
       - name: Disk at end
-        if: ${{ always() }}
+        if: ${{ always() && steps.validate.outcome == 'success' }}
         run: python3 "$SPIKE" disk end
 
       - name: Summary
-        if: ${{ always() }}
+        if: ${{ always() && steps.validate.outcome == 'success' }}
         run: python3 "$SPIKE" summary
 
       - name: Upload results, device logs and screenshots
-        if: ${{ always() }}
+        if: ${{ always() && steps.validate.outcome == 'success' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: verify-pr-spike
@@ -223,8 +224,8 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           WITHOUT_EVENT_ID: ${{ needs.build.outputs.without_event_id }}
           WITH_EVENT_ID: ${{ needs.build.outputs.with_event_id }}
-          EXPECTED_RUN_ID_WITHOUT: gh${{ github.run_id }}-${{ github.run_attempt }}-without
-          EXPECTED_RUN_ID_WITH: gh${{ github.run_id }}-${{ github.run_attempt }}-with
+          EXPECTED_RUN_ID_WITHOUT: gh${{ github.run_id }}-without
+          EXPECTED_RUN_ID_WITH: gh${{ github.run_id }}-with
           FETCH_OUT: ${{ runner.temp }}/verify-pr-spike-events
         run: |
           """Fetches each side's crash event and keeps only the fields the check needs.
