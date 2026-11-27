@@ -196,8 +196,7 @@ def adb(*args, **kwargs):
 
 def run_side(side, results):
     pr = os.environ["VERIFY_PR"]
-    # Set by the workflow from github.run_id and github.run_attempt; the fetch job
-    # expects the same.
+    # Set by the workflow from github.run_id; the fetch job expects the same.
     run_id = os.environ[f"RUN_ID_{side.upper()}"]
     commit = short_head()
     if side == "without":
@@ -231,8 +230,10 @@ def run_side(side, results):
     record["maestro_exit"] = maestro.returncode
     time.sleep(SEND_WAIT_SECONDS)
 
-    logcat = adb("logcat", "-d", capture_output=True, text=True).stdout
-    (run_dir / f"{run_id}.logcat").write_text(logcat)
+    # Bytes, so a non-UTF-8 byte in the device log can't fail the step.
+    raw = adb("logcat", "-d", capture_output=True).stdout
+    logcat = raw.decode("utf-8", errors="replace")
+    (run_dir / f"{run_id}.logcat").write_text(logcat, encoding="utf-8")
     record["logcat_run_id_lines"] = logcat.count(run_id)
     record["logcat_envelopes_sent"] = logcat.count("Envelope sent successfully")
     ids = crash_event_ids(logcat)
