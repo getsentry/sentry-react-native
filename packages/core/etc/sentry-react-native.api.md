@@ -738,6 +738,7 @@ export const longTaskIntegration: (options?: LongTaskOptions) => Integration;
 export interface LongTaskOptions {
     minDurationMs?: number;
     sampleRate?: number;
+    spans?: boolean;
 }
 
 // @public (undocumented)
