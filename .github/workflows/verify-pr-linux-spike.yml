@@ -65,6 +65,8 @@ jobs:
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+        with:
+          cache-disabled: true
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
