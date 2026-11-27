@@ -11,8 +11,8 @@ name: verify-pr spike
 #
 # The fetch job checks out nothing and runs no repository code: its logic is
 # inline below. It is the only job that gets SENTRY_AUTH_TOKEN. It builds the
-# expected run ids itself from github.run_id and refuses any event whose
-# verify.run_id differs.
+# expected run ids itself from github.run_id and github.run_attempt and refuses
+# any event whose verify.run_id differs.
 
 on:
   workflow_dispatch:
@@ -54,8 +54,8 @@ jobs:
       SPIKE: .github/verify-pr-spike/spike.py
       VERIFY_PR: ${{ inputs.pr }}
       MERGE_SHA: ${{ inputs.merge_sha }}
-      RUN_ID_WITHOUT: gh${{ github.run_id }}-without
-      RUN_ID_WITH: gh${{ github.run_id }}-with
+      RUN_ID_WITHOUT: gh${{ github.run_id }}-${{ github.run_attempt }}-without
+      RUN_ID_WITH: gh${{ github.run_id }}-${{ github.run_attempt }}-with
     outputs:
       without_event_id: ${{ steps.ids.outputs.without_event_id }}
       with_event_id: ${{ steps.ids.outputs.with_event_id }}
@@ -105,12 +105,12 @@ jobs:
       - name: Enable Corepack (NPM)
         run: npm i -g corepack
 
+      # No yarn or Gradle cache writes: the run starts on main but builds branch
+      # code, and other workflows on main restore those caches.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           package-manager-cache: false
           node-version: 22
-          cache: "yarn"
-          cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
@@ -119,6 +119,8 @@ jobs:
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+        with:
+          cache-read-only: true
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -221,8 +223,8 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           WITHOUT_EVENT_ID: ${{ needs.build.outputs.without_event_id }}
           WITH_EVENT_ID: ${{ needs.build.outputs.with_event_id }}
-          EXPECTED_RUN_ID_WITHOUT: gh${{ github.run_id }}-without
-          EXPECTED_RUN_ID_WITH: gh${{ github.run_id }}-with
+          EXPECTED_RUN_ID_WITHOUT: gh${{ github.run_id }}-${{ github.run_attempt }}-without
+          EXPECTED_RUN_ID_WITH: gh${{ github.run_id }}-${{ github.run_attempt }}-with
           FETCH_OUT: ${{ runner.temp }}/verify-pr-spike-events
         run: |
           """Fetches each side's crash event and keeps only the fields the check needs.

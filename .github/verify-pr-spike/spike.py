@@ -196,7 +196,8 @@ def adb(*args, **kwargs):
 
 def run_side(side, results):
     pr = os.environ["VERIFY_PR"]
-    # Set by the workflow from github.run_id; the fetch job expects the same.
+    # Set by the workflow from github.run_id and github.run_attempt; the fetch job
+    # expects the same.
     run_id = os.environ[f"RUN_ID_{side.upper()}"]
     commit = short_head()
     if side == "without":
