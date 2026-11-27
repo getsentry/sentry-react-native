@@ -1,0 +1,139 @@
+name: verify-pr Linux spike
+
+# Throwaway, for #7123: runs the verify-pr Android steps for #7087 once on a
+# Linux runner. Lives only on this branch, which is deleted afterwards. It
+# holds no secrets. The step logic is in .github/verify-pr-linux-spike/spike.py.
+
+on:
+  push:
+    branches:
+      - chore/verify-pr-linux-spike
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SPIKE: .github/verify-pr-linux-spike/spike.py
+  VERIFY_PR: "7087"
+  MERGE_SHA: a9886436ebce4e6a0b3d272ece5e2f5211df6db7
+  MAESTRO_VERSION: "2.13.0"
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
+  ANDROID_API_LEVEL: "30"
+  SENTRY_DISABLE_AUTO_UPLOAD: "true"
+
+jobs:
+  spike:
+    name: Verify #7087 on Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Mark job start
+        run: python3 "$SPIKE" mark job_start
+
+      - name: Disk at start
+        run: python3 "$SPIKE" disk start
+
+      - uses: ./.github/actions/disk-cleanup
+
+      - name: Disk after cleanup
+        run: python3 "$SPIKE" disk after_cleanup
+
+      - name: Enable Corepack (NPM)
+        run: npm i -g corepack
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+
+      - name: Install Maestro
+        uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
+        with:
+          version: ${{ env.MAESTRO_VERSION }}
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Reverse-apply #7087
+        run: python3 "$SPIKE" revert
+
+      - name: Build without #7087 (clean)
+        run: python3 "$SPIKE" build without
+
+      - name: Restore #7087
+        run: python3 "$SPIKE" restore
+
+      - name: Build with #7087 (incremental)
+        run: python3 "$SPIKE" build with
+
+      - name: Disk after builds
+        run: python3 "$SPIKE" disk after_builds
+
+      - name: Setup KVM
+        run: python3 "$SPIKE" kvm
+
+      - name: Mark emulator start
+        run: python3 "$SPIKE" mark emulator_start
+
+      - name: Run the flow without and with #7087
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # pin@v2.38.0
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          # A full image: ATD screenshots are all black.
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          disable-animations: true
+          disable-spellchecker: true
+          disk-size: 6144M
+          emulator-options: >
+            -no-window
+            -no-snapshot-save
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+          script: python3 "$SPIKE" run
+
+      - name: Disk at end
+        if: ${{ always() }}
+        run: python3 "$SPIKE" disk end
+
+      - name: Summary
+        if: ${{ always() }}
+        run: python3 "$SPIKE" summary
+
+      - name: Upload results, device logs and screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: verify-pr-linux-spike
+          path: |
+            ${{ runner.temp }}/verify-pr-linux-spike
+            !${{ runner.temp }}/verify-pr-linux-spike/*.apk
+            !${{ runner.temp }}/verify-pr-linux-spike/*.bundle
+          retention-days: 14
