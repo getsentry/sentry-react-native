@@ -16,6 +16,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import type { ReactNativeClient } from '../../client';
 import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
 import type { ReactNativeClientOptions } from '../../options';
 
@@ -292,7 +293,18 @@ export function _setRootComponentCreationTimestampMs(timestampMs: number): void 
 export const _setAppStartEndData = (data: AppStartEndData): void => {
   appStartEndData && debug.warn('Overwriting already set app start end data.');
   appStartEndData = data;
+  getClient<ReactNativeClient>()?.emit('appStartEnd', data.timestampMs);
 };
+
+/**
+ * Returns the app start end timestamp in milliseconds, when `Sentry.wrap`, `ReactNativeProfiler` or
+ * `appLoaded()` has recorded it.
+ *
+ * @private
+ */
+export function _getAppStartEndTimestampMs(): number | undefined {
+  return appStartEndData?.timestampMs;
+}
 
 /**
  * Updates only the endFrames on existing appStartEndData.
