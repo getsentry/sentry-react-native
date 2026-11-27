@@ -1,0 +1,438 @@
+name: verify-pr spike
+
+# Test workflow for #7127, to be replaced by the real verify-pr workflow. Started
+# by hand on main; the workflow file always comes from main, whatever `ref` is.
+#
+# The build job checks out `ref`, builds the sample without the PR (its merge
+# commit reverse-applied) and with it, runs the skill's example flow on each, and
+# reads each side's crash event id from the device log. It holds no secrets. Its
+# step logic is in .github/verify-pr-spike/spike.py, from the `ref` checkout. It
+# hands the fetch job only the two crash event ids.
+#
+# The fetch job checks out nothing and runs no repository code: its logic is
+# inline below. It is the only job that gets SENTRY_AUTH_TOKEN. It builds the
+# expected run ids itself from github.run_id and refuses any event whose
+# verify.run_id differs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch to build, matching verify/[A-Za-z0-9._-]+
+        required: true
+        type: string
+      pr:
+        description: Number of the PR under test
+        required: true
+        type: string
+      merge_sha:
+        description: The PR's merge commit, which the build reverse-applies (40 hex characters)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.ref }}
+  cancel-in-progress: true
+
+env:
+  MAESTRO_VERSION: "2.13.0"
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
+  ANDROID_API_LEVEL: "30"
+  SENTRY_DISABLE_AUTO_UPLOAD: "true"
+
+jobs:
+  build:
+    name: Build and run without and with the PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    env:
+      SPIKE: .github/verify-pr-spike/spike.py
+      VERIFY_PR: ${{ inputs.pr }}
+      MERGE_SHA: ${{ inputs.merge_sha }}
+      RUN_ID_WITHOUT: gh${{ github.run_id }}-without
+      RUN_ID_WITH: gh${{ github.run_id }}-with
+    outputs:
+      without_event_id: ${{ steps.ids.outputs.without_event_id }}
+      with_event_id: ${{ steps.ids.outputs.with_event_id }}
+    steps:
+      - name: Validate the inputs
+        shell: python
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+          INPUT_PR: ${{ inputs.pr }}
+          INPUT_MERGE_SHA: ${{ inputs.merge_sha }}
+        run: |
+          import os
+          import re
+          import sys
+
+          PATTERNS = {
+              "ref": ("INPUT_REF", r"verify/[A-Za-z0-9._-]+"),
+              "pr": ("INPUT_PR", r"[0-9]+"),
+              "merge_sha": ("INPUT_MERGE_SHA", r"[0-9a-fA-F]{40}"),
+          }
+          # Names only: an input's value is never printed.
+          invalid = [
+              name
+              for name, (variable, pattern) in PATTERNS.items()
+              if not re.fullmatch(pattern, os.environ[variable])
+          ]
+          if invalid:
+              sys.exit(f"invalid inputs: {', '.join(invalid)}")
+          print("inputs are valid")
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+
+      - name: Mark job start
+        run: python3 "$SPIKE" mark job_start
+
+      - name: Disk at start
+        run: python3 "$SPIKE" disk start
+
+      - uses: ./.github/actions/disk-cleanup
+
+      - name: Disk after cleanup
+        run: python3 "$SPIKE" disk after_cleanup
+
+      - name: Enable Corepack (NPM)
+        run: npm i -g corepack
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+
+      - name: Install Maestro
+        uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
+        with:
+          version: ${{ env.MAESTRO_VERSION }}
+
+      - name: Fail if the Sentry token is in this job
+        shell: python
+        run: |
+          import os
+          import sys
+
+          if "SENTRY_AUTH_TOKEN" in os.environ:
+              sys.exit("SENTRY_AUTH_TOKEN is set in the build job")
+          print("SENTRY_AUTH_TOKEN is not set")
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Reverse-apply the PR
+        run: python3 "$SPIKE" revert
+
+      - name: Build without the PR (clean)
+        run: python3 "$SPIKE" build without
+
+      - name: Restore the PR
+        run: python3 "$SPIKE" restore
+
+      - name: Build with the PR (incremental)
+        run: python3 "$SPIKE" build with
+
+      - name: Disk after builds
+        run: python3 "$SPIKE" disk after_builds
+
+      - name: Setup KVM
+        run: python3 "$SPIKE" kvm
+
+      - name: Mark emulator start
+        run: python3 "$SPIKE" mark emulator_start
+
+      - name: Run the flow without and with the PR
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # pin@v2.38.0
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          # A full image: ATD screenshots are all black.
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          disable-animations: true
+          disable-spellchecker: true
+          disk-size: 6144M
+          emulator-options: >
+            -no-window
+            -no-snapshot-save
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+          script: python3 "$SPIKE" run
+
+      - name: Hand the event ids to the fetch job
+        id: ids
+        run: python3 "$SPIKE" outputs
+
+      - name: Disk at end
+        if: ${{ always() }}
+        run: python3 "$SPIKE" disk end
+
+      - name: Summary
+        if: ${{ always() }}
+        run: python3 "$SPIKE" summary
+
+      - name: Upload results, device logs and screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: verify-pr-spike
+          path: |
+            ${{ runner.temp }}/verify-pr-spike
+            !${{ runner.temp }}/verify-pr-spike/*.apk
+            !${{ runner.temp }}/verify-pr-spike/*.bundle
+          retention-days: 14
+
+  fetch:
+    name: Fetch the crash events from Sentry
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      # No checkout: everything this job runs is in this file.
+      - name: Fetch the two crash events
+        shell: python
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          WITHOUT_EVENT_ID: ${{ needs.build.outputs.without_event_id }}
+          WITH_EVENT_ID: ${{ needs.build.outputs.with_event_id }}
+          EXPECTED_RUN_ID_WITHOUT: gh${{ github.run_id }}-without
+          EXPECTED_RUN_ID_WITH: gh${{ github.run_id }}-with
+          FETCH_OUT: ${{ runner.temp }}/verify-pr-spike-events
+        run: |
+          """Fetches each side's crash event and keeps only the fields the check needs.
+
+          Same auth as dev-packages/e2e-tests/maestro/utils/sentryApi.js. Reads each event
+          from two endpoints: /json/ (the raw event, which drops null-valued tags) and the
+          event detail endpoint (which keeps them). Prints only URLs, status codes and the
+          small files it writes: never the token, the request headers or a response body.
+          """
+
+          import json
+          import os
+          import re
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          BASE_URL = "https://sentry.io/api/0/projects/sentry-sdks/sentry-react-native"
+          JSON_ENDPOINT = "/events/<id>/json/"
+          DETAIL_ENDPOINT = "/events/<id>/"
+          SIDES = ("without", "with")
+          # Per request, including the request itself. Four requests at most take 12 of
+          # the job's 20 minutes.
+          DEADLINE_SECONDS = 180
+          RETRY_SECONDS = 5
+          REQUEST_TIMEOUT_SECONDS = 30
+          # The detail endpoint may refuse a token that /json/ accepts; fall back then.
+          DETAIL_REFUSALS = (401, 403)
+          EVENT_ID = re.compile(r"[0-9a-f]{32}")
+          KEPT_TAG_PREFIXES = ("verify.", "turbo_module.")
+          OUT = Path(os.environ["FETCH_OUT"])
+
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              # A followed redirect would carry the token to wherever it points.
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+
+          OPENER = urllib.request.build_opener(NoRedirect)
+
+
+          def fetch(endpoint, event_id, token, refusals=()):
+              """(status, JSON) for an endpoint, retried until it exists or the deadline passes.
+
+              A status in `refusals` is returned with no JSON instead of failing.
+              """
+              url = BASE_URL + endpoint.replace("<id>", event_id)
+              request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+              deadline = time.monotonic() + DEADLINE_SECONDS
+              attempt = 0
+              while True:
+                  attempt += 1
+                  try:
+                      remaining = max(1, deadline - time.monotonic())
+                      timeout = min(REQUEST_TIMEOUT_SECONDS, remaining)
+                      with OPENER.open(request, timeout=timeout) as response:
+                          body = response.read()
+                      print(f"{url}: HTTP 200 on attempt {attempt}", flush=True)
+                      return 200, json.loads(body)
+                  except urllib.error.HTTPError as error:
+                      status = f"HTTP {error.code}"
+                      error.close()
+                      if error.code in refusals:
+                          print(f"{url}: {status}, falling back to {JSON_ENDPOINT}", flush=True)
+                          return error.code, None
+                      # sentryApi.js gives up on 403 only; 401 and redirects cannot
+                      # succeed on a retry either.
+                      if error.code in (401, 403) or 300 <= error.code < 400:
+                          raise RuntimeError(f"{url}: {status}, not retrying") from None
+                  except OSError as error:
+                      status = type(error).__name__
+                  if time.monotonic() + RETRY_SECONDS > deadline:
+                      raise RuntimeError(
+                          f"{url}: not available after {attempt} attempts in "
+                          f"{DEADLINE_SECONDS} s, last result {status}"
+                      )
+                  print(f"{url}: {status} on attempt {attempt}, retrying", flush=True)
+                  time.sleep(RETRY_SECONDS)
+
+
+          def kept(tags):
+              keys = sorted(k for k in tags if isinstance(k, str) and k.startswith(KEPT_TAG_PREFIXES))
+              return {key: tags[key] for key in keys}
+
+
+          def raw_tags(event):
+              """/json/ tags: [key, value] pairs, without the tags whose value is null."""
+              tags = event.get("tags") or []
+              pairs = tags.items() if isinstance(tags, dict) else tags
+              return {key: value for key, value in pairs}
+
+
+          def detail_tags(event):
+              """Detail endpoint tags: {key, value} objects, null values kept."""
+              return {tag.get("key"): tag.get("value") for tag in event.get("tags") or []}
+
+
+          def error_fields(errors):
+              """Each error's type and the field it names. Never its rejected value."""
+              fields = []
+              for error in errors or []:
+                  # /json/ has the name at the top level, the detail endpoint under "data".
+                  name = error.get("name") or (error.get("data") or {}).get("name")
+                  fields.append({"type": error.get("type"), "name": name})
+              return fields
+
+
+          def meta_error_codes(meta):
+              """The error codes in /json/'s _meta.tags, without the original values.
+
+              Keys are paths into the event's raw tag list, such as "3.1" for the value
+              of the fourth tag.
+              """
+              codes = {}
+
+              def walk(node, path):
+                  for key, child in node.items():
+                      if key == "":
+                          errors = (child or {}).get("err") or []
+                          codes[".".join(path)] = [e[0] if isinstance(e, list) else e for e in errors]
+                      elif isinstance(child, dict):
+                          walk(child, [*path, key])
+
+              walk(meta, [])
+              return codes
+
+
+          def check_run_id(tags, event_id, run_id, endpoint):
+              if tags.get("verify.run_id") != run_id:
+                  raise RuntimeError(f"{event_id}: refused, verify.run_id from {endpoint} is not {run_id}")
+
+
+          def summarize(event_id, run_id, raw, detail_status, detail):
+              """The fields under comparison, after checking both responses are this run's."""
+              if raw.get("event_id") != event_id:
+                  raise RuntimeError(f"{event_id}: the {JSON_ENDPOINT} response is for another event")
+              tags = raw_tags(raw)
+              check_run_id(tags, event_id, run_id, JSON_ENDPOINT)
+              exceptions = (raw.get("exception") or {}).get("values") or []
+              summary = {
+                  "event_id": event_id,
+                  "detail_status": detail_status,
+                  "platform": raw.get("platform"),
+                  # Sentry lists chained exceptions innermost first; the last is the
+                  # one the issue is titled after.
+                  "exception_type": exceptions[-1].get("type") if exceptions else None,
+              }
+              source = {
+                  "event_id": JSON_ENDPOINT,
+                  "platform": JSON_ENDPOINT,
+                  "exception_type": JSON_ENDPOINT,
+              }
+              if detail is not None:
+                  if detail.get("eventID") != event_id:
+                      raise RuntimeError(f"{event_id}: the {DETAIL_ENDPOINT} response is for another event")
+                  tags = detail_tags(detail)
+                  check_run_id(tags, event_id, run_id, DETAIL_ENDPOINT)
+                  summary["tags"] = kept(tags)
+                  summary["errors"] = error_fields(detail.get("errors"))
+                  source["tags"] = source["errors"] = DETAIL_ENDPOINT
+              else:
+                  summary["tags"] = kept(tags)
+                  summary["errors"] = error_fields(raw.get("errors"))
+                  source["tags"] = source["errors"] = JSON_ENDPOINT
+                  meta = (raw.get("_meta") or {}).get("tags")
+                  if meta:
+                      summary["_meta.tags"] = meta_error_codes(meta)
+                      source["_meta.tags"] = JSON_ENDPOINT
+              summary["source"] = source
+              return summary
+
+
+          def main():
+              token = os.environ.get("SENTRY_AUTH_TOKEN", "")
+              if not token:
+                  sys.exit("SENTRY_AUTH_TOKEN is empty")
+              OUT.mkdir(parents=True, exist_ok=True)
+              failures = []
+              for side in SIDES:
+                  event_id = os.environ[f"{side.upper()}_EVENT_ID"]
+                  # Built in this job from github.run_id, not taken from the build job.
+                  run_id = os.environ[f"EXPECTED_RUN_ID_{side.upper()}"]
+                  if not EVENT_ID.fullmatch(event_id):
+                      failures.append(f"{side}: malformed event id from the build job")
+                      continue
+                  try:
+                      _, raw = fetch(JSON_ENDPOINT, event_id, token)
+                      detail_status, detail = fetch(DETAIL_ENDPOINT, event_id, token, DETAIL_REFUSALS)
+                      summary = summarize(event_id, run_id, raw, detail_status, detail)
+                  except (RuntimeError, ValueError, AttributeError, TypeError) as error:
+                      # None of these messages carries a response body.
+                      failures.append(f"{side}: {type(error).__name__}: {error}")
+                      continue
+                  text = json.dumps(summary, indent=2) + "\n"
+                  (OUT / f"{side}.json").write_text(text)
+                  print(f"{side}.json:\n{text}", flush=True)
+              if failures:
+                  sys.exit("\n".join(failures))
+
+
+          main()
+
+
+      - name: Upload the fetched fields
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: verify-pr-spike-events
+          path: ${{ runner.temp }}/verify-pr-spike-events
+          retention-days: 14
